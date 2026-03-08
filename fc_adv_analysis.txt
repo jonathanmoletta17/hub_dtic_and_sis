@@ -1,0 +1,784 @@
+=== TARGETS_ACTORS SCHEMA ===
+  id                             int(10) unsigned
+  itemtype                       varchar(255)
+  items_id                       int(10) unsigned
+  actor_role                     int(11)
+  actor_type                     int(11)
+  actor_value                    int(10) unsigned
+  use_notification               tinyint(1)
+  uuid                           varchar(255)
+
+=== TARGETS_ACTORS BY FORM (SOLVER GROUPS) ===
+
+  TARGET 1 (FORM 1 'Ar-Condicionado'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 2 (FORM 2 'Elevadores'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 3 (FORM 3 'Carregadores'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 12 (FORM 13 'T├®cnico de Redes'):
+    ASSIGN: type=TECH_GROUP_FROM_OBJ value=12
+
+  TARGET 17 (FORM 1 'Ar-Condicionado'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 18 (FORM 3 'Carregadores'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 19 (FORM 4 'Copa'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 20 (FORM 5 'El├®trica'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 21 (FORM 2 'Elevadores'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 22 (FORM 6 'Hidr├íulica'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 23 (FORM 7 'Jardinagem'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 24 (FORM 8 'Limpeza'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 25 (FORM 9 'Marcenaria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 26 (FORM 10 'Mensageria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 27 (FORM 11 'Pedreiro'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 28 (FORM 12 'Pintura'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 29 (FORM 13 'T├®cnico de Redes'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=TECH_GROUP_FROM_OBJ value=12
+
+  TARGET 30 (FORM 14 'Vidra├ºaria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 37 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 39 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 41 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 43 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 44 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 45 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 46 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 47 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 48 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 49 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 50 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 51 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 52 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 53 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 54 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 55 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 56 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 57 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 58 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 59 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 60 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 61 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 62 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 63 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 64 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 65 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 66 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 67 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 68 (FORM 18 'Diversos'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 89 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 90 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 91 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 92 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 93 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 94 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 95 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 96 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 97 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 98 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 100 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 102 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 103 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 104 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 105 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 106 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 107 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 108 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 109 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 110 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 111 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 112 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 113 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 114 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 115 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 116 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 117 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 118 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 119 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 120 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 121 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 122 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 123 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 124 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 125 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 126 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 127 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 128 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 130 (FORM 21 'Ar-Condicionado'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 132 (FORM 22 'Carregadores'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=CREATOR value=0
+
+  TARGET 134 (FORM 23 'Copa'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 136 (FORM 24 'El├®trica'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 138 (FORM 25 'Elevadores'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 140 (FORM 26 'Hidr├íulica'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 142 (FORM 27 'Jardinagem'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 144 (FORM 28 'Limpeza'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 146 (FORM 29 'Marcenaria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 148 (FORM 30 'Mensageria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 150 (FORM 31 'Pedreiro'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 152 (FORM 32 'Pintura'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 153 (FORM 34 'T├®cnico de Redes'):
+    ASSIGN: type=TECH_GROUP_FROM_OBJ value=12
+
+  TARGET 154 (FORM 34 'T├®cnico de Redes'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=TECH_GROUP_FROM_OBJ value=12
+
+  TARGET 155 (FORM 35 'Vidra├ºaria'):
+    ASSIGN: type=GROUP_FROM_OBJ value=492
+
+  TARGET 156 (FORM 35 'Vidra├ºaria'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 161 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 163 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 165 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 167 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 170 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 171 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 173 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 175 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 177 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 179 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 181 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 183 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 186 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 197 (FORM 38 'CONSERVA├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=572
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 198 (FORM 38 'CONSERVA├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=572
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 199 (FORM 38 'CONSERVA├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=572
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 200 (FORM 38 'CONSERVA├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=572
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 201 (FORM 38 'CONSERVA├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=572
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 202 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+
+  TARGET 203 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 204 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 205 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 206 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 207 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 208 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 209 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 210 (FORM 39 'MANUTEN├ç├âO'):
+    ASSIGN: type=GROUP_FROM_OBJ value=634
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 216 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 218 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 220 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 222 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 224 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 226 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 229 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 230 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 232 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 234 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 236 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 238 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 240 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 242 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 245 (FORM 40 'Multiplas Demandas'):
+    ASSIGN: type=VALIDATOR value=0
+    ASSIGN: type=GROUP_FROM_OBJ value=696
+
+  TARGET 246 (FORM 36 'Projeto'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 256 (FORM 41 'CHECKLIST'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 257 (FORM 41 'CHECKLIST'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 258 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 259 (FORM ? '?'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 260 (FORM 43 'CHECKLIST [Duplicar]'):
+    ASSIGN: type=VALIDATOR value=0
+
+  TARGET 261 (FORM 43 'CHECKLIST [Duplicar]'):
+    ASSIGN: type=VALIDATOR value=0
+
+
+=== CHECKLIST 41 TARGETS ===
+  TARGET 256: 'Checklist' -> 'Checklist'
+    template=0 entity=1(val=0)
+    cat_rule=1(q=0) loc=1(q=0)
+    associate_rule=1(q=0) sla=1
+    show_rule=1 tag=1 tags_q= tags_s=
+  TARGET 257: 'CHECKLIST teste somente mostrar equipamentos com erro' -> 'CHECKLIST teste somente mostrar equipamentos com erro'
+    template=0 entity=1(val=0)
+    cat_rule=1(q=0) loc=1(q=0)
+    associate_rule=1(q=0) sla=1
+    show_rule=1 tag=1 tags_q= tags_s=
+
+=== CHECKLIST 43 TARGETS ===
+  TARGET 260: 'Checklist' -> 'Checklist'
+    template=0 entity=1(val=0)
+    cat_rule=1(q=0) loc=1(q=0)
+    associate_rule=1(q=0) sla=1
+    show_rule=1 tag=1 tags_q= tags_s=
+  TARGET 261: 'CHECKLIST teste somente mostrar equipamentos com erro' -> 'CHECKLIST teste somente mostrar equipamentos com erro'
+    template=0 entity=1(val=0)
+    cat_rule=1(q=0) loc=1(q=0)
+    associate_rule=1(q=0) sla=1
+    show_rule=1 tag=1 tags_q= tags_s=
+
+=== CHECKLIST 41 TARGET CONTENT ===
+  TARGET 256:
+  <div><strong>1) Tipo : ##answer_762##</strong></div>
+
+<div><strong>2) Checklist : ##answer_799##</strong></div>
+
+<div><strong>3) Local : ##answer_759##</strong></div>
+
+<div>┬á</div>
+
+<div>┬á</div>
+
+<div>
+
+<div>
+
+<table style="border-collapse: collapse; width: 100%;" border="1"><colgroup><col style="width: 100%;"></colgroup>
+
+<tbody>
+
+<tr>
+
+<td>
+
+<div>
+
+<h2 style="text-align: center;">Ala Residencial 2┬░ Pavimento</h2>
+
+</div>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<div>
+
+<h2><span style="font-size: 14px; font-
+  TARGET 257:
+  <div><strong>1) Tipo : ##answer_762##</strong></div>
+
+<div><strong>2) Checklist : ##answer_799##</strong></div>
+
+<div><strong>3) Local : ##answer_759##</strong></div>
+
+<div>┬á</div>
+
+<div>┬á</div>
+
+<div>
+
+<table style="border-collapse: collapse; width: 100%; height: 96px;" border="1"><colgroup><col style="width: 100%;"></colgroup>
+
+<tbody>
+
+<tr style="height: 39px;">
+
+<td style="height: 39px;">
+
+<div>
+
+<h2 style="text-align: center;">Ala Residencial 2┬░ Pavimento</h2>
+
+</div>
+
+</td>
+
+</tr>
+
+<tr sty
+
+=== CHECKLIST 43 TARGET CONTENT ===
+  TARGET 260:
+  <div><strong>1) Tipo : ##answer_2014##</strong></div>
+
+<div><strong>2) Checklist : ##answer_2015##</strong></div>
+
+<div><strong>3) Local : ##answer_2013##</strong></div>
+
+<div>┬á</div>
+
+<div>┬á</div>
+
+<div>
+
+<div>
+
+<table style="border-collapse: collapse; width: 100%;" border="1"><colgroup><col style="width: 100%;"></colgroup>
+
+<tbody>
+
+<tr>
+
+<td>
+
+<div>
+
+<h2 style="text-align: center;">Ala Residencial 2┬░ Pavimento</h2>
+
+</div>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<div>
+
+<h2><span style="font-size: 14px; fo
+  TARGET 261:
+  <div><strong>1) Tipo : ##answer_2014##</strong></div>
+
+<div><strong>2) Checklist : ##answer_2015##</strong></div>
+
+<div><strong>3) Local : ##answer_2013##</strong></div>
+
+<div>┬á</div>
+
+<div>┬á</div>
+
+<div>
+
+<table style="border-collapse: collapse; width: 100%; height: 96px;" border="1"><colgroup><col style="width: 100%;"></colgroup>
+
+<tbody>
+
+<tr style="height: 39px;">
+
+<td style="height: 39px;">
+
+<div>
+
+<h2 style="text-align: center;">Ala Residencial 2┬░ Pavimento</h2>
+
+</div>
+
+</td>
+
+</tr>
+
+<tr 
+
+
+=== ITEMS_TARGETTICKETS (Linked) ===
+  TT=38 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=39 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=43 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=45 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=44 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=46 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=47 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=48 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=49 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=50 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=51 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=52 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=53 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=54 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=55 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=56 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=57 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=58 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=59 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=60 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=61 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=62 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=63 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=64 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=65 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=66 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=67 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=41)
+  TT=68 (FORM 18 'Diversos') -> CHILD -> PluginFormcreatorTargetTicket(id=40)
+  TT=245 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=242 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=240 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=238 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=236 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=234 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=232 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=230 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=229 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=226 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=224 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=222 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=220 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+  TT=216 (FORM 40 'Multiplas Demandas') -> LINK -> PluginFormcreatorTargetTicket(id=218)
+
+
+=== TICKET RULES ===
+  RULE 157 rank=1 match=AND type=RuleTicket | Adiciona GG CONSERVACAO
+  RULE 149 rank=2 match=AND type=RuleTicket | Tarefas servi├ºos Manuten├º├úo
+  RULE 153 rank=3 match=AND type=RuleTicket | GG-conserva├º├úo
+  RULE 148 rank=5 match=AND type=RuleTicket | Novo chamado
+  RULE 151 rank=9 match=AND type=RuleTicket | Aprova├º├úo
+  RULE 154 rank=11 match=AND type=RuleTicket | DTIC Observador
+  RULE 155 rank=12 match=AND type=RuleTicket | Adiciona Grupo por categoria
+  RULE 156 rank=13 match=AND type=RuleTicket | Adicionar grupo Manuten├º├úo
+  RULE 158 rank=14 match=AND type=RuleTicket | Mapa PP01
+  RULE 159 rank=15 match=AND type=RuleTicket | Mapa PP02
+  RULE 160 rank=16 match=AND type=RuleTicket | Mapa PP03
+  RULE 161 rank=17 match=AND type=RuleTicket | Mapa PP04
+  RULE 162 rank=18 match=AND type=RuleTicket | Mapa PP00
+  RULE 167 rank=19 match=AND type=RuleTicket | Mapa CC03
+  RULE 168 rank=20 match=AND type=RuleTicket | Mapa CC -S02
+  RULE 169 rank=21 match=AND type=RuleTicket | Mapa CC -S01
+  RULE 170 rank=22 match=AND type=RuleTicket | Mapa CC01
+  RULE 171 rank=23 match=AND type=RuleTicket | Mapa CC02
+  RULE 172 rank=24 match=AND type=RuleTicket | Mapa AR01
+  RULE 173 rank=25 match=AND type=RuleTicket | Mapa AR02
+  RULE 174 rank=26 match=AND type=RuleTicket | Mapa AR03
+  RULE 175 rank=27 match=AND type=RuleTicket | Mapa AR04
+  RULE 176 rank=28 match=AND type=RuleTicket | Mapa AR Subsolo
+  RULE 177 rank=29 match=AND type=RuleTicket | Mapa Galp├úo Crioulo
+  RULE 179 rank=31 match=AND type=RuleTicket | novo rejeitado
+
+
+=== TICKET TEMPLATES ===
+  Template 1: entity=0 | 'Default'
+  Template 3: entity=1 | 'Diversos'
+  Template 4: entity=1 | 'Chamado padr├úo'
+  Template 5: entity=0 | 'Checklist Ilumina├º├úo'
+
+
+=== FORMCREATOR ENTITY CONFIGS (sample) ===
+  {'id': 1, 'entities_id': 1, 'replace_helpdesk': -2, 'default_form_list_mode': -2, 'sort_order': -2, 'is_kb_separated': -2, 'is_search_visible': -2, 'is_dashboard_visible': -2, 'is_header_visible': -2, 'is_search_issue_visible': -2, 'tile_design': -2, 'header': None, 'service_catalog_home': -2}
+  {'id': 2, 'entities_id': 2, 'replace_helpdesk': -2, 'default_form_list_mode': -2, 'sort_order': -2, 'is_kb_separated': -2, 'is_search_visible': -2, 'is_dashboard_visible': -2, 'is_header_visible': -2, 'is_search_issue_visible': -2, 'tile_design': -2, 'header': None, 'service_catalog_home': -2}
+  {'id': 3, 'entities_id': 3, 'replace_helpdesk': -2, 'default_form_list_mode': -2, 'sort_order': -2, 'is_kb_separated': -2, 'is_search_visible': -2, 'is_dashboard_visible': -2, 'is_header_visible': -2, 'is_search_issue_visible': -2, 'tile_design': -2, 'header': None, 'service_catalog_home': -2}
+  {'id': 4, 'entities_id': 4, 'replace_helpdesk': -2, 'default_form_list_mode': -2, 'sort_order': -2, 'is_kb_separated': -2, 'is_search_visible': -2, 'is_dashboard_visible': -2, 'is_header_visible': -2, 'is_search_issue_visible': -2, 'tile_design': -2, 'header': None, 'service_catalog_home': -2}
+  {'id': 5, 'entities_id': 5, 'replace_helpdesk': -2, 'default_form_list_mode': -2, 'sort_order': -2, 'is_kb_separated': -2, 'is_search_visible': -2, 'is_dashboard_visible': -2, 'is_header_visible': -2, 'is_search_issue_visible': -2, 'tile_design': -2, 'header': None, 'service_catalog_home': -2}
+
+
+DONE

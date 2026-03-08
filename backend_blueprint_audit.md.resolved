@@ -1,0 +1,39 @@
+# Auditoria Arquitetural: Backend (API Universal para Dashboards)
+
+## 1. Fundação e Conexão (Database Layer)
+
+*   **Tecnologia e ORM:** O backend utiliza o **SQLAlchemy** no modo assíncrono (`AsyncSession`) em conjunto com os drivers do motor MySQL subjacente (provavelmente `aiomysql` ou nativo assíncrono).
+*   **Gerenciamento de Contexto:** A estratégia arquitetural adota **Pools de Conexão Isolados** por contexto. Em [app/core/database.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/database.py), os motores SQL são inicializados dinamicamente durante o boot (função [_init_engines()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/database.py#22-48)). Temos piscinas (`create_async_engine`) configuradas separadamente para "DTIC" e "SIS".
+*   **Injeção de Dependência:** O roteamento de contexto ocorre de forma bastante inteligente: o parâmetro de rota `{context}` (ex: `/api/v1/sis/db/...`) é injetado via Dependency Injection na função assíncrona [get_db(context: str)](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/database.py#52-69). Esta função atua como um Roteador de Banco de Dados de Leitura, selecionando o engine correto sem misturar as sessões do DTIC com as do SIS.
+*   **Banco Local:** Notavelmente existe também um banco auxiliar SQLite local roteado por [get_local_db()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/database.py#70-74), aparentemente gerindo estados do domínio de autenticação/aplicativos locais.
+*   **Esquemas e Tipagens:** Diferentemente de ORMs opinionados que criam "Modelos" formais (`class Ticket(Base)`), a abordagem escolhida pela API para leitura de volume adota pragmatismo e alta performance: As tabelas GLPI nativas (Ex: `glpi_tickets`) estão englobadas em uma "Whitelist de Segurança" em Memória ([query_engine_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/query_engine_service.py)), e e o SQL é construído por manipulação textual segura [text(sql)](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/app/%5Bcontext%5D/layout.tsx#8-33).
+
+## 2. Queries e Endpoints Existentes (Ticket Fetching)
+
+A boa notícia aqui é que o backend já abriga uma arquitetura madura moldada nas visões **CQRS (Command Query Responsibility Segregation)** para consultas em modo *Read-Only*.
+
+*   **Busca de Chamados (Listagem e Paginação):** Existe um endpoint `GET /api/v1/{context}/db/tickets` lidado por [ticket_list_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/ticket_list_service.py). A paginação é real e nativa via **LIMIT / OFFSET** no motor SQL (`limit=100`, `offset=0`), incluindo filtros via Query Params por Status, Request ID, Grupos e Departamento. A junção (JOIN) e busca a entidades como técnico responsável parece estar coberta internamente pelo serviço.
+*   **Tradução de Status GLPI:** Em [stats_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/stats_service.py), encontramos as regras numéricas nativas já convertidas funcionalmente durante a execução do banco (sem processar for-loops pesados em Python). Por exemplo, a instrução SQL consolida: `CASE WHEN t.status IN (2, 3) THEN 1 END AS em_atendimento`, evidenciando a ciência técnica sobre o motor do GLPI.
+
+## 3. Regras de Contexto e Segregação (DTIC vs SIS)
+
+O backend realiza o Isolamento e Segregação Multitenant (DTIC vs Conservação vs Manutenção) nos seguintes moldes:
+
+*   **Rota e Base:** O parâmetro inicial de qualquer rota decide o banco (Engine "DTIC" ou "SIS"), o que automaticamente restringe o acesso aos dados macro.
+*   **Isolamento SIS (Gestões):** Dentro do mesmo banco do SIS (mesmo Engine), os endpoints suportam o mapeamento dos departamentos (Manutenção / Conservação) mapeando chaves-valor (ex: `"manutencao": 22`) que se traduzem em filtros nativos SQL atrelando o `groups_id` na junção da tabela auxiliar GLPI `glpi_groups_tickets`. Esta lógica garante que um Coordenador da Conservação não veja tickets da Manutenção (Se corretamente aplicado).
+
+## 4. Análise de Lacunas (Gap Analysis versus Blueprint)
+
+Ao confrontar a "Planilha de Necessidades" exigidas nos futuros Dashboards ("Totais por categoria", "Volumes mensais", "Tops Reincidentes") com a capacidade do Backend: **Praticamente não existem Lacunas Estruturais (Gaps).**
+
+A arquitetura atual já porta um super endpoint dinâmico:
+
+*   **`GET /api/v1/{context}/db/aggregate`** (em [query_engine_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/query_engine_service.py)):
+    *   Este endpoint nos fornece agregações flexíveis guiadas pelo Frontend.
+    *   A API recebe `group_by` e aplica a agregação desejada (`agg_function="count"` by default) numa tabela à escolha da Whitelist.
+    *   Filtros como `date_field`, `date_from`, e `group_ids` podem ser mandados do Client em tempo real.
+    *   **Exemplo Prático (Blueprint):** Para contar os Top 5 problemas (ItilCategories) da semana no DTIC, não precisamos criar nova rota Backend. Basta que o componente do Painel chame: `/api/v1/dtic/db/aggregate?table=glpi_tickets&group_by=itilcategories_id&limit=5&date_field=date_creation&date_from=2024-05-01`.
+
+## Conclusões / Próximos Passos
+O Backend possui maturidade para servir os Dashboards da forma como está, evitando duplicação lógica. Os roteiros de [stats](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/db_read.py#180-205), [kpis](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/db_read.py#124-147) e a infraestrutura CQRS em `/aggregate` são reutilizáveis universalmente.
+Para avançarmos na construção visual dos gráficos, recomendo focarmos no desenvolvimento direto dos componentes no React (Echarts ou Recharts), simplesmente orquestrando chamadas Fetch nativas aos endpoints listados acima para as propulsões matemáticas e de séries temporais.

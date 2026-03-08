@@ -1,0 +1,107 @@
+# Blueprint Analítico de Engenharia de Dados (Backend e Bando de Dados GLPI)
+
+Este documento complementa o mapeamento do Frontend focando na lógica real executada no backend (em Python/FastAPI - Porta 4012 `platform/backend`) e como o Banco de Dados do GLPI é interrogado. Servirá como a especificação de regras e schemas para a API Universal e processos de ETL associados.
+
+Todas as lógicas mapeadas pressupõem a leitura ativa da tabela central `glpi_tickets` e relacionais (`glpi_groups_tickets`, `glpi_itilcategories`, etc). 
+
+---
+
+## 1. Mapeamento Fundamental de Status GLPI
+As métricas que compõem os "Cards Totais" no topo dos painéis consideram as seguintes chaves numéricas do campo `status` da tabela `glpi_tickets`:
+
+- **Novos:** `status = 1`
+- **Atribuídos / Em Atendimento:** `status = 2`
+- **Planejados:** `status = 3` (Frequentemente somado com status 2 para definir o volume real de "Em Andamento").
+- **Pendentes:** `status = 4`
+- **Solucionados / Resolvidos:** `status = 5`
+- **Fechados:** `status = 6`
+- **Total Open (Backlog Ativo):** `status IN (1, 2, 3, 4)`
+- **Concluídos Agregados:** `status IN (5, 6)`
+
+*Importante: Em quase todas as agregações (Stats e Trends), o sistema engessa as exclusões `entities_id != 0` (ignorando Root Entities puras onde não faz sentido) e `is_deleted = 0` na query base padrão.*
+
+---
+
+## 2. Segregação Rígida de Contexto (DTIC vs Manutenção vs Conservação)
+Como a aplicação unifica os contextos de TI e facilities no mesmo banco, a separação departamental de visualização não é feita baseada apenas em Entidade, mas através de um **Filtro Híbrido Categoria-Grupo** aplicado dinamicamente em cada rota invocada.
+
+A query realiza um `AND` contendo uma filtragem Opcional (Or), permitindo capturar chamados associados aos Grupos Técnicos daquele setor OU às Árvores de Categorias adequadas. 
+
+**Fragmento SQL para o contexto da Manutenção:**
+```sql
+AND (
+    t.id IN (SELECT tickets_id FROM glpi_groups_tickets WHERE groups_id = 22)
+    OR t.id IN (
+        SELECT t2.id FROM glpi_tickets t2 
+        JOIN glpi_itilcategories c ON t2.itilcategories_id = c.id 
+        WHERE c.completename LIKE 'Manutenção%' OR c.completename LIKE 'CC-Manutenção%'
+    )
+)
+```
+
+**Fragmento SQL para o contexto da Conservação:**
+Grupos e strings similares:
+```sql
+AND (
+    t.id IN (SELECT tickets_id FROM glpi_groups_tickets WHERE groups_id = 21)
+    OR t.id IN (
+        SELECT t2.id FROM glpi_tickets t2 
+        JOIN glpi_itilcategories c ON t2.itilcategories_id = c.id 
+        WHERE c.completename LIKE 'Conservação%' OR c.completename LIKE 'CC-Conservação%'
+    )
+)
+```
+*(Ref: `platform/backend/src/services/metrics.py:90 - _apply_department_filter_raw`)*
+
+---
+
+## 3. Lógica de Queries Complexas do Motor de Dashboards
+
+### 3.1. Inconsistências de Processo (/metrics/v1/inconsistencies)
+Este endpoint varre regras específicas do fluxo de trabalho usando queries SQL em blocos. O motor fica em `src/services/inconsistency.py: InconsistencyEngine`.
+
+* **Regra R01 (Triagem Vencida):** Ticket não alterado num estágio novo.
+  `status = 1 AND date < NOW() - INTERVAL 2 HOUR`
+  
+* **Regra W1 (Atendimento Fantasma):** Técnico trocou status mas esqueceu de se alocar.
+  `status IN (2, 3) AND id NOT IN (SELECT tickets_id FROM glpi_tickets_users WHERE type IN (2, 3))`
+  
+* **Regra G2 (Sem Requerente):** Solicitante em branco nos últimos 30 dias.
+  `users_id_recipient = 0 AND date >= NOW() - INTERVAL 30 DAY`
+  
+* **Regra W2 (Resolução sem Evidência):** Sem tarefas técnicas (`Tasks`).
+  `status IN (5, 6) AND solvedate >= NOW() - INTERVAL 30 DAY AND id NOT IN (SELECT tickets_id FROM glpi_tickettasks)`
+  
+* **Regra Q1 (Resolução Relâmpago):** Fechado prematuramente, possível burlando fila de SLA.
+  `status IN (5, 6) AND solvedate >= NOW() - INTERVAL 30 DAY AND solvedate <= DATE_ADD(date, INTERVAL 60 SECOND) AND sem Tasks`
+  
+* **Regra W3 (Solução em Branco):** O conteúdo da solução é inválido vazio. Usa Join.
+  `status IN (5, 6) AND solvedate >= NOW() - INTERVAL 30 DAY AND glpi_itilsolutions.itemtype='Ticket' AND (content IS NULL OR LENGTH(TRIM(content)) < 5)`
+  
+* **Regra Q2 (Chamados Zumbis):** Backlog sem atualização prolongada.
+  `status IN (1, 2, 3, 4) AND date_mod < NOW() - INTERVAL 15 DAY`
+
+### 3.2. SLA Risk (Risco SLA)
+No Backend, é avaliado calculando em tempo de execução:
+- `hours_open = (now - t.date).total_seconds() / 3600`
+- Checa campo nativo do GLPI primeiro: se `now > t.time_to_resolve` a TAG é injetada como `"Crítico"`.
+- Se a prioridade (`t.priority`) for $\geq 4$ (Alta/Muito Alta) e as `hours_open > 24`, a tag enviada é `"Atenção"`.
+
+### 3.3. Heatmap de Intensidade
+Em vez de exportar granularmente cada chamado, realiza Grouping usando funções de banco (`HOUR()` e `DAYOFWEEK()`).
+- Eixo X (Dias): `func.dayofweek(Ticket.date)`
+- Eixo Y (Horas): `func.hour(Ticket.date) BETWEEN 8 AND 18`
+
+---
+
+## 4. Tendências e Deltas (Endpoint Carousel e Histórico)
+
+**Mecanismo de Composição da Resposta:**
+No endpoint `/analytics/dashboard-trends`, não existem *Window functions* SQL. O cálculo de Variações de Tendência da TV *NÃO OCORRE* no Backend/DB e sim de forma otimizada no Frontend a partir num mapeamento estático diário.
+
+**Lógica SQL de Tendência:**
+1. A API faz duas passagens `GROUP BY DATE` separadas e isoladas (Evitando locks custosos na tabela ticket do GLPI):
+   - **Query A (Eventos de Abertura):** Agrupa `DATE(date)` contabilizando `total_created`, filtrando `date >= start_date` AND `date <= end_date`. O `CASE` do Alchemy segmenta volumes entre "novos", "atribuidos", "pendentes".
+   - **Query B (Eventos de Solução):** Agrupa `DATE(solvedate)` e contabiliza chamados, filtrando `status IN (5, 6)` e limitando logicamente no range `solvedate >= start_date` e `<=` `end`.
+
+*Nota de Engenharia:* Para a extração com a nova API, siga esta abordagem de dupla query, entregando um vetor plano mapeado (Ex: `tickets_total: [{"date": "d/m", "value": "y"}...]`). O Hook do React que implementamos no frontend vai usar o `splice` nos últimos 14 arrays recebidos para calcular a comparação da semana atual (últimos 7 idx) com a semana anterior, processando o Delta Percentual (Visual Verde ou Vermelho da TV).

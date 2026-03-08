@@ -1,0 +1,645 @@
+================================================================================
+MISS├O 1: FORMUL┴RIOS Î SEÃıES Î CAMPOS
+================================================================================
+
+FORM ID=1: 'Ar-Condicionado' (cat=DMCPP) [9 questions]
+  SECTION 1: 'Dados Gerais' (order=1)
+    Q    1* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q    2* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q    3* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q    4* integer         'Telefone de Contato' vals=
+    Q    5  urgency         'UrgÛncia' vals=
+  SECTION 2: 'Detalhamento' (order=2)
+    Q    7* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '1', itemtype=ITILCategory
+    Q  133* text            'Assunto' vals=
+    Q    8* textarea        'DescriþÒo' vals=
+    Q    9  file            'Anexar Arquivo' vals=
+
+FORM ID=2: 'Elevadores' (cat=DMCPP) [8 questions]
+  SECTION 3: 'Dados Gerais' (order=1)
+    Q   10* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   11* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   12* integer         'Telefone de Contato' vals=
+    Q   13  urgency         'UrgÛncia' vals=
+  SECTION 4: 'Detalhamento' (order=2)
+    Q   15* select          'Tipo' vals=['IluminaþÒo', 'Parado', 'Velocidade subida/descida', 'VentilaþÒo', 'Outras Ativ
+    Q  137* text            'Assunto' vals=
+    Q   16* textarea        'DescriþÒo' vals=
+    Q   17  file            'Anexar Arquivo' vals=
+
+FORM ID=3: 'Carregadores' (cat=DMCPP) [9 questions]
+  SECTION 5: 'Dados Gerais' (order=1)
+    Q   18* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   19* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   20* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '36', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   21* integer         'Telefone de Contato' vals=
+    Q   22  urgency         'UrgÛncia' vals=
+  SECTION 6: 'Detalhamento' (order=2)
+    Q   24* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '55' itemtype=ITILCategory
+    Q  134* text            'Assunto' vals=
+    Q   25* textarea        'DescriþÒo' vals=
+    Q   26  file            'Anexar Arquivo' vals=
+
+FORM ID=4: 'Copa' (cat=DMCPP) [8 questions]
+  SECTION 7: 'Dados Gerais' (order=1)
+    Q   27* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   28* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   29* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '27', 'selectable_tree_root': '0', ' itemtype=Location
+    Q   30* integer         'Telefone de Contato' vals=
+  SECTION 8: 'Detalhamento' (order=2)
+    Q   32* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '98' itemtype=ITILCategory
+    Q  135* text            'Assunto' vals=
+    Q   33* textarea        'DescriþÒo' vals=
+    Q   34  file            'Anexar Arquivo' vals=
+
+FORM ID=5: 'ElÚtrica' (cat=DMCPP) [9 questions]
+  SECTION 9: 'Dados Gerais' (order=1)
+    Q   35* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   36* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   37* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   38* integer         'Telefone de Contato' vals=
+    Q   39  urgency         'UrgÛncia' vals=
+  SECTION 10: 'Detalhamento' (order=2)
+    Q   41* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '22' itemtype=ITILCategory
+    Q  136* text            'Assunto' vals=
+    Q   42* textarea        'DescriþÒo' vals=
+    Q   43  file            'Anexar Arquivo' vals=
+
+FORM ID=6: 'Hidrßulica' (cat=DMCPP) [9 questions]
+  SECTION 11: 'Dados Gerais' (order=1)
+    Q   44* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   45* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   46* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   47* integer         'Telefone de Contato' vals=
+    Q   48  urgency         'UrgÛncia' vals=
+  SECTION 12: 'Detalhamento' (order=2)
+    Q   50* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '30' itemtype=ITILCategory
+    Q  138* text            'Assunto' vals=
+    Q   51* textarea        'DescriþÒo' vals=
+    Q   52  file            'Anexar Arquivo' vals=
+
+FORM ID=7: 'Jardinagem' (cat=DMCPP) [8 questions]
+  SECTION 13: 'Dados Gerais' (order=1)
+    Q   53* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   54* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   55* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '31', 'selectable_tree_root': '0', ' itemtype=Location
+    Q   56* integer         'Telefone de Contato' vals=
+  SECTION 14: 'Detalhamento' (order=2)
+    Q   58* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '37' itemtype=ITILCategory
+    Q  139* text            'Assunto' vals=
+    Q   59* textarea        'DescriþÒo' vals=
+    Q   60  file            'Anexar Arquivo' vals=
+
+FORM ID=8: 'Limpeza' (cat=DMCPP) [8 questions]
+  SECTION 15: 'Dados Gerais' (order=1)
+    Q   61* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   62* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   63* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '27', 'selectable_tree_root': '0', ' itemtype=Location
+    Q   64* integer         'Telefone de Contato' vals=
+  SECTION 16: 'Detalhamento' (order=2)
+    Q   66* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '45' itemtype=ITILCategory
+    Q  140* text            'Assunto' vals=
+    Q   67* textarea        'DescriþÒo' vals=
+    Q   68  file            'Anexar Arquivo' vals=
+
+FORM ID=9: 'Marcenaria' (cat=DMCPP) [9 questions]
+  SECTION 17: 'Dados Gerais' (order=1)
+    Q   69* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   70* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   71* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   72* integer         'Telefone de Contato' vals=
+    Q   73  urgency         'UrgÛncia' vals=
+  SECTION 18: 'Detalhamento' (order=2)
+    Q   75* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '50' itemtype=ITILCategory
+    Q  141* text            'Assunto' vals=
+    Q   76* textarea        'DescriþÒo' vals=
+    Q   77  file            'Anexar Arquivo' vals=
+
+FORM ID=10: 'Mensageria' (cat=DMCPP) [9 questions]
+  SECTION 19: 'Dados Gerais' (order=1)
+    Q   78* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   79* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   83* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '36', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   80* integer         'Telefone de Contato' vals=
+    Q   81  urgency         'UrgÛncia' vals=
+  SECTION 20: 'Detalhamento' (order=2)
+    Q   84* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '128 itemtype=ITILCategory
+    Q  142* text            'Assunto' vals=
+    Q   85* textarea        'DescriþÒo' vals=
+    Q   86  file            'Anexar Arquivo' vals=
+
+FORM ID=11: 'Pedreiro' (cat=DMCPP) [9 questions]
+  SECTION 21: 'Dados Gerais' (order=1)
+    Q   87* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   88* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   89* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   90* integer         'Telefone de Contato' vals=
+    Q   91  urgency         'UrgÛncia' vals=
+  SECTION 22: 'Detalhamento' (order=2)
+    Q   93* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '81' itemtype=ITILCategory
+    Q  143* text            'Assunto' vals=
+    Q   94* textarea        'DescriþÒo' vals=
+    Q   95  file            'Anexar Arquivo' vals=
+
+FORM ID=12: 'Pintura' (cat=DMCPP) [9 questions]
+  SECTION 23: 'Dados Gerais' (order=1)
+    Q   96* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q   97* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q   98* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q   99* integer         'Telefone de Contato' vals=
+    Q  100  urgency         'UrgÛncia' vals=
+  SECTION 24: 'Detalhamento' (order=2)
+    Q  102* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '85' itemtype=ITILCategory
+    Q  144* text            'Assunto' vals=
+    Q  103* textarea        'DescriþÒo' vals=
+    Q  104  file            'Anexar Arquivo' vals=
+
+FORM ID=13: 'TÚcnico de Redes' (cat=DMCPP) [9 questions]
+  SECTION 25: 'Dados Gerais' (order=1)
+    Q  105* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  106* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  107* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  108* integer         'Telefone de Contato' vals=
+    Q  109  urgency         'UrgÛncia' vals=
+  SECTION 26: 'Detalhamento' (order=2)
+    Q  111* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '88' itemtype=ITILCategory
+    Q  146* text            'Assunto' vals=
+    Q  112* textarea        'DescriþÒo' vals=
+    Q  113  file            'Anexar Arquivo' vals=
+
+FORM ID=14: 'Vidraþaria' (cat=DMCPP) [10 questions]
+  SECTION 27: 'Dados Gerais' (order=1)
+    Q  114* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  115* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  116* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  117* integer         'Telefone de Contato' vals=
+    Q  118  urgency         'UrgÛncia' vals=
+  SECTION 28: 'Detalhamento' (order=2)
+    Q  123* select          'Tipo' vals=['InstalaþÒo', 'MediþÒo', 'RemoþÒo', 'Troca']
+    Q  120* dropdown        'Serviþo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '94' itemtype=ITILCategory
+    Q  147* text            'Assunto' vals=
+    Q  121* textarea        'DescriþÒo' vals=
+    Q  122  file            'Anexar Arquivo' vals=
+
+FORM ID=15: 'Projeto' (cat=DMCPP) [8 questions]
+  SECTION 29: 'Dados Gerais' (order=1)
+    Q  129* glpiselect      'DivisÒo / Departamento' vals={'entity_restrict': 2, 'show_tree_depth': 0, 'show_tree_root': '1', 'selectable_ itemtype=Entity
+    Q  126* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  127* integer         'Telefone de Contato' vals=
+    Q  128  urgency         'UrgÛncia' vals=
+  SECTION 30: 'Detalhamento' (order=2)
+    Q  130* select          'Tipo' vals=['Projetos DCMPC', 'Projetos Secretaria Executiva GG', 'GestÒo de Espaþos', 'Out itemtype=ITILCategory
+    Q  145* text            'Assunto' vals=
+    Q  131* textarea        'DescriþÒo' vals=
+    Q  132  file            'Anexar Arquivo' vals=
+
+FORM ID=18: 'Diversos' (cat=DMCPP) [62 questions]
+  SECTION 42: 'Dados Gerais' (order=1)
+    Q  183* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  184* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  185* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  186* text            'Telefone de Contato' vals=
+    Q  187  urgency         'UrgÛncia' vals=
+    Q  192* multiselect     'Serviþos' vals=['Ar-Condicionado', 'Carregadores', 'Copa', 'ElÚtrica', 'Elevadores', 'Hidrßulic
+  SECTION 43: 'Ar-Condicionado' (order=2) [CONDITIONAL]
+    Q  188* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '1', itemtype=ITILCategory
+    Q  191* text            'Assunto' vals=
+    Q  189* textarea        'DescriþÒo' vals=
+    Q  190  file            'Anexar Arquivo' vals=
+  SECTION 45: 'Elevadores' (order=3) [CONDITIONAL]
+    Q  193* select          'Tipo' vals=['IluminaþÒo', 'Parado', 'Velocidade subida/descida', 'VentilaþÒo', 'Outras Ativ itemtype=ITILCategory
+    Q  196* text            'Assunto' vals=
+    Q  194* textarea        'DescriþÒo' vals=
+    Q  195  file            'Anexar Arquivo' vals=
+  SECTION 46: 'ElÚtrica' (order=4) [CONDITIONAL]
+    Q  197* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '22' itemtype=ITILCategory
+    Q  200* text            'Assunto' vals=
+    Q  198* textarea        'DescriþÒo' vals=
+    Q  199  file            'Anexar Arquivo' vals=
+  SECTION 47: 'Hidrßulica' (order=5) [CONDITIONAL]
+    Q  201* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '30' itemtype=ITILCategory
+    Q  204* text            'Assunto' vals=
+    Q  202* textarea        'DescriþÒo' vals=
+    Q  203  file            'Anexar Arquivo' vals=
+  SECTION 48: 'Marcenaria' (order=6) [CONDITIONAL]
+    Q  205* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '50' itemtype=ITILCategory
+    Q  208* text            'Assunto' vals=
+    Q  206* textarea        'DescriþÒo' vals=
+    Q  207  file            'Anexar Arquivo' vals=
+  SECTION 49: 'Pedreiro' (order=7) [CONDITIONAL]
+    Q  209* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '81' itemtype=ITILCategory
+    Q  212* text            'Assunto' vals=
+    Q  210* textarea        'DescriþÒo' vals=
+    Q  211  file            'Anexar Arquivo' vals=
+  SECTION 50: 'Pintura' (order=8) [CONDITIONAL]
+    Q  213* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '85' itemtype=ITILCategory
+    Q  216* text            'Assunto' vals=
+    Q  214* textarea        'DescriþÒo' vals=
+    Q  215  file            'Anexar Arquivo' vals=
+  SECTION 51: 'TÚcnico de Redes' (order=9) [CONDITIONAL]
+    Q  217* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '88' itemtype=ITILCategory
+    Q  220* text            'Assunto' vals=
+    Q  218* textarea        'DescriþÒo' vals=
+    Q  219  file            'Anexar Arquivo' vals=
+  SECTION 52: 'Vidraþaria' (order=10) [CONDITIONAL]
+    Q  221* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '94' itemtype=ITILCategory
+    Q  224* text            'Assunto' vals=
+    Q  222* textarea        'DescriþÒo' vals=
+    Q  223  file            'Anexar Arquivo' vals=
+  SECTION 53: 'Carregadores' (order=11) [CONDITIONAL]
+    Q  225* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '55' itemtype=ITILCategory
+    Q  228* text            'Assunto' vals=
+    Q  226* textarea        'DescriþÒo' vals=
+    Q  227  file            'Anexar Arquivo' vals=
+  SECTION 54: ' Copa' (order=12) [CONDITIONAL]
+    Q  229* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '98' itemtype=ITILCategory
+    Q  232* text            'Assunto' vals=
+    Q  230* textarea        'DescriþÒo' vals=
+    Q  231  file            'Anexar Arquivo' vals=
+  SECTION 55: 'Jardinagem' (order=13) [CONDITIONAL]
+    Q  233* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '37' itemtype=ITILCategory
+    Q  236* text            'Assunto' vals=
+    Q  234* textarea        'DescriþÒo' vals=
+    Q  235  file            'Anexar Arquivo' vals=
+  SECTION 56: 'Limpeza' (order=14) [CONDITIONAL]
+    Q  237* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '45' itemtype=ITILCategory
+    Q  240* text            'Assunto' vals=
+    Q  238* textarea        'DescriþÒo' vals=
+    Q  239  file            'Anexar Arquivo' vals=
+  SECTION 57: 'Mensageria' (order=15) [CONDITIONAL]
+    Q  241* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '128 itemtype=ITILCategory
+    Q  244* text            'Assunto' vals=
+    Q  242* textarea        'DescriþÒo' vals=
+    Q  243  file            'Anexar Arquivo' vals=
+
+FORM ID=21: 'Ar-Condicionado' (cat=DMCPP) [9 questions]
+  SECTION 88: 'Dados Gerais' (order=1)
+    Q  370* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  371* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  372* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  373* integer         'Telefone de Contato' vals=
+    Q  374  urgency         'UrgÛncia' vals=
+  SECTION 89: 'Detalhamento' (order=2)
+    Q  375* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '1', itemtype=ITILCategory
+    Q  378* text            'Assunto' vals=
+    Q  376* textarea        'DescriþÒo' vals=
+    Q  377  file            'Anexar Arquivo' vals=
+
+FORM ID=22: 'Carregadores' (cat=DMCPP) [9 questions]
+  SECTION 90: 'Dados Gerais' (order=1)
+    Q  379* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  380* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  381* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '36', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  382* integer         'Telefone de Contato' vals=
+    Q  383  urgency         'UrgÛncia' vals=
+  SECTION 91: 'Detalhamento' (order=2)
+    Q  384* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '55' itemtype=ITILCategory
+    Q  387* text            'Assunto' vals=
+    Q  385* textarea        'DescriþÒo' vals=
+    Q  386  file            'Anexar Arquivo' vals=
+
+FORM ID=23: 'Copa' (cat=DMCPP) [8 questions]
+  SECTION 92: 'Dados Gerais' (order=1)
+    Q  388* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  389* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  390* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '27', 'selectable_tree_root': '0', ' itemtype=Location
+    Q  391* integer         'Telefone de Contato' vals=
+  SECTION 93: 'Detalhamento' (order=2)
+    Q  392* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '98' itemtype=ITILCategory
+    Q  395* text            'Assunto' vals=
+    Q  393* textarea        'DescriþÒo' vals=
+    Q  394  file            'Anexar Arquivo' vals=
+
+FORM ID=24: 'ElÚtrica' (cat=DMCPP) [9 questions]
+  SECTION 94: 'Dados Gerais' (order=1)
+    Q  396* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  397* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  398* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  399* integer         'Telefone de Contato' vals=
+    Q  400  urgency         'UrgÛncia' vals=
+  SECTION 95: 'Detalhamento' (order=2)
+    Q  401* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '22' itemtype=ITILCategory
+    Q  404* text            'Assunto' vals=
+    Q  402* textarea        'DescriþÒo' vals=
+    Q  403  file            'Anexar Arquivo' vals=
+
+FORM ID=25: 'Elevadores' (cat=DMCPP) [8 questions]
+  SECTION 96: 'Dados Gerais' (order=1)
+    Q  405* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  406* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  407* integer         'Telefone de Contato' vals=
+    Q  408  urgency         'UrgÛncia' vals=
+  SECTION 97: 'Detalhamento' (order=2)
+    Q  409* select          'Tipo' vals=['IluminaþÒo', 'Parado', 'Velocidade subida/descida', 'VentilaþÒo', 'Outras Ativ
+    Q  412* text            'Assunto' vals=
+    Q  410* textarea        'DescriþÒo' vals=
+    Q  411  file            'Anexar Arquivo' vals=
+
+FORM ID=26: 'Hidrßulica' (cat=DMCPP) [9 questions]
+  SECTION 98: 'Dados Gerais' (order=1)
+    Q  413* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  414* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  415* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  416* integer         'Telefone de Contato' vals=
+    Q  417  urgency         'UrgÛncia' vals=
+  SECTION 99: 'Detalhamento' (order=2)
+    Q  418* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '30' itemtype=ITILCategory
+    Q  421* text            'Assunto' vals=
+    Q  419* textarea        'DescriþÒo' vals=
+    Q  420  file            'Anexar Arquivo' vals=
+
+FORM ID=27: 'Jardinagem' (cat=DMCPP) [8 questions]
+  SECTION 100: 'Dados Gerais' (order=1)
+    Q  422* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  423* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  424* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '31', 'selectable_tree_root': '0', ' itemtype=Location
+    Q  425* integer         'Telefone de Contato' vals=
+  SECTION 101: 'Detalhamento' (order=2)
+    Q  426* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '37' itemtype=ITILCategory
+    Q  429* text            'Assunto' vals=
+    Q  427* textarea        'DescriþÒo' vals=
+    Q  428  file            'Anexar Arquivo' vals=
+
+FORM ID=28: 'Limpeza' (cat=DMCPP) [8 questions]
+  SECTION 102: 'Dados Gerais' (order=1)
+    Q  430* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  431* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  432* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '-3', 'show_tree_root': '27', 'selectable_tree_root': '0', ' itemtype=Location
+    Q  433* integer         'Telefone de Contato' vals=
+  SECTION 103: 'Detalhamento' (order=2)
+    Q  434* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '45' itemtype=ITILCategory
+    Q  437* text            'Assunto' vals=
+    Q  435* textarea        'DescriþÒo' vals=
+    Q  436  file            'Anexar Arquivo' vals=
+
+FORM ID=29: 'Marcenaria' (cat=DMCPP) [9 questions]
+  SECTION 104: 'Dados Gerais' (order=1)
+    Q  438* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  439* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  440* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  441* integer         'Telefone de Contato' vals=
+    Q  442  urgency         'UrgÛncia' vals=
+  SECTION 105: 'Detalhamento' (order=2)
+    Q  443* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '50' itemtype=ITILCategory
+    Q  446* text            'Assunto' vals=
+    Q  444* textarea        'DescriþÒo' vals=
+    Q  445  file            'Anexar Arquivo' vals=
+
+FORM ID=30: 'Mensageria' (cat=DMCPP) [9 questions]
+  SECTION 106: 'Dados Gerais' (order=1)
+    Q  447* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  448* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  451* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '36', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  449* integer         'Telefone de Contato' vals=
+    Q  450  urgency         'UrgÛncia' vals=
+  SECTION 107: 'Detalhamento' (order=2)
+    Q  452* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '128 itemtype=ITILCategory
+    Q  455* text            'Assunto' vals=
+    Q  453* textarea        'DescriþÒo' vals=
+    Q  454  file            'Anexar Arquivo' vals=
+
+FORM ID=31: 'Pedreiro' (cat=DMCPP) [9 questions]
+  SECTION 108: 'Dados Gerais' (order=1)
+    Q  456* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  457* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  458* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  459* integer         'Telefone de Contato' vals=
+    Q  460  urgency         'UrgÛncia' vals=
+  SECTION 109: 'Detalhamento' (order=2)
+    Q  461* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '81' itemtype=ITILCategory
+    Q  464* text            'Assunto' vals=
+    Q  462* textarea        'DescriþÒo' vals=
+    Q  463  file            'Anexar Arquivo' vals=
+
+FORM ID=32: 'Pintura' (cat=DMCPP) [9 questions]
+  SECTION 110: 'Dados Gerais' (order=1)
+    Q  465* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  466* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  467* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  468* integer         'Telefone de Contato' vals=
+    Q  469  urgency         'UrgÛncia' vals=
+  SECTION 111: 'Detalhamento' (order=2)
+    Q  470* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '85' itemtype=ITILCategory
+    Q  473* text            'Assunto' vals=
+    Q  471* textarea        'DescriþÒo' vals=
+    Q  472  file            'Anexar Arquivo' vals=
+
+FORM ID=34: 'TÚcnico de Redes' (cat=DMCPP) [9 questions]
+  SECTION 114: 'Dados Gerais' (order=1)
+    Q  482* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  483* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  484* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  485* integer         'Telefone de Contato' vals=
+    Q  486  urgency         'UrgÛncia' vals=
+  SECTION 115: 'Detalhamento' (order=2)
+    Q  487* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '88' itemtype=ITILCategory
+    Q  490* text            'Assunto' vals=
+    Q  488* textarea        'DescriþÒo' vals=
+    Q  489  file            'Anexar Arquivo' vals=
+
+FORM ID=35: 'Vidraþaria' (cat=DMCPP) [10 questions]
+  SECTION 116: 'Dados Gerais' (order=1)
+    Q  491* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  492* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  493* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '2', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  494* integer         'Telefone de Contato' vals=
+    Q  495  urgency         'UrgÛncia' vals=
+  SECTION 117: 'Detalhamento' (order=2)
+    Q  499* select          'Tipo' vals=['InstalaþÒo', 'MediþÒo', 'RemoþÒo', 'Troca']
+    Q  496* dropdown        'Serviþo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '94' itemtype=ITILCategory
+    Q  500* text            'Assunto' vals=
+    Q  497* textarea        'DescriþÒo' vals=
+    Q  498  file            'Anexar Arquivo' vals=
+
+FORM ID=36: 'Projeto' (cat=DMCPP) [7 questions]
+  SECTION 118: 'Dados Gerais' (order=1)
+    Q  501* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  502* integer         'Telefone de Contato' vals=
+    Q  503  urgency         'UrgÛncia' vals=
+  SECTION 119: 'Detalhamento' (order=2)
+    Q  505* select          'Tipo' vals=['Projetos DCMPC', 'Projetos Secretaria Executiva GG', 'GestÒo de Espaþos', 'Out itemtype=ITILCategory
+    Q  508* text            'Assunto' vals=
+    Q  506* textarea        'DescriþÒo' vals=
+    Q  507  file            'Anexar Arquivo' vals=
+
+FORM ID=38: 'CONSERVAÃ├O' (cat=CONSERVACAO) [26 questions]
+  SECTION 135: 'Dados Gerais' (order=1)
+    Q  571* select          'Adicionar Observador ao chamado?' vals=['SIM', 'N├O']
+    Q  572* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  573* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  574* text            'Telefone de Contato' vals=
+    Q  575  urgency         'UrgÛncia' vals=
+    Q  576* radios          'Serviþos' vals=['Carregadores', 'Copa', 'Jardinagem', 'Limpeza', 'Mensageria']
+  SECTION 145: 'Carregadores' (order=2) [CONDITIONAL]
+    Q  613* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '55' itemtype=ITILCategory
+    Q  616* text            'Assunto' vals=
+    Q  614* textarea        'DescriþÒo' vals=
+    Q  615  file            'Anexar Arquivo' vals=
+  SECTION 146: ' Copa' (order=3) [CONDITIONAL]
+    Q  617* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '98' itemtype=ITILCategory
+    Q  620* text            'Assunto' vals=
+    Q  618* textarea        'DescriþÒo' vals=
+    Q  619  file            'Anexar Arquivo' vals=
+  SECTION 147: 'Jardinagem' (order=4) [CONDITIONAL]
+    Q  621* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '37' itemtype=ITILCategory
+    Q  624* text            'Assunto' vals=
+    Q  622* textarea        'DescriþÒo' vals=
+    Q  623  file            'Anexar Arquivo' vals=
+  SECTION 148: 'Limpeza' (order=5) [CONDITIONAL]
+    Q  625* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '45' itemtype=ITILCategory
+    Q  628* text            'Assunto' vals=
+    Q  626* textarea        'DescriþÒo' vals=
+    Q  627  file            'Anexar Arquivo' vals=
+  SECTION 149: 'Mensageria' (order=6) [CONDITIONAL]
+    Q  629* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '128 itemtype=ITILCategory
+    Q  632* text            'Assunto' vals=
+    Q  630* textarea        'DescriþÒo' vals=
+    Q  631  file            'Anexar Arquivo' vals=
+
+FORM ID=39: 'MANUTENÃ├O' (cat=MANUTENCAO) [42 questions]
+  SECTION 150: 'Dados Gerais' (order=1)
+    Q  633* select          'Adicionar usußrio Observador' vals=['SIM', 'N├O']
+    Q  634* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  635* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  636* text            'Telefone de Contato' vals=
+    Q  637  urgency         'UrgÛncia' vals=
+    Q  638* radios          'Serviþos' vals=['Ar-Condicionado', 'ElÚtrica', 'Elevadores', 'Hidrßulica', 'Marcenaria', 'Pedre
+  SECTION 151: 'Ar-Condicionado' (order=2) [CONDITIONAL]
+    Q  639* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '1', itemtype=ITILCategory
+    Q  642* text            'Assunto' vals=
+    Q  640* textarea        'DescriþÒo' vals=
+    Q  641  file            'Anexar Arquivo' vals=
+  SECTION 152: 'Elevadores' (order=3) [CONDITIONAL]
+    Q  643* select          'Tipo' vals=['IluminaþÒo', 'Parado', 'Velocidade subida/descida', 'VentilaþÒo', 'Outras Ativ itemtype=ITILCategory
+    Q  646* text            'Assunto' vals=
+    Q  644* textarea        'DescriþÒo' vals=
+    Q  645  file            'Anexar Arquivo' vals=
+  SECTION 153: 'ElÚtrica' (order=4) [CONDITIONAL]
+    Q  647* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '22' itemtype=ITILCategory
+    Q  650* text            'Assunto' vals=
+    Q  648* textarea        'DescriþÒo' vals=
+    Q  649  file            'Anexar Arquivo' vals=
+  SECTION 154: 'Hidrßulica' (order=5) [CONDITIONAL]
+    Q  651* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '30' itemtype=ITILCategory
+    Q  654* text            'Assunto' vals=
+    Q  652* textarea        'DescriþÒo' vals=
+    Q  653  file            'Anexar Arquivo' vals=
+  SECTION 155: 'Marcenaria' (order=6) [CONDITIONAL]
+    Q  655* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '50' itemtype=ITILCategory
+    Q  658* text            'Assunto' vals=
+    Q  656* textarea        'DescriþÒo' vals=
+    Q  657  file            'Anexar Arquivo' vals=
+  SECTION 156: 'Pedreiro' (order=7) [CONDITIONAL]
+    Q  659* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '81' itemtype=ITILCategory
+    Q  662* text            'Assunto' vals=
+    Q  660* textarea        'DescriþÒo' vals=
+    Q  661  file            'Anexar Arquivo' vals=
+  SECTION 157: 'Pintura' (order=8) [CONDITIONAL]
+    Q  663* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '85' itemtype=ITILCategory
+    Q  666* text            'Assunto' vals=
+    Q  664* textarea        'DescriþÒo' vals=
+    Q  665  file            'Anexar Arquivo' vals=
+  SECTION 158: 'TÚcnico de Redes' (order=9) [CONDITIONAL]
+    Q  667* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '88' itemtype=ITILCategory
+    Q  670* text            'Assunto' vals=
+    Q  668* textarea        'DescriþÒo' vals=
+    Q  669  file            'Anexar Arquivo' vals=
+  SECTION 159: 'Vidraþaria' (order=10) [CONDITIONAL]
+    Q  671* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '94' itemtype=ITILCategory
+    Q  674* text            'Assunto' vals=
+    Q  672* textarea        'DescriþÒo' vals=
+    Q  673  file            'Anexar Arquivo' vals=
+
+FORM ID=40: 'Multiplas Demandas' (cat=DMCPP) [62 questions]
+  SECTION 165: 'Dados Gerais' (order=1)
+    Q  695* select          'Este atendimento Ú para quem?' vals=['Para mim', 'Para outra Pessoa']
+    Q  696* glpiselect      'Qual o nome desta pessoa?' vals={'entity_restrict': '2'} itemtype=User [CONDITIONAL]
+    Q  697* dropdown        'LocalizaþÒo' vals={'show_tree_depth': '0', 'show_tree_root': '70', 'selectable_tree_root': '0', 'e itemtype=Location
+    Q  698* text            'Telefone de Contato' vals=
+    Q  699  urgency         'UrgÛncia' vals=
+    Q  700* multiselect     'Serviþos' vals=['Ar-Condicionado', 'Carregadores', 'Copa', 'ElÚtrica', 'Elevadores', 'Hidrßulic
+  SECTION 166: 'Ar-Condicionado' (order=2) [CONDITIONAL]
+    Q  701* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '1', itemtype=ITILCategory
+    Q  704* text            'Assunto' vals=
+    Q  702* textarea        'DescriþÒo' vals=
+    Q  703  file            'Anexar Arquivo' vals=
+  SECTION 167: 'Elevadores' (order=3) [CONDITIONAL]
+    Q  705* select          'Tipo' vals=['IluminaþÒo', 'Parado', 'Velocidade subida/descida', 'VentilaþÒo', 'Outras Ativ itemtype=ITILCategory
+    Q  708* text            'Assunto' vals=
+    Q  706* textarea        'DescriþÒo' vals=
+    Q  707  file            'Anexar Arquivo' vals=
+  SECTION 168: 'ElÚtrica' (order=4) [CONDITIONAL]
+    Q  709* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '22' itemtype=ITILCategory
+    Q  712* text            'Assunto' vals=
+    Q  710* textarea        'DescriþÒo' vals=
+    Q  711  file            'Anexar Arquivo' vals=
+  SECTION 169: 'Hidrßulica' (order=5) [CONDITIONAL]
+    Q  713* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '30' itemtype=ITILCategory
+    Q  716* text            'Assunto' vals=
+    Q  714* textarea        'DescriþÒo' vals=
+    Q  715  file            'Anexar Arquivo' vals=
+  SECTION 170: 'Marcenaria' (order=6) [CONDITIONAL]
+    Q  717* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '50' itemtype=ITILCategory
+    Q  720* text            'Assunto' vals=
+    Q  718* textarea        'DescriþÒo' vals=
+    Q  719  file            'Anexar Arquivo' vals=
+  SECTION 171: 'Pedreiro' (order=7) [CONDITIONAL]
+    Q  721* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '81' itemtype=ITILCategory
+    Q  724* text            'Assunto' vals=
+    Q  722* textarea        'DescriþÒo' vals=
+    Q  723  file            'Anexar Arquivo' vals=
+  SECTION 172: 'Pintura' (order=8) [CONDITIONAL]
+    Q  725* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '85' itemtype=ITILCategory
+    Q  728* text            'Assunto' vals=
+    Q  726* textarea        'DescriþÒo' vals=
+    Q  727  file            'Anexar Arquivo' vals=
+  SECTION 173: 'TÚcnico de Redes' (order=9) [CONDITIONAL]
+    Q  729* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '88' itemtype=ITILCategory
+    Q  732* text            'Assunto' vals=
+    Q  730* textarea        'DescriþÒo' vals=
+    Q  731  file            'Anexar Arquivo' vals=
+  SECTION 174: 'Vidraþaria' (order=10) [CONDITIONAL]
+    Q  733* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '94' itemtype=ITILCategory
+    Q  736* text            'Assunto' vals=
+    Q  734* textarea        'DescriþÒo' vals=
+    Q  735  file            'Anexar Arquivo' vals=
+  SECTION 175: 'Carregadores' (order=11) [CONDITIONAL]
+    Q  737* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '55' itemtype=ITILCategory
+    Q  740* text            'Assunto' vals=
+    Q  738* textarea        'DescriþÒo' vals=
+    Q  739  file            'Anexar Arquivo' vals=
+  SECTION 176: ' Copa' (order=12) [CONDITIONAL]
+    Q  741* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '98' itemtype=ITILCategory
+    Q  744* text            'Assunto' vals=
+    Q  742* textarea        'DescriþÒo' vals=
+    Q  743  file            'Anexar Arquivo' vals=
+  SECTION 177: 'Jardinagem' (order=13) [CONDITIONAL]
+    Q  745* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '37' itemtype=ITILCategory
+    Q  748* text            'Assunto' vals=
+    Q  746* textarea        'DescriþÒo' vals=
+    Q  747  file            'Anexar Arquivo' vals=
+  SECTION 178: 'Limpeza' (order=14) [CONDITIONAL]
+    Q  749* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '45' itemtype=ITILCategory
+    Q  752* text            'Assunto' vals=
+    Q  750* textarea        'DescriþÒo' vals=
+    Q  751  file            'Anexar Arquivo' vals=
+  SECTION 179: 'Mensageria' (order=15) [CONDITIONAL]
+    Q  753* dropdown        'Tipo' vals={'show_ticket_categories': 'all', 'show_tree_depth': '0', 'show_tree_root': '128 itemtype=ITILCategory
+    Q  756* text            'Assunto' vals=
+    Q  754* textarea        'DescriþÒo' vals=
+    Q  755  file            'Anexar Arquivo' vals=
+
+FORM ID=41: 'CHECKLIST' (cat=DMCPP) [531 questions]
+  SECTION 180: 'Dados Gerais' (order=1)
+    Q  762* select          'Tipo' vals=['CALHAS E PLUVIAIS', 'HIDR┴ULICO', 'ILUMINAÃ├O', 'PEDRAS PORTUGUESAS', 'REFRIGE
+    Q  799* select          'Checklist' vals=['CORRETIVA', 'PREVENTIVA'] itemtype=Location
+    Q  759* multiselect     'Local' vals=['Ala Governamental', 'Ala Residencial'] itemtype=Location
+    Q  896  glpiselect      'Checklist Programada' vals={'entity_restrict': '2'} itemtype=Ticket
+  SECTION 181: 'Ala Residencial' (order=2) [CONDITIONAL]
+Traceback (most recent call last):
+  File "C:\tmp\fc_analyze.py", line 31, in <module>
+    print(f"    Q{q['id']:5d}{req} {q['fieldtype']:15s} '{q['name']}' vals={vals}{it}{qsr}")
+  File "C:\Users\jonathan-moletta\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 64: character maps to <undefined>

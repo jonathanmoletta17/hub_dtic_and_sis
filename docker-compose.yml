@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # ── 1. Nginx Proxy Manager ────────────────────────────────
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: always
+    ports:
+      - "8080:80"     # Tráfego HTTP de entrada (clientes)
+      - "81:81"     # Painel Admin do NPM (só rede interna)
+      - "8443:443"   # HTTPS
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - npm-rede
+      - apps-rede
+
+  # ── 2. Aplicação: Backend (FastAPI) ────────────────────────
+  glpi-backend:
+    build: .
+    container_name: glpi-universal-backend
+    env_file:
+      - .env
+    environment:
+      - TZ=America/Sao_Paulo
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - apps-rede
+
+  # ── 3. Aplicação: Frontend (Next.js) ───────────────────────
+  glpi-frontend:
+    build: 
+      context: ./web
+    container_name: glpi-tensor-frontend
+    environment:
+      - HOST=0.0.0.0
+    restart: unless-stopped
+    depends_on:
+      - glpi-backend
+    networks:
+      - apps-rede
+
+# ── Redes ──────────────────────────────────────────────────
+networks:
+  npm-rede:
+    driver: bridge
+  apps-rede:
+    driver: bridge
+
+# ── Volumes ─────────────────────────────────────────────────
+volumes:
+  npm_data:
+  npm_letsencrypt:
+  npm_db_data:
