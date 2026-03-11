@@ -1,0 +1,2096 @@
+npm  | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm  | useradd warning: npm's uid 0 outside of the UID_MIN 1000 and UID_MAX 60000 range.
+npm  | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm  | [1;34m❯ [1;36mChecking paths ...[0m
+npm  | [1;34m❯ [1;36mSetting ownership ...[0m
+npm  | - /data ... 
+npm  |     SKIPPED
+npm  | - /etc/letsencrypt ... 
+npm  |     SKIPPED
+npm  | - /run/nginx ... 
+npm  |     SKIPPED
+npm  | - /tmp/nginx ... 
+npm  |     SKIPPED
+npm  | - /var/cache/nginx ... 
+npm  |     SKIPPED
+npm  | - /var/lib/logrotate ... 
+npm  |     SKIPPED
+npm  | - /var/lib/nginx ... 
+npm  |     SKIPPED
+npm  | - /var/log/nginx ... 
+npm  |     SKIPPED
+npm  | - /etc/nginx/nginx ... 
+npm  |     SKIPPED
+npm  | - /etc/nginx/nginx.conf ... 
+npm  |     SKIPPED
+npm  | - /etc/nginx/conf.d ... 
+npm  |     SKIPPED
+npm  | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm  | - /opt/certbot ... 
+npm  |     SKIPPED
+npm  | - /opt/certbot/bin ... 
+npm  |     SKIPPED
+npm  | - /opt/certbot/lib/python3.11/site-packages ... 
+npm  |     SKIPPED
+npm  | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm  | [1;34m❯ [1;36mIPv6 ...[0m
+npm  | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm  | - /etc/nginx/conf.d/production.conf
+npm  | - /etc/nginx/conf.d/default.conf
+npm  | - /etc/nginx/conf.d/include/proxy.conf
+npm  | - /etc/nginx/conf.d/include/block-exploits.conf
+npm  | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm  | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm  | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm  | - /etc/nginx/conf.d/include/assets.conf
+npm  | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm  | - /etc/nginx/conf.d/include/force-ssl.conf
+npm  | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm  | - /etc/nginx/conf.d/include/log-proxy.conf
+npm  | - /etc/nginx/conf.d/include/log-stream.conf
+npm  | - /etc/nginx/conf.d/include/resolvers.conf
+npm  | Enabling IPV6 in hosts in: /data/nginx
+npm  | [1;34m❯ [1;36mDocker secrets ...[0m
+npm  | 
+npm  | -------------------------------------
+npm  |  _   _ ____  __  __
+npm  | | \ | |  _ \|  \/  |
+npm  | |  \| | |_) | |\/| |
+npm  | | |\  |  __/| |  | |
+npm  | |_| \_|_|   |_|  |_|
+npm  | -------------------------------------
+npm  | User:  npm PUID:0 ID:0 GROUP:0
+npm  | Group: npm PGID:0 ID:0
+npm  | -------------------------------------
+npm  | 
+npm  | [1;34m❯ [1;36mStarting nginx ...[0m
+npm  | [1;34m❯ [1;36mStarting backend ...[0m
+npm  | [3/9/2026] [9:50:53 AM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm  | [3/9/2026] [9:50:53 AM] [Global   ] › ℹ  info      Creating a new JWT key pair...
+npm  | [3/9/2026] [9:50:57 AM] [Global   ] › ℹ  info      Wrote JWT key pair to config file: /data/keys.json
+npm  | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      Current database version: none
+npm  | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] Migrating Up...
+npm  | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] auth Table created
+npm  | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] user Table created
+glpi-tensor-frontend  | ▲ Next.js 16.1.6 (Turbopack)
+glpi-tensor-frontend  | - Local:         http://localhost:3000
+glpi-tensor-frontend  | - Network:       http://0.0.0.0:3000
+glpi-tensor-frontend  | 
+glpi-tensor-frontend  | ✓ Starting...
+glpi-tensor-frontend  | ✓ Ready in 766ms
+glpi-tensor-frontend  |  GET / 200 in 1831ms (compile: 1618ms, render: 214ms)
+glpi-tensor-frontend  | ⚠ Cross origin request detected from carregadores.local to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+glpi-tensor-frontend  | Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] user_permission Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] proxy_host Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] redirection_host Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] dead_host Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] stream Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] certificate Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list_auth Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [initial-schema] audit_log Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [websockets] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [websockets] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [forward_host] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [forward_host] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [http2_support] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [http2_support] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [http2_support] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [http2_support] dead_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [forward_scheme] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [forward_scheme] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [disabled] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [disabled] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [disabled] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [disabled] dead_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [disabled] stream Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [custom_locations] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [custom_locations] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [hsts] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [hsts] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [hsts] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [hsts] dead_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [settings] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [settings] setting Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [access_list_client] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list_client Table created
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] access_list Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [pass_auth] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [pass_auth] access_list Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirection_scheme] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirection_scheme] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirection_status_code] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirection_status_code] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [stream_domain] stream Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [stream_ssl] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [stream_ssl] stream Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirect_auto_scheme] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [redirect_auto_scheme] redirection_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [trust_forwarded_proto] Migrating Up...
+npm                   | [3/9/2026] [9:50:57 AM] [Migrate  ] › ℹ  info      [trust_forwarded_proto] proxy_host Table altered
+npm                   | [3/9/2026] [9:50:57 AM] [Setup    ] › ℹ  info      Default settings added
+npm                   | [3/9/2026] [9:50:57 AM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/9/2026] [9:50:57 AM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/9/2026] [9:50:57 AM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/9/2026] [9:50:57 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/9/2026] [9:50:57 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/9/2026] [9:50:57 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/9/2026] [9:50:57 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/9/2026] [9:50:58 AM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/9/2026] [9:50:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [9:50:58 AM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/9/2026] [9:50:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [9:50:58 AM] [Global   ] › ℹ  info      Backend PID 184 listening on port 3000 ...
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [3/9/2026] [11:53:02 AM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/9/2026] [11:53:02 AM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/9/2026] [11:53:02 AM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/9/2026] [11:53:02 AM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/9/2026] [11:53:02 AM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/9/2026] [11:53:02 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/9/2026] [11:53:02 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/9/2026] [11:53:02 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/9/2026] [11:53:02 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/9/2026] [11:53:02 AM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/9/2026] [11:53:02 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [11:53:02 AM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/9/2026] [11:53:02 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [11:53:02 AM] [Global   ] › ℹ  info      Backend PID 174 listening on port 3000 ...
+npm                   | [3/9/2026] [12:53:02 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [12:53:02 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [1:53:02 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [1:53:02 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [2:53:02 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [2:53:02 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [3:53:01 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [3:53:01 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [4:53:01 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [4:53:01 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [5:53:01 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/9/2026] [5:53:01 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/9/2026] [5:53:01 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [5:53:01 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [5:53:01 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/9/2026] [5:53:01 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/9/2026] [5:53:01 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/9/2026] [6:53:01 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [6:53:01 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [7:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [7:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [8:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [8:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [9:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [9:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [10:30:56 PM] [Express  ] › ℹ  info      Creating a new user in setup mode
+npm                   | [3/9/2026] [10:30:57 PM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/9/2026] [10:39:35 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/9/2026] [10:42:11 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/9/2026] [10:43:04 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/9/2026] [10:46:13 PM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/9/2026] [10:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [10:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/9/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/9/2026] [11:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/9/2026] [11:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/9/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/9/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/9/2026] [11:53:00 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:09:12 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/10/2026] [12:11:23 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:11:44 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:13:10 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:14:47 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:15:41 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:16:18 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:18:51 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:24:13 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/10/2026] [12:39:26 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/10/2026] [12:52:59 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [12:52:59 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [12:54:27 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/10/2026] [1:52:59 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [1:52:59 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [2:52:59 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [2:52:59 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [3:52:59 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [3:52:59 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [4:52:59 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [4:52:59 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [5:52:58 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/10/2026] [5:52:58 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/10/2026] [5:52:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [5:52:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [5:52:59 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/10/2026] [5:52:59 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/10/2026] [5:52:59 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [6:52:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [6:52:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [7:52:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [7:52:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [8:52:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [8:52:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [9:52:58 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [9:52:58 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [10:52:57 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [10:52:57 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [11:52:57 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/10/2026] [11:52:57 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/10/2026] [11:52:57 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [11:52:57 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [11:52:58 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/10/2026] [11:52:58 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/10/2026] [11:52:58 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [12:52:57 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [12:52:57 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [1:52:57 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [1:52:57 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [2:52:57 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [2:52:57 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [3:52:56 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [3:52:56 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [4:52:56 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [4:52:56 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [5:52:56 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/10/2026] [5:52:56 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/10/2026] [5:52:56 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [5:52:56 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [5:52:56 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/10/2026] [5:52:57 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/10/2026] [5:52:57 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/10/2026] [6:52:56 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [6:52:56 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [7:52:56 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [7:52:56 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [8:52:57 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [8:52:57 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [9:52:58 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [9:52:58 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [10:52:59 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [10:52:59 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/10/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/10/2026] [11:53:00 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [11:53:00 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/10/2026] [11:53:00 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/10/2026] [11:53:00 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/10/2026] [11:57:47 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/10/2026] [11:57:47 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/10/2026] [11:57:47 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/10/2026] [11:57:47 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/10/2026] [11:57:47 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/10/2026] [11:57:47 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/10/2026] [11:57:47 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/10/2026] [11:57:47 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/10/2026] [11:57:47 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/10/2026] [11:57:47 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/10/2026] [11:57:47 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/10/2026] [11:57:47 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/10/2026] [11:57:47 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/10/2026] [11:57:47 PM] [Global   ] › ℹ  info      Backend PID 176 listening on port 3000 ...
+npm                   | [3/11/2026] [12:57:50 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [12:57:50 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [1:57:50 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [1:57:50 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [2:57:50 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [2:57:50 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [3:34:46 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/11/2026] [3:36:06 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/11/2026] [3:57:50 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [3:57:50 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [4:57:49 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [4:57:49 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [5:11:46 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/11/2026] [5:31:48 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/11/2026] [5:57:49 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [5:57:49 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [5:57:49 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [5:57:49 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [5:57:49 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [5:57:50 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [5:57:50 AM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [3/11/2026] [6:27:49 AM] [Remote Version] › ℹ  info      Fetching https://api.github.com/repos/NginxProxyManager/nginx-proxy-manager/releases/latest
+npm                   | [3/11/2026] [6:57:49 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [6:57:49 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [7:57:49 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [7:57:49 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [8:57:48 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [8:57:48 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [9:57:48 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [9:57:48 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [11:46:52 AM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [11:46:52 AM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [11:46:52 AM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [11:46:52 AM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [11:46:52 AM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [11:46:52 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [11:46:52 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [11:46:52 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [11:46:52 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [11:46:52 AM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [11:46:52 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [11:46:52 AM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [11:46:52 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [11:46:52 AM] [Global   ] › ℹ  info      Backend PID 176 listening on port 3000 ...
+npm                   | [3/11/2026] [12:46:52 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [12:46:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [1:46:52 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [1:46:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [2:46:52 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [2:46:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [3:46:51 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [3:46:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [4:46:51 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [4:46:51 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [5:46:51 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [5:46:51 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [5:46:51 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [5:46:51 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [5:46:51 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [5:46:52 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [5:46:52 PM] [Nginx    ] › ℹ  info      Reloading Nginx
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [6:35:13 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [6:35:14 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [6:35:14 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [6:35:14 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [6:35:14 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [6:35:14 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [6:35:14 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [6:35:14 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [6:35:14 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [6:35:15 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [6:35:15 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [6:35:15 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [6:35:15 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [6:35:15 PM] [Global   ] › ℹ  info      Backend PID 176 listening on port 3000 ...
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [6:42:12 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [6:42:12 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [6:42:12 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [6:42:12 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [6:42:12 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [6:42:12 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [6:42:12 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [6:42:13 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [6:42:13 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [6:42:13 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [6:42:13 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [6:42:13 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [6:42:13 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [6:42:13 PM] [Global   ] › ℹ  info      Backend PID 177 listening on port 3000 ...
+npm                   | [3/11/2026] [6:42:31 PM] [Global   ] › ℹ  info      PID 177 received SIGTERM
+npm                   | [3/11/2026] [6:42:31 PM] [Global   ] › ℹ  info      Stopping.
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [6:43:04 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [6:43:04 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [6:43:04 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [6:43:04 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [6:43:05 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [6:43:05 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [6:43:05 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [6:43:05 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [6:43:05 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [6:43:05 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [6:43:05 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [6:43:05 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [6:43:05 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [6:43:05 PM] [Global   ] › ℹ  info      Backend PID 178 listening on port 3000 ...
+npm                   | [3/11/2026] [6:43:59 PM] [Global   ] › ℹ  info      PID 178 received SIGTERM
+npm                   | [3/11/2026] [6:43:59 PM] [Global   ] › ℹ  info      Stopping.
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [6:44:16 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [6:44:17 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [6:44:17 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [6:44:17 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [6:44:17 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [6:44:17 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [6:44:17 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [6:44:17 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [6:44:17 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [6:44:17 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [6:44:17 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [6:44:17 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [6:44:17 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [6:44:17 PM] [Global   ] › ℹ  info      Backend PID 177 listening on port 3000 ...
+npm                   | [3/11/2026] [7:44:17 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [7:44:17 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [8:44:17 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [8:44:17 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [9:44:17 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [9:44:17 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [1;34m❯ [1;36mConfiguring npm user ...[0m
+npm                   | 0
+npm                   | usermod: no changes
+npm                   | [1;34m❯ [1;36mConfiguring npm group ...[0m
+npm                   | [1;34m❯ [1;36mChecking paths ...[0m
+npm                   | [1;34m❯ [1;36mSetting ownership ...[0m
+npm                   | - /data ... 
+npm                   |     SKIPPED
+npm                   | - /etc/letsencrypt ... 
+npm                   |     SKIPPED
+npm                   | - /run/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /tmp/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/cache/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/logrotate ... 
+npm                   |     SKIPPED
+npm                   | - /var/lib/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /var/log/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/nginx.conf ... 
+npm                   |     SKIPPED
+npm                   | - /etc/nginx/conf.d ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mChanging ownership of certbot directories, this may take some time ...[0m
+npm                   | - /opt/certbot ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/bin ... 
+npm                   |     SKIPPED
+npm                   | - /opt/certbot/lib/python3.11/site-packages ... 
+npm                   |     SKIPPED
+npm                   | [1;34m❯ [1;36mDynamic resolvers ...[0m
+npm                   | [1;34m❯ [1;36mIPv6 ...[0m
+npm                   | Enabling IPV6 in hosts in: /etc/nginx/conf.d
+npm                   | - /etc/nginx/conf.d/production.conf
+npm                   | - /etc/nginx/conf.d/default.conf
+npm                   | - /etc/nginx/conf.d/include/proxy.conf
+npm                   | - /etc/nginx/conf.d/include/block-exploits.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache-stream.conf
+npm                   | - /etc/nginx/conf.d/include/ip_ranges.conf
+npm                   | - /etc/nginx/conf.d/include/letsencrypt-acme-challenge.conf
+npm                   | - /etc/nginx/conf.d/include/assets.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-cache.conf
+npm                   | - /etc/nginx/conf.d/include/force-ssl.conf
+npm                   | - /etc/nginx/conf.d/include/ssl-ciphers.conf
+npm                   | - /etc/nginx/conf.d/include/log-proxy.conf
+npm                   | - /etc/nginx/conf.d/include/log-stream.conf
+npm                   | - /etc/nginx/conf.d/include/resolvers.conf
+npm                   | Enabling IPV6 in hosts in: /data/nginx
+npm                   | - /data/nginx/proxy_host/1.conf
+npm                   | - /data/nginx/proxy_host/2.conf
+npm                   | [1;34m❯ [1;36mDocker secrets ...[0m
+npm                   | 
+npm                   | -------------------------------------
+npm                   |  _   _ ____  __  __
+npm                   | | \ | |  _ \|  \/  |
+npm                   | |  \| | |_) | |\/| |
+npm                   | | |\  |  __/| |  | |
+npm                   | |_| \_|_|   |_|  |_|
+npm                   | -------------------------------------
+npm                   | User:  npm PUID:0 ID:0 GROUP:0
+npm                   | Group: npm PGID:0 ID:0
+npm                   | -------------------------------------
+npm                   | 
+npm                   | [1;34m❯ [1;36mStarting nginx ...[0m
+npm                   | [1;34m❯ [1;36mStarting backend ...[0m
+npm                   | [3/11/2026] [10:11:51 PM] [Global   ] › ℹ  info      Using Sqlite: /data/database.sqlite
+npm                   | [3/11/2026] [10:11:51 PM] [Migrate  ] › ℹ  info      Current database version: none
+npm                   | [3/11/2026] [10:11:52 PM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+npm                   | [3/11/2026] [10:11:52 PM] [Setup    ] › ℹ  info      Logrotate completed.
+npm                   | [3/11/2026] [10:11:52 PM] [Global   ] › ℹ  info      IP Ranges fetch is enabled
+npm                   | [3/11/2026] [10:11:52 PM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+npm                   | [3/11/2026] [10:11:52 PM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+npm                   | [3/11/2026] [10:11:52 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+npm                   | [3/11/2026] [10:11:52 PM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+npm                   | [3/11/2026] [10:11:52 PM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+npm                   | [3/11/2026] [10:11:52 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [10:11:52 PM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+npm                   | [3/11/2026] [10:11:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+npm                   | [3/11/2026] [10:11:52 PM] [Global   ] › ℹ  info      Backend PID 176 listening on port 3000 ...
+npm                   | [3/11/2026] [11:11:52 PM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+npm                   | [3/11/2026] [11:11:52 PM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
+glpi-universal-backend  | Traceback (most recent call last):
+glpi-universal-backend  |   File "/usr/local/bin/uvicorn", line 8, in <module>
+glpi-universal-backend  |     sys.exit(main())
+glpi-universal-backend  |              ^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+glpi-universal-backend  |     return self.main(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1406, in main
+glpi-universal-backend  |     rv = self.invoke(ctx)
+glpi-universal-backend  |          ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+glpi-universal-backend  |     return ctx.invoke(self.callback, **ctx.params)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+glpi-universal-backend  |     return callback(*args, **kwargs)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 433, in main
+glpi-universal-backend  |     run(
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/main.py", line 606, in run
+glpi-universal-backend  |     server.run()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 75, in run
+glpi-universal-backend  |     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+glpi-universal-backend  |     return runner.run(main)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+glpi-universal-backend  |     return self._loop.run_until_complete(task)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 79, in serve
+glpi-universal-backend  |     await self._serve(sockets)
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 86, in _serve
+glpi-universal-backend  |     config.load()
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/config.py", line 441, in load
+glpi-universal-backend  |     self.loaded_app = import_from_string(self.app)
+glpi-universal-backend  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
+glpi-universal-backend  |     module = importlib.import_module(module_str)
+glpi-universal-backend  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+glpi-universal-backend  |     return _bootstrap._gcd_import(name[level:], package, level)
+glpi-universal-backend  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+glpi-universal-backend  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+glpi-universal-backend  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+glpi-universal-backend  |   File "/app/app/main.py", line 17, in <module>
+glpi-universal-backend  |     from app.routers import (
+glpi-universal-backend  |   File "/app/app/routers/items.py", line 16, in <module>
+glpi-universal-backend  |     router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
+glpi-universal-backend  |                                                                                  ^^^^^^^
+glpi-universal-backend  | NameError: name 'Depends' is not defined
