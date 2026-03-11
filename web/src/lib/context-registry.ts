@@ -1,3 +1,19 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ZONA PROTEGIDA — context-registry.ts                           ║
+// ║  Qualquer alteração aqui exige plano pré-aprovado.              ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PROIBIDO:                                                       ║
+// ║    · Alterar a interface base ContextManifest                    ║
+// ║    · Remover qualquer entrada existente de módulo                ║
+// ║    · Renomear keys de módulos (quebra AppSidebar e guards)       ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PERMITIDO (sem aprovação):                                      ║
+// ║    · Registrar novas entradas de módulo no final                 ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  DEPENDENTES: AppSidebar, ContextGuard, todos os menus de nav    ║
+// ║  RISCO: entry removida → módulo some silenciosamente da UI       ║
+// ║  REFERÊNCIA: ARCHITECTURE_RULES.md → Zonas de Proteção          ║
+// ╚══════════════════════════════════════════════════════════════════╝
 /**
  * context-registry.ts — Single Source of Truth para contextos e menus do Hub.
  *

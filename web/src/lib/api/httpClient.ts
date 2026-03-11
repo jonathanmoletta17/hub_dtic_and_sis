@@ -1,3 +1,19 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ZONA PROTEGIDA — httpClient.ts                                 ║
+// ║  Qualquer alteração aqui exige plano pré-aprovado.              ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PROIBIDO:                                                       ║
+// ║    · Alterar regex/replace de normalização de paths de contexto  ║
+// ║    · Mudar lógica de injeção de Session-Token                    ║
+// ║    · Alterar interceptores sem mapear TODOS os paths afetados    ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PERMITIDO (sem aprovação):                                      ║
+// ║    · Adicionar headers específicos para novos endpoints          ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  DEPENDENTES: todos os módulos frontend (100% dos requests)      ║
+// ║  RISCO: regex malformada → 404 em toda a aplicação               ║
+// ║  REFERÊNCIA: ARCHITECTURE_RULES.md → Zonas de Proteção          ║
+// ╚══════════════════════════════════════════════════════════════════╝
 /**
  * httpClient — Módulo HTTP centralizado para comunicação com o Backend.
  *

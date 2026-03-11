@@ -1,3 +1,12 @@
+# ══════════════════════════════════════════════════════════════
+# ZONA CRÍTICA — contexts.yaml
+# IDs abaixo são confirmados via GLPI físico. Não alterar sem
+# verificação real na instância correspondente.
+# Alterar este arquivo OBRIGATORIAMENTE requer verificação em:
+#   → app/services/auth_service.py (resolve_hub_roles)
+#   → web/src/lib/context-registry.ts
+# Referência: ARCHITECTURE_RULES.md
+# ══════════════════════════════════════════════════════════════
 contexts:
   dtic:
     label: "Ecossistema Digital"

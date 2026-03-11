@@ -212,6 +212,12 @@ async def list_users(
 class GroupAssignmentRequest(BaseModel):
     group_id: int
 
+class RevokeGroupResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: int
+    group_id: int
+
 @router.post("/users/{user_id}/groups")
 async def assign_user_to_group(
     context: str,
@@ -243,7 +249,7 @@ async def assign_user_to_group(
         await client._http.aclose()
 
 
-@router.delete("/users/{user_id}/groups/{group_id}")
+@router.delete("/users/{user_id}/groups/{group_id}", response_model=RevokeGroupResponse)
 async def remove_user_from_group(
     context: str,
     user_id: int,
@@ -262,7 +268,7 @@ async def remove_user_from_group(
         success = await client.remove_user_from_group(user_id, group_id)
         if success:
             logger.info(f"[ADMIN] {admin_id} (via {context}) revogou grupo {group_id} do usuário {user_id} (target: {target})")
-            return {"success": True, "message": "Acesso revogado", "user_id": user_id, "group_id": group_id}
+            return RevokeGroupResponse(success=True, message="Acesso revogado", user_id=user_id, group_id=group_id)
         else:
             raise HTTPException(status_code=404, detail="Usuário não possui este acesso.")
     except HTTPException:

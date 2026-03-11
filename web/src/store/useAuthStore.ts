@@ -1,3 +1,20 @@
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ZONA PROTEGIDA — useAuthStore.ts                               ║
+// ║  Qualquer alteração aqui exige plano pré-aprovado.              ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PROIBIDO:                                                       ║
+// ║    · Alterar chaves omitidas do persist (_credentials)           ║
+// ║    · Reescrever a topologia dos tipos base (AuthMeResponse)      ║
+// ║    · Renomear campos do contrato: session_token, hub_roles,      ║
+// ║      app_access, active_hub_role                                 ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  PERMITIDO (sem aprovação):                                      ║
+// ║    · Adicionar seletores de leitura (get somente)                ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  DEPENDENTES: ContextGuard, ProtectedRoute, AppSidebar,          ║
+// ║               PermissionsMatrix, middleware.ts                   ║
+// ║  REFERÊNCIA: ARCHITECTURE_RULES.md → Contratos Imutáveis        ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 

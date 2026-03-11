@@ -1,3 +1,20 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  ZONA PROTEGIDA — auth_service.py                               ║
+# ║  Qualquer alteração aqui exige plano pré-aprovado.              ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  PROIBIDO:                                                       ║
+# ║    · Reescrever fallback_login (L182-278)                        ║
+# ║    · Reescrever build_login_response                             ║
+# ║    · Alterar ordenação de roles em resolve_hub_roles             ║
+# ║    · Remover qualquer tratamento de erro ou fallback             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  PERMITIDO (sem aprovação):                                      ║
+# ║    · Adicionar logging                                           ║
+# ║    · Adicionar novos providers no final do arquivo               ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  DEPENDENTES: toda a API + todo o frontend (via hub_roles)       ║
+# ║  REFERÊNCIA: ARCHITECTURE_RULES.md → Zonas de Proteção          ║
+# ╚══════════════════════════════════════════════════════════════════╝
 import logging
 from typing import List, Optional
 from fastapi import HTTPException
