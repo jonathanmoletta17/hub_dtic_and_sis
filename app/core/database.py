@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.config import settings
+from app.core.context_registry import registry
 
 # Engine pools per context
 _engines = {}
@@ -20,31 +21,18 @@ local_session_maker = sessionmaker(
 )
 
 def _init_engines():
-    # DTIC Engine
-    dtic_conf = settings.get_db_config("dtic")
-    _engines["dtic"] = create_async_engine(
-        dtic_conf.dsn,
-        pool_size=5,
-        max_overflow=10,
-        pool_recycle=3600,
-        echo=False
-    )
-    _session_makers["dtic"] = sessionmaker(
-        _engines["dtic"], class_=AsyncSession, expire_on_commit=False
-    )
-    
-    # SIS Engine
-    sis_conf = settings.get_db_config("sis")
-    _engines["sis"] = create_async_engine(
-        sis_conf.dsn,
-        pool_size=5,
-        max_overflow=10,
-        pool_recycle=3600,
-        echo=False
-    )
-    _session_makers["sis"] = sessionmaker(
-        _engines["sis"], class_=AsyncSession, expire_on_commit=False
-    )
+    for ctx in registry.list_parents():
+        dsn = f"mysql+aiomysql://{ctx.db_user}:{ctx.db_pass}@{ctx.db_host}:{ctx.db_port}/{ctx.db_name}"
+        _engines[ctx.id] = create_async_engine(
+            dsn,
+            pool_size=5,
+            max_overflow=10,
+            pool_recycle=3600,
+            echo=False
+        )
+        _session_makers[ctx.id] = sessionmaker(
+            _engines[ctx.id], class_=AsyncSession, expire_on_commit=False
+        )
 
 # Inicializa ao carregar o módulo
 _init_engines()
@@ -53,14 +41,11 @@ async def get_db(context: str = "dtic") -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency injection handler to provide an active Read-Only AsyncSession 
     to the correct database instance based on the context parameter.
-    Sub-contextos SIS (sis-manutencao, sis-memoria) são normalizados para 'sis'.
+    Sub-contextos SIS (sis-manutencao, sis-memoria) são normalizados para seus parents.
     """
-    ctx = context.lower()
-    # Normalizar sub-contextos SIS → 'sis' (compartilham mesma instância DB)
-    if ctx.startswith("sis"):
-        ctx = "sis"
+    ctx = registry.get_base_context(context)
     if ctx not in _session_makers:
-        raise ValueError(f"Context '{context}' not configured for database connections.")
+        raise ValueError(f"Context '{context}' (base '{ctx}') not configured for database connections.")
         
     async_session_maker = _session_makers[ctx]
     

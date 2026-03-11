@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { decodeHtmlEntities } from "@/lib/utils/formatters";
 
 interface TicketCardProps {
@@ -72,7 +72,12 @@ export function TicketCard({
             {category}
           </span>
         )}
-        <span className={`text-[11px] font-semibold uppercase tracking-wider ${statusTextColors[statusColor]}`}>
+        <span
+          className={`text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 ${statusTextColors[statusColor]}`}
+          title={status === "Solucionado" ? "Aguardando limite de avaliação do usuário" : status === "Fechado" ? "Ticket encerrado definitivamente" : undefined}
+        >
+          {status === "Solucionado" && <Clock size={10} />}
+          {status === "Fechado" && <CheckCircle2 size={10} />}
           {status}
         </span>
       </div>

@@ -1,0 +1,156 @@
+{
+  "dtic": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    },
+    {
+      "id": "knowledge",
+      "icon": "Database",
+      "route": "/knowledge",
+      "requiredRoles": []
+    },
+    {
+      "id": "permissoes",
+      "icon": "Shield",
+      "route": "/permissoes",
+      "requiredRoles": [
+        "gestor"
+      ],
+      "requireApp": "permissoes"
+    }
+  ],
+  "sis": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    },
+    {
+      "id": "chargers",
+      "icon": "Cpu",
+      "route": "/gestao-carregadores",
+      "requiredRoles": [],
+      "requireApp": "carregadores"
+    }
+  ],
+  "sis-manutencao": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    }
+  ],
+  "sis-memoria": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    }
+  ]
+}

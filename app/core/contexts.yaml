@@ -1,0 +1,56 @@
+contexts:
+  dtic:
+    label: "Ecossistema Digital"
+    glpi_url: ${dtic_glpi_url}
+    glpi_user_token: ${dtic_glpi_user_token}
+    glpi_app_token: ${dtic_glpi_app_token}
+    db_host: ${db_host_dtic}
+    db_port: ${db_port_dtic}
+    db_name: ${db_name_dtic}
+    db_user: ${db_user_dtic}
+    db_pass: ${db_pass_dtic}
+    db_context: dtic
+    color: "#3B82F6"
+    theme: theme-dtic
+    features: [dashboard, search, knowledge, new-ticket, permissoes]
+    profile_map:
+      4: { role: gestor, label: "Super-Admin", route: dashboard }
+      9: { role: solicitante, label: "Central do Solicitante", route: user }
+      6: { role: tecnico, label: "Console do Técnico", route: dashboard }
+      20: { role: gestor, label: "Gestão e Administração", route: dashboard }
+  
+  sis:
+    label: "Gestão Operacional"
+    glpi_url: ${sis_glpi_url}
+    glpi_user_token: ${sis_glpi_user_token}
+    glpi_app_token: ${sis_glpi_app_token}
+    db_host: ${db_host}
+    db_port: ${db_port}
+    db_name: ${db_name}
+    db_user: ${db_user}
+    db_pass: ${db_pass}
+    db_context: sis
+    color: "#F59E0B"
+    theme: theme-sis
+    features: [dashboard, search, chargers, new-ticket]
+    profile_map:
+      4: { role: gestor, label: "Super-Admin", route: dashboard, context_override: sis }
+      9: { role: solicitante, label: "Portfólio de Chamados", route: user }
+      3: { role: gestor, label: "Gestão Estratégica", route: dashboard, context_override: sis }
+    group_map:
+      22: { role: tecnico-manutencao, label: "Manutenção e Conservação", context_override: sis-manutencao }
+      21: { role: tecnico-conservacao, label: "Conservação e Memória", context_override: sis-memoria }
+
+  sis-manutencao:
+    parent: sis
+    label: "Manutenção e Conservação"
+    color: "#F59E0B"
+    theme: theme-manutencao
+    group_ids: [22]
+
+  sis-memoria:
+    parent: sis
+    label: "Preservação Patrimonial"
+    color: "#8B5CF6"
+    theme: theme-memoria
+    group_ids: [21]

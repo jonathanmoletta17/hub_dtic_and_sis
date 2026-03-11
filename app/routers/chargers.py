@@ -1,11 +1,15 @@
+import json
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 
+from sqlalchemy import text
 from app.core.database import get_db, get_local_db
+from app.core.session_manager import session_manager
 from app.core.rate_limit import limiter
 from app.services.charger_service import ChargerService
 from app.services.charger_commands import (
@@ -24,7 +28,6 @@ from app.schemas.charger_schemas import (
 
 # TODO: Idealmente centralizar em 'app.core.dependencies'
 async def get_glpi_session(context: str) -> GLPIClient:
-    from app.core.session_manager import session_manager
     try:
         return await session_manager.get_client(context)
     except ValueError as e:
@@ -41,7 +44,30 @@ async def get_user_glpi_session(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-router = APIRouter(prefix="/api/v1/{context}/chargers", tags=["Chargers"])
+from app.core.auth_guard import verify_session
+
+# ── Global Schedule persistence (JSON local) ─────────────
+_SETTINGS_FILE = Path(__file__).resolve().parent.parent.parent / "data" / "charger_settings.json"
+_DEFAULT_SCHEDULE = {"business_start": "08:00", "business_end": "18:00", "work_on_weekends": False}
+
+def _read_global_schedule() -> dict:
+    """Lê o schedule global do arquivo JSON. Fallback para defaults se não existir."""
+    try:
+        if _SETTINGS_FILE.exists():
+            return json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+    except Exception as e:
+        logger.warning("Erro ao ler charger_settings.json: %s", e)
+    return _DEFAULT_SCHEDULE.copy()
+
+def _write_global_schedule(data: dict) -> None:
+    """Persiste o schedule global em arquivo JSON."""
+    try:
+        _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _SETTINGS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        logger.error("Erro ao gravar charger_settings.json: %s", e)
+
+router = APIRouter(prefix="/api/v1/{context}/chargers", tags=["Chargers"], dependencies=[Depends(verify_session)])
 logger = logging.getLogger(__name__)
 service = ChargerService()
 
@@ -65,7 +91,6 @@ async def get_kanban(
 @router.get("/{charger_id}/schedule", operation_id="getChargerSchedule")
 async def get_schedule(charger_id: int, db: AsyncSession = Depends(get_db)):
     """Busca o horário de expediente nativo do carregador do MySQL."""
-    from sqlalchemy import text
     sql = text("""
         SELECT inciodoexpedientefield, fimdoexpedientefield
         FROM glpi_plugin_fields_plugingenericobjectcarregadorcarregadors
@@ -96,12 +121,25 @@ async def update_schedule(
 
 @router.get("/global-schedule", response_model=GlobalScheduleResponse, operation_id="getGlobalSchedule")
 async def get_global_schedule():
-    """Busca o horário de expediente global."""
-    return GlobalScheduleResponse(id=1, business_start="08:00", business_end="18:00", work_on_weekends=False, updated_at=datetime.utcnow())
+    """Busca o horário de expediente global persistido em data/charger_settings.json."""
+    data = _read_global_schedule()
+    return GlobalScheduleResponse(
+        id=1,
+        business_start=data.get("business_start", "08:00"),
+        business_end=data.get("business_end", "18:00"),
+        work_on_weekends=data.get("work_on_weekends", False),
+        updated_at=datetime.utcnow()
+    )
 
 @router.put("/global-schedule", response_model=GlobalScheduleResponse, operation_id="updateGlobalSchedule")
 async def update_global_schedule(data: GlobalScheduleUpdate):
-    """Atualiza o horário de expediente global (Apenas mock para compatibilidade de frontend legada)."""
+    """Atualiza o horário de expediente global e persiste em data/charger_settings.json."""
+    payload = {
+        "business_start": data.business_start,
+        "business_end": data.business_end,
+        "work_on_weekends": data.work_on_weekends
+    }
+    _write_global_schedule(payload)
     return GlobalScheduleResponse(
         id=1,
         business_start=data.business_start,
@@ -113,7 +151,6 @@ async def update_global_schedule(data: GlobalScheduleUpdate):
 @router.get("/{charger_id}/offline", operation_id="getChargerOffline")
 async def get_offline(charger_id: int, db: AsyncSession = Depends(get_db)):
     """Busca o status offline nativo do carregador."""
-    from sqlalchemy import text
     sql = text("""
         SELECT statusofflinefield, motivodainatividadefield, expectativaderetornofield
         FROM glpi_plugin_fields_plugingenericobjectcarregadorcarregadors

@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.charger_schemas import (
     KanbanResponse, KanbanDemand, KanbanAvailableResource, KanbanAllocatedResource,
-    KanbanLastTicket, ChargerInTicket, ScheduleBase, RankingItem, RankingResponse
+    KanbanLastTicket, ChargerInTicket, ScheduleBase, RankingItem, RankingResponse,
+    TicketDetailResponse, AvailableChargerBrief, LastTicketBrief
 )
 from app.core.utils.time_utils import calculate_business_minutes, format_elapsed_time
 from app.services.charger_queries import (
@@ -228,9 +229,8 @@ class ChargerService:
         self,
         ticket_id: int,
         glpi_db: AsyncSession
-    ) -> "TicketDetailResponse":
+    ) -> TicketDetailResponse:
         """Busca detalhes completos de um ticket para o modal."""
-        from app.schemas.charger_schemas import TicketDetailResponse, AvailableChargerBrief, LastTicketBrief
         now = datetime.now()
 
         res_ticket = await glpi_db.execute(SQL_TICKET_BASIC_DETAILS, {"tid": ticket_id})

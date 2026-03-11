@@ -4,22 +4,16 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Clock, CheckCircle2, AlertCircle,
-  Search, Bell, Plus, Loader2,
+  Search, Loader2,
 } from "lucide-react";
-import { PremiumButton } from "@/components/ui/premium-button";
+
 import { KanbanBoard } from "@/components/ui/kanban-board";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fetchStats, fetchTickets } from "@/lib/api/ticketService";
 import type { TicketSummary, TicketStats } from "@/lib/api/types";
-
-const contextData: Record<string, { title: string; subtitle: string; color: string; accentClass: string }> = {
-  "dtic": { title: "Portal do Técnico", subtitle: "DTIC — Tecnologia da Informação", color: "text-accent-blue", accentClass: "bg-accent-blue" },
-  "sis": { title: "Gestão Operacional", subtitle: "SIS — Serviços e Infraestrutura", color: "text-accent-orange", accentClass: "bg-accent-orange" },
-  "sis-manutencao": { title: "Gestão Operacional", subtitle: "SIS — Manutenção e Conservação", color: "text-accent-orange", accentClass: "bg-accent-orange" },
-  "sis-memoria": { title: "Preservação Patrimonial", subtitle: "SIS — Conservação e Memória", color: "text-accent-violet", accentClass: "bg-accent-violet" },
-};
+import { getContextManifest } from "@/lib/context-registry";
 
 // Mapeamento contexto → group_id para filtro de tickets
 const contextGroupMap: Record<string, number | null> = {
@@ -33,7 +27,12 @@ export default function DashboardPage() {
   const params = useParams();
   const router = useRouter();
   const context = params.context as string;
-  const current = contextData[context] || contextData["dtic"];
+  const manifest = getContextManifest(context) || getContextManifest("dtic")!;
+  const current = {
+    title: manifest.dashboardTitle,
+    subtitle: manifest.dashboardSubtitle,
+    accentClass: manifest.accentClass.split(' ')[2], // text-accent-blue
+  };
   const { currentUserRole, setActiveView } = useAuthStore();
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
@@ -131,14 +130,7 @@ export default function DashboardPage() {
                   placeholder="Buscar chamados..."
                   className="bg-surface-2 border border-white/[0.06] rounded-lg py-2.5 pl-9 pr-4 text-[14px] outline-none focus:border-white/[0.12] w-56 transition-all text-text-2 placeholder:text-text-3/40"
                 />
-              </div>
-              <button className="p-2 rounded-lg bg-white/[0.03] text-text-3/50 hover:text-text-2 transition-all relative">
-                <Bell size={16} />
-              </button>
-              <PremiumButton className="flex items-center gap-1.5 py-2.5 px-5 text-[14px]">
-                <Plus size={14} />
-                <span className="hidden lg:block">Novo Ticket</span>
-              </PremiumButton>
+            </div>
             </div>
           </header>
 

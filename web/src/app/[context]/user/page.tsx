@@ -13,10 +13,10 @@ import { fetchMyTickets } from "@/lib/api/ticketService";
 import type { TicketSummary } from "@/lib/api/types";
 
 const contextData: Record<string, { title: string; subtitle: string; color: string; accentClass: string }> = {
-  "dtic": { title: "Meus Chamados", subtitle: "DTIC — Tecnologia da Informação", color: "text-accent-blue", accentClass: "bg-accent-blue" },
-  "sis": { title: "Meus Chamados", subtitle: "SIS — Serviços e Infraestrutura", color: "text-accent-orange", accentClass: "bg-accent-orange" },
-  "sis-manutencao": { title: "Meus Chamados", subtitle: "SIS — Manutenção e Conservação", color: "text-accent-orange", accentClass: "bg-accent-orange" },
-  "sis-memoria": { title: "Meus Chamados", subtitle: "SIS — Conservação e Memória", color: "text-accent-violet", accentClass: "bg-accent-violet" },
+  "dtic": { title: "Chamados", subtitle: "DTIC — Tecnologia da Informação", color: "text-accent-blue", accentClass: "bg-accent-blue" },
+  "sis": { title: "Chamados", subtitle: "SIS — Infraestrutura e Serviços", color: "text-accent-orange", accentClass: "bg-accent-orange" },
+  "sis-manutencao": { title: "Chamados", subtitle: "SIS — Manutenção e Conservação", color: "text-accent-orange", accentClass: "bg-accent-orange" },
+  "sis-memoria": { title: "Chamados", subtitle: "SIS — Conservação e Memória", color: "text-accent-violet", accentClass: "bg-accent-violet" },
 };
 
 // Status → cor
@@ -83,15 +83,12 @@ export default function UserTicketsPage() {
           <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 shrink-0">
             <div>
               <h1 className="text-xl lg:text-2xl font-semibold text-text-1 tracking-tight">{current.title}</h1>
-              <p className="text-text-2/50 text-[14px] mt-0.5">
-                {current.subtitle}{!loading && ` — ${filtered.length} chamado${filtered.length !== 1 ? 's' : ''}`}
-              </p>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <PremiumButton className="flex items-center gap-1.5 py-2.5 px-5 text-[14px]">
-                <Plus size={14} />
-                <span className="hidden lg:block">Novo Chamado</span>
-              </PremiumButton>
+          <p className="text-text-2/50 text-[14px] mt-0.5">{current.subtitle}</p>
+          {!loading && (
+            <p className="text-text-3/40 text-[12px] mt-1">
+              {filtered.length} {filtered.length === 1 ? "registro" : "registros"}
+            </p>
+          )}
             </div>
           </header>
 

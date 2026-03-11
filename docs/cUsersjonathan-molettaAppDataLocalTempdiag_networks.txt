@@ -1,0 +1,10 @@
+NETWORK ID     NAME                         DRIVER    SCOPE
+9f1fbfb3a0b8   apps_network                 bridge    local
+ddc1fcce7a52   bridge                       bridge    local
+aa59db99f3c5   chrono-schrodinger_default   bridge    local
+3aa85b82d380   host                         host      local
+9a83390b516c   infra_llm_network            bridge    local
+e6b06beeeb71   none                         null      local
+1e797ac985af   platform_platform-net        bridge    local
+a64f4481de7e   tensor-aurora_apps-rede      bridge    local
+0812565eade1   tensor-aurora_npm-rede       bridge    local

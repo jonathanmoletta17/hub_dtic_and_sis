@@ -6,11 +6,10 @@
  *   ESCRITAS (detalhe individual) → GLPI REST API (session token do user)
  */
 
+import { API_BASE } from './httpClient';
 import { getItem, getSubItems } from "./glpiService";
 import type { TicketSummary, TicketDetail, FollowUp, TicketStats } from "./types";
 import { TICKET_STATUS_MAP, TICKET_URGENCY_MAP } from "./types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8080` : "http://glpi-backend:8080");
 
 // ─── Helper: strip HTML ───
 function stripHtml(html: string): string {
@@ -38,6 +37,36 @@ function resolveApiContext(context: string): string {
 // ────────────────────────────────────────────────────────────────────────
 // CQRS: LEITURAS via /db (SQL direto)
 // ────────────────────────────────────────────────────────────────────────
+
+type DbTicketRow = {
+  id: number;
+  title?: string;
+  content?: string;
+  category?: string;
+  status?: string;
+  statusId?: number;
+  urgency?: string;
+  urgencyId?: number;
+  dateCreated?: string;
+  dateModified?: string;
+  requester?: string;
+  technician?: string;
+  group?: string;
+  entity?: string;
+};
+
+type GlpiTicket = Record<string, unknown>;
+type GlpiFollowup = Record<string, unknown>;
+
+function getString(val: unknown, fallback = ""): string {
+  return typeof val === "string" ? val : fallback;
+}
+
+function getNumber(val: unknown, fallback = 0): number {
+  if (typeof val === "number") return val;
+  const parsed = Number(val);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
 
 /**
  * Busca contagens reais de tickets por status via SQL.
@@ -108,15 +137,16 @@ export async function fetchTickets(
   }
 
   const result = await res.json();
-  const tickets: TicketSummary[] = (result.data || []).map((r: any) => ({
+  const dataRows: DbTicketRow[] = Array.isArray(result.data) ? result.data : [];
+  const tickets: TicketSummary[] = dataRows.map((r) => ({
     id: r.id,
     title: r.title || "Sem título",
     content: r.content || "",
     category: r.category || "Sem categoria",
-    status: r.status,
-    statusId: r.statusId,
-    urgency: r.urgency,
-    urgencyId: r.urgencyId,
+    status: r.status || "",
+    statusId: r.statusId || 0,
+    urgency: r.urgency || "",
+    urgencyId: r.urgencyId || 0,
     dateCreated: r.dateCreated || "",
     dateModified: r.dateModified || "",
     requester: r.requester,
@@ -170,15 +200,16 @@ export async function searchTicketsDirect(
   }
 
   const result = await res.json();
-  const tickets: TicketSummary[] = (result.data || []).map((r: any) => ({
+  const dataRows: DbTicketRow[] = Array.isArray(result.data) ? result.data : [];
+  const tickets: TicketSummary[] = dataRows.map((r) => ({
     id: r.id,
     title: r.title || "Sem título",
     content: r.content || "",
     category: r.category || "Sem categoria",
-    status: r.status,
-    statusId: r.statusId,
-    urgency: r.urgency,
-    urgencyId: r.urgencyId,
+    status: r.status || "",
+    statusId: r.statusId || 0,
+    urgency: r.urgency || "",
+    urgencyId: r.urgencyId || 0,
     dateCreated: r.dateCreated || "",
     dateModified: r.dateModified || "",
     requester: r.requester,
@@ -200,41 +231,46 @@ export async function fetchTicketDetail(
 ): Promise<{ ticket: TicketDetail; followups: FollowUp[] }> {
   const apiContext = resolveApiContext(context);
 
-  const [raw, rawFollowups] = await Promise.all([
+  const [rawData, rawFollowupsData] = await Promise.all([
     getItem(apiContext, "Ticket", ticketId, true),
     getSubItems(apiContext, "Ticket", ticketId, "ITILFollowup"),
   ]);
 
-  const statusId = Number(raw.status) || 1;
-  const urgencyId = Number(raw.urgency) || 3;
+  const raw = rawData as GlpiTicket;
+  const rawFollowups = Array.isArray(rawFollowupsData) ? rawFollowupsData : [];
+  const statusId = getNumber(raw.status, 1);
+  const urgencyId = getNumber(raw.urgency, 3);
 
   const ticket: TicketDetail = {
-    id: raw.id,
-    title: raw.name || "Sem título",
-    content: stripHtml(raw.content || ""),
-    category: raw.itilcategories_id_completename || raw.itilcategories_id || "Sem categoria",
+    id: getNumber(raw.id),
+    title: getString(raw.name, "Sem título"),
+    content: stripHtml(getString(raw.content)),
+    category: getString(raw.itilcategories_id_completename) || getString(raw.itilcategories_id, "Sem categoria"),
     status: TICKET_STATUS_MAP[statusId] || `Status ${statusId}`,
     statusId,
     urgency: TICKET_URGENCY_MAP[urgencyId] || `Urgência ${urgencyId}`,
     urgencyId,
-    dateCreated: raw.date || "",
-    dateModified: raw.date_mod || "",
-    location: raw.locations_id_completename || raw.locations_id || undefined,
-    entityName: raw.entities_id_completename || raw.entities_id || undefined,
-    priority: raw.priority || 3,
-    type: raw.type || 1,
-    closeDate: raw.closedate || undefined,
-    solveDate: raw.solvedate || undefined,
+    dateCreated: getString(raw.date),
+    dateModified: getString(raw.date_mod),
+    location: getString(raw.locations_id_completename) || getString(raw.locations_id) || undefined,
+    entityName: getString(raw.entities_id_completename) || getString(raw.entities_id) || undefined,
+    priority: getNumber(raw.priority, 3),
+    type: getNumber(raw.type, 1),
+    closeDate: getString(raw.closedate) || undefined,
+    solveDate: getString(raw.solvedate) || undefined,
   };
 
-  const followups: FollowUp[] = (rawFollowups || []).map((f: any) => ({
-    id: f.id,
-    content: stripHtml(f.content || ""),
-    dateCreated: f.date || f.date_creation || "",
-    userName: f.users_id_completename || f.users_id || "Sistema",
-    isPrivate: Boolean(f.is_private),
-    isTech: false,
-  }));
+  const followups: FollowUp[] = rawFollowups.map((f) => {
+    const followup = f as GlpiFollowup;
+    return {
+      id: getNumber(followup.id),
+      content: stripHtml(getString(followup.content)),
+      dateCreated: getString(followup.date) || getString(followup.date_creation),
+      userName: getString(followup.users_id_completename) || getString(followup.users_id, "Sistema"),
+      isPrivate: Boolean(followup.is_private),
+      isTech: false,
+    };
+  });
 
   return { ticket, followups };
 }

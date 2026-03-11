@@ -1,0 +1,10 @@
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2026-03-09 17:15:36 | INFO    | app.main | ============================================================
+2026-03-09 17:15:36 | INFO    | app.main | GLPI Universal Backend v0.2.0 iniciando...
+2026-03-09 17:15:36 | INFO    | app.main | DTIC URL: http://cau.ppiratini.intra.rs.gov.br/glpi/apirest.php
+2026-03-09 17:15:36 | INFO    | app.main | SIS  URL: http://cau.ppiratini.intra.rs.gov.br/sis/apirest.php
+2026-03-09 17:15:36 | INFO    | app.main | Inicializando SQLite local (auth.db)... Ignorado pois foi substituído por CQRS 100% nativo do GLPI.
+2026-03-09 17:15:36 | INFO    | app.main | ============================================================
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)

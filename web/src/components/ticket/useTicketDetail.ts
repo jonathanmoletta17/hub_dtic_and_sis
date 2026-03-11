@@ -42,6 +42,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     (r) => r.role.startsWith("tecnico") || r.role === "gestor"
   );
   const isTechOrManager = activeView === 'tech' && hasTechProfile;
+  const isGestor = (currentUser?.hub_roles || []).some((r) => r.role === "gestor");
   
   const techProfileId = currentUser?.hub_roles?.find(
     (r) => r.role.startsWith("tecnico") || r.role === "gestor"
@@ -64,7 +65,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     const cached = userCacheRef.current.get(userId);
     if (cached) return cached;
     try {
-      const user = await getItem(apiContext, "User", userId, true);
+      const user = await getItem(apiContext, "User", userId, true) as Record<string, any>;
       const name = user.name || user.realname || `User #${userId}`;
       userCacheRef.current.set(userId, name);
       return name;
@@ -106,7 +107,7 @@ export function useTicketDetail(ticketId: number, context: string) {
 
       if (assignedGroup) {
         try {
-          const g = await getItem(apiContext, "Group", assignedGroup.groups_id, true);
+          const g = await getItem(apiContext, "Group", assignedGroup.groups_id, true) as Record<string, any>;
           setGroupName(g.completename || g.name || `Grupo #${assignedGroup.groups_id}`);
         } catch { setGroupName(`Grupo #${assignedGroup.groups_id}`); }
       }
@@ -221,7 +222,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     if (!technicianUserId) return;
     setActionLoading("return");
     try {
-      const users: TicketUser[] = await getSubItems(apiContext, "Ticket", ticketId, "Ticket_User");
+      const users = await getSubItems(apiContext, "Ticket", ticketId, "Ticket_User") as TicketUser[];
       const assignedEntry = users.find((u) => u.type === 2);
       if (assignedEntry) {
         await deleteItem(apiContext, "Ticket_User", (assignedEntry as any).id);
@@ -230,6 +231,44 @@ export function useTicketDetail(ticketId: number, context: string) {
       await loadTicketData();
     } catch (err: any) {
       alert(`Erro ao devolver à fila: ${err.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReopenTicket = async () => {
+    setActionLoading("reopen");
+    try {
+      await updateItem(apiContext, "Ticket", ticketId, { status: 2 });
+      await loadTicketData();
+    } catch (err: any) {
+      alert(`Erro ao reabrir ticket: ${err.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTransferTicket = async (newTechnicianId: number) => {
+    setActionLoading("transfer");
+    try {
+      const users = await getSubItems(apiContext, "Ticket", ticketId, "Ticket_User") as TicketUser[];
+      const assignedEntry = users.find((u) => u.type === 2);
+      if (assignedEntry) {
+        await deleteItem(apiContext, "Ticket_User", (assignedEntry as any).id);
+      }
+      await createItem(apiContext, "Ticket_User", {
+        tickets_id: ticketId,
+        users_id: newTechnicianId,
+        type: 2,
+      });
+      // Mudar status para 'Em Atendimento' se estava novo ou pendente, mas não se fechado
+      if (ticket && [1, 4].includes(ticket.statusId)) {
+        await updateItem(apiContext, "Ticket", ticketId, { status: 2 });
+      }
+
+      await loadTicketData();
+    } catch (err: any) {
+      alert(`Erro ao transferir ticket: ${err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -248,6 +287,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     currentUserId,
     currentUserName,
     isTechOrManager,
+    canActOnTicket: isGestor || technicianUserId === currentUserId,
     techProfileId,
     handleAddFollowup,
     handleAssumeTicket,
@@ -255,6 +295,8 @@ export function useTicketDetail(ticketId: number, context: string) {
     handleSetPending,
     handleResume,
     handleReturnToQueue,
+    handleReopenTicket,
+    handleTransferTicket,
     loadTicketData,
   };
 }

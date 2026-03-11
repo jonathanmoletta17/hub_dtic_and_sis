@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X, Save, AlertCircle, Clock, Zap } from "lucide-react";
 import type { OperationSettings, ChargerOfflineStatus } from "../../types/charger";
 
@@ -79,18 +79,16 @@ interface ScheduleModalProps {
   isGlobal?: boolean;
 }
 
-export const ScheduleModal: React.FC<ScheduleModalProps> = ({ 
-  isOpen, onClose, onSave, initialData, isGlobal 
+const ScheduleModalContent: React.FC<ScheduleModalProps> = ({
+  isOpen, onClose, onSave, initialData, isGlobal
 }) => {
-  const [formData, setFormData] = useState<OperationSettings>({
-    businessStart: "08:00",
-    businessEnd: "18:00",
-    workOnWeekends: false
-  });
-
-  useEffect(() => {
-    if (initialData) setFormData(initialData);
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState<OperationSettings>(() => (
+    initialData ?? {
+      businessStart: "08:00",
+      businessEnd: "18:00",
+      workOnWeekends: false
+    }
+  ));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isGlobal ? "Configurar Expediente Global" : "Configurar Expediente do Carregador"}>
@@ -183,6 +181,11 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
   );
 };
 
+export const ScheduleModal: React.FC<ScheduleModalProps> = (props) => {
+  const key = `${props.isOpen}-${props.initialData?.businessStart ?? ""}-${props.initialData?.businessEnd ?? ""}-${props.initialData?.workOnWeekends ?? false}`;
+  return <ScheduleModalContent key={key} {...props} />;
+};
+
 interface OfflineModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -190,18 +193,16 @@ interface OfflineModalProps {
   initialData?: ChargerOfflineStatus;
 }
 
-export const OfflineModal: React.FC<OfflineModalProps> = ({ 
-  isOpen, onClose, onSave, initialData 
+const OfflineModalContent: React.FC<OfflineModalProps> = ({
+  isOpen, onClose, onSave, initialData
 }) => {
-  const [formData, setFormData] = useState<Partial<ChargerOfflineStatus>>({
-    is_offline: false,
-    reason: "",
-    expected_return: ""
-  });
-
-  useEffect(() => {
-    if (initialData) setFormData(initialData);
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState<Partial<ChargerOfflineStatus>>(() => (
+    initialData ?? {
+      is_offline: false,
+      reason: "",
+      expected_return: ""
+    }
+  ));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Status de Operação">
@@ -301,4 +302,9 @@ export const OfflineModal: React.FC<OfflineModalProps> = ({
       `}</style>
     </Modal>
   );
+};
+
+export const OfflineModal: React.FC<OfflineModalProps> = (props) => {
+  const key = `${props.isOpen}-${props.initialData?.is_offline ?? false}-${props.initialData?.reason ?? ""}-${props.initialData?.expected_return ?? ""}`;
+  return <OfflineModalContent key={key} {...props} />;
 };

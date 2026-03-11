@@ -27,15 +27,12 @@ export interface Charger {
   schedule?: OperationSettings;
 }
 
-// --- Operation Settings (camelCase, como o legado) ---
+// --- Operation Settings (camelCase unificado) ---
 
 export interface OperationSettings {
   businessStart?: string;
   businessEnd?: string;
   workOnWeekends?: boolean;
-  business_start?: string;
-  business_end?: string;
-  work_on_weekends?: boolean;
 }
 
 export const DEFAULT_OPERATION_SETTINGS: OperationSettings = {

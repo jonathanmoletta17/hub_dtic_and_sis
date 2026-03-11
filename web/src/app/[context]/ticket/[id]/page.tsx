@@ -8,6 +8,7 @@ import { useTicketDetail } from "@/components/ticket/useTicketDetail";
 import { TicketSidebar } from "@/components/ticket/TicketSidebar";
 import { TicketTimeline } from "@/components/ticket/TicketTimeline";
 import { SolutionModal } from "@/components/ticket/SolutionModal";
+import { TransferModal } from "@/components/ticket/TransferModal";
 
 export default function TicketDetailPage() {
   const params = useParams();
@@ -28,16 +29,20 @@ export default function TicketDetailPage() {
     currentUserId,
     currentUserName,
     isTechOrManager,
+    canActOnTicket,
     handleAddFollowup,
     handleAssumeTicket,
     handleAddSolution,
     handleSetPending,
     handleResume,
     handleReturnToQueue,
+    handleReopenTicket,
+    handleTransferTicket,
   } = useTicketDetail(ticketId, context);
 
   const [newMessage, setNewMessage] = useState("");
   const [showSolutionModal, setShowSolutionModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   if (loading) {
@@ -79,12 +84,15 @@ export default function TicketDetailPage() {
         technicianName={technicianName}
         groupName={groupName}
         isTechOrManager={isTechOrManager}
+        canActOnTicket={canActOnTicket}
         actionLoading={actionLoading}
         onAssumeTicket={handleAssumeTicket}
         onShowSolutionModal={() => setShowSolutionModal(true)}
         onSetPending={handleSetPending}
         onReturnToQueue={handleReturnToQueue}
         onResume={handleResume}
+        onReopenTicket={handleReopenTicket}
+        onShowTransferModal={() => setShowTransferModal(true)}
       />
 
       <div className="flex-grow flex flex-col overflow-hidden">
@@ -95,6 +103,7 @@ export default function TicketDetailPage() {
           currentUserId={currentUserId}
           technicianUserId={technicianUserId}
           chatEndRef={chatEndRef}
+          isTechOrManager={isTechOrManager}
         />
 
         {/* ──── Message Input ──── */}
@@ -139,6 +148,17 @@ export default function TicketDetailPage() {
         onSubmit={(text) => {
           handleAddSolution(text);
           setShowSolutionModal(false);
+        }}
+      />
+
+      <TransferModal
+        context={context}
+        show={showTransferModal}
+        actionLoading={actionLoading}
+        onClose={() => setShowTransferModal(false)}
+        onSubmit={(techId) => {
+          handleTransferTicket(techId);
+          setShowTransferModal(false);
         }}
       />
     </div>

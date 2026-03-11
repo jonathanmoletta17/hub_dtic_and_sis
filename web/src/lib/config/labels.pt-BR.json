@@ -1,0 +1,58 @@
+{
+  "contexts": {
+    "dtic": {
+      "label": "Gestão de Chamados",
+      "subtitle": "DTIC • Tecnologia da Informação",
+      "description": "Acompanhamento e tratamento de solicitações e incidentes de TI.",
+      "dashboardTitle": "Painel de Chamados",
+      "dashboardSubtitle": "Visão geral de solicitações e atendimentos."
+    },
+    "sis": {
+      "label": "Gestão Operacional",
+      "subtitle": "SIS • Infraestrutura e Serviços",
+      "description": "Coordenação de serviços, infraestrutura física e acompanhamento de chamados operacionais.",
+      "dashboardTitle": "Painel Operacional",
+      "dashboardSubtitle": "Monitoramento e controle de atividades logísticas e prediais."
+    },
+    "sis-manutencao": {
+      "label": "Gestão de Manutenção",
+      "subtitle": "SIS • Manutenção Predial",
+      "description": "Coordenação das atividades de manutenção predial e conservação.",
+      "dashboardTitle": "Painel de Manutenção",
+      "dashboardSubtitle": "Acompanhamento das atividades de manutenção."
+    },
+    "sis-memoria": {
+      "label": "Gestão de Conservação",
+      "subtitle": "SIS • Conservação e Memória",
+      "description": "Planejamento e acompanhamento das ações de conservação patrimonial.",
+      "dashboardTitle": "Painel de Conservação",
+      "dashboardSubtitle": "Acompanhamento das ações de conservação."
+    }
+  },
+  "features": {
+    "dashboard": "Dashboard",
+    "search": "Smart Search",
+    "knowledge": "Base de Conhecimento",
+    "user-tickets": "Meus Chamados",
+    "new-ticket": "Novo Chamado",
+    "permissoes": "Gestão de Acessos",
+    "chargers": "Carregadores"
+  },
+  "ui": {
+    "accessDenied": "Acesso Negado",
+    "accessDeniedMessage": "Você não possui permissão para acessar esta área.",
+    "gateway": {
+      "title": "Direcionamento de Fluxo",
+      "subtitle": "Convergência Identificada",
+      "backButton": "Sair do Gateway",
+      "securityBadge": "Ambiente Monitorado & Auditado • Casa Civil RS",
+      "accessRestricted": "Acesso Restrito",
+      "identifyView": "Identificar Visão"
+    },
+    "sidebar": {
+      "brand": "Casa Civil",
+      "switchContext": "Contextos",
+      "logout": "Sair"
+    }
+  }
+}

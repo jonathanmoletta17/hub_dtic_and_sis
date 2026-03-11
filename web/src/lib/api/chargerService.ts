@@ -1,6 +1,6 @@
 /**
  * chargerService — API layer para Gestão de Carregadores.
- * Alinhado com operationService.ts do projeto legado.
+ * Consome o httpClient centralizado.
  */
 import type {
   KanbanData,
@@ -10,42 +10,12 @@ import type {
   RankingResponse,
   RankingItem,
 } from "../../types/charger";
+import { request } from './httpClient';
 import { useAuthStore } from '@/store/useAuthStore';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8080` : "http://glpi-backend:8080");
 
-export async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
-  const { headers: optionHeaders, ...rest } = options || {};
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json", 
-    ...(optionHeaders as Record<string, string>)
-  };
 
-  // Extrai o contexto da URL para injetar o token correto (ex: /api/v1/sis/...)
-  const contextMatch = path.match(/^\/api\/v1\/([^/]+)\//);
-  if (contextMatch) {
-    const context = contextMatch[1];
-    const token = useAuthStore.getState().getSessionToken(context);
-    if (token) {
-      headers["Session-Token"] = token;
-    }
-  }
-
-  const res = await fetch(url, {
-    headers,
-    ...rest,
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(body.detail || res.statusText);
-  }
-  return res.json() as Promise<T>;
-}
-
-// ─── READ ───
 
 export const fetchKanbanData = (context: string): Promise<KanbanData> =>
   request<KanbanData>(`/api/v1/${context}/chargers/kanban`);

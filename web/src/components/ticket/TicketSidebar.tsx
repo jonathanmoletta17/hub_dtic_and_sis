@@ -65,24 +65,30 @@ export function TicketSidebar({
   technicianName,
   groupName,
   isTechOrManager,
+  canActOnTicket,
   actionLoading,
   onAssumeTicket,
   onShowSolutionModal,
   onSetPending,
   onReturnToQueue,
   onResume,
+  onReopenTicket,
+  onShowTransferModal,
 }: {
   ticket: TicketDetail;
   requesterName: string;
   technicianName: string;
   groupName: string;
   isTechOrManager: boolean;
+    canActOnTicket: boolean;
   actionLoading: string | null;
   onAssumeTicket: () => void;
   onShowSolutionModal: () => void;
   onSetPending: () => void;
   onReturnToQueue: () => void;
   onResume: () => void;
+    onReopenTicket: () => void;
+    onShowTransferModal: () => void;
 }) {
   const router = useRouter();
 
@@ -121,17 +127,33 @@ export function TicketSidebar({
         {ticket.solveDate && <MetaItem icon={<FileText size={14} />} label="Solucionado em" value={formatDate(ticket.solveDate)} />}
       </div>
 
-      {isTechOrManager && (
+      {isTechOrManager ? (
         <TicketActions
           ticket={ticket}
+          canActOnTicket={canActOnTicket}
           actionLoading={actionLoading}
           onAssumeTicket={onAssumeTicket}
           onShowSolutionModal={onShowSolutionModal}
           onSetPending={onSetPending}
           onReturnToQueue={onReturnToQueue}
           onResume={onResume}
+          onReopenTicket={onReopenTicket}
+          onShowTransferModal={onShowTransferModal}
         />
-      )}
+      ) : ticket.statusId === 5 ? (
+        <div className="px-5 py-4 border-t border-white/[0.06] space-y-2 shrink-0">
+          <p className="text-[12px] text-emerald-400/60 text-center pb-2">
+            ✓ Ticket solucionado. Se o problema persistir, você pode reabrir.
+          </p>
+          <button
+            onClick={onReopenTicket}
+            disabled={actionLoading === "reopen"}
+            className="w-full py-2.5 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-2 bg-white/[0.04] text-text-3/60 hover:text-text-2 hover:bg-white/[0.08] disabled:opacity-40"
+          >
+            Reabrir Chamado
+          </button>
+        </div>
+      ) : null}
     </aside>
   );
 }

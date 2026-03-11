@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import useSWR from 'swr';
 import { X, Plus, User, MapPin } from 'lucide-react';
 import { getLocations } from '@/lib/api/glpiService';
 
@@ -15,28 +16,21 @@ interface CreateChargerModalProps {
 export default function CreateChargerModal({ isOpen, onClose, onCreate, loading, context }: CreateChargerModalProps) {
   const [name, setName] = useState('');
   const [locationId, setLocationId] = useState<number | ''>('');
-  const [locations, setLocations] = useState<{id: number, name: string, completename: string}[]>([]);
-  const [fetchingLocations, setFetchingLocations] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setFetchingLocations(true);
-      getLocations(context).then(data => {
-        const locs = data.locations || [];
-        setLocations(locs);
-        if (locs.length > 0) setLocationId(locs[0].id);
-        setFetchingLocations(false);
-      }).catch(() => setFetchingLocations(false));
-    }
-  }, [isOpen, context]);
+  const { data, isLoading } = useSWR(
+    isOpen ? ['locations', context] : null,
+    () => getLocations(context)
+  );
+  const locations = data?.locations ?? [];
+  const fetchingLocations = isLoading;
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || locationId === '') return;
+    const resolvedLocationId = locationId === '' ? locations[0]?.id : locationId;
+    if (!name.trim() || !resolvedLocationId) return;
     try {
-      await onCreate(name, locationId as number);
+      await onCreate(name, resolvedLocationId);
       setName('');
       onClose();
     } catch (error) {
@@ -81,8 +75,8 @@ export default function CreateChargerModal({ isOpen, onClose, onCreate, loading,
             <div className="relative group">
               <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
               <select 
-                value={locationId}
-                onChange={(e) => setLocationId(parseInt(e.target.value))}
+                value={locationId === '' && locations.length > 0 ? locations[0].id : locationId}
+                onChange={(e) => setLocationId(parseInt(e.target.value, 10))}
                 className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-blue-500/50 transition-all appearance-none font-medium cursor-pointer"
                 disabled={loading || fetchingLocations}
               >

@@ -1,4 +1,5 @@
 import { SearchPage } from "@/modules/search/components/SearchPage";
+import { ContextGuard } from "@/components/auth/ContextGuard";
 
 interface PageProps {
   params: Promise<{
@@ -14,9 +15,11 @@ export default async function Page({ params, searchParams }: PageProps) {
   const { department } = await searchParams;
 
   return (
-    <SearchPage 
-      context={context} 
-      department={department} 
-    />
+    <ContextGuard featureId="search">
+      <SearchPage 
+        context={context} 
+        department={department} 
+      />
+    </ContextGuard>
   );
 }

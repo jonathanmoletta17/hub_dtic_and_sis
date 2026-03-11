@@ -6,11 +6,7 @@
  * Escrita: CRUD de artigos (requer Session-Token do técnico)
  */
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:8080`
-    : "http://glpi-backend:8080");
+import { request } from './httpClient';
 
 // ─── Types ───
 
@@ -46,15 +42,6 @@ export interface KBArticlePayload {
 }
 
 // ─── Helpers ───
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, init);
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(body.detail || res.statusText);
-  }
-  return res.json() as Promise<T>;
-}
 
 function authHeaders(sessionToken: string): Record<string, string> {
   return {
@@ -107,7 +94,7 @@ export async function fetchKBArticle(id: number): Promise<KBArticleDetail> {
 export async function createKBArticle(
   sessionToken: string,
   payload: KBArticlePayload
-): Promise<{ success: boolean; data: any; message: string }> {
+): Promise<{ success: boolean; data: unknown; message: string }> {
   return request("/api/v1/dtic/knowledge/articles", {
     method: "POST",
     headers: authHeaders(sessionToken),
@@ -119,7 +106,7 @@ export async function updateKBArticle(
   sessionToken: string,
   id: number,
   payload: Partial<KBArticlePayload>
-): Promise<{ success: boolean; data: any; message: string }> {
+): Promise<{ success: boolean; data: unknown; message: string }> {
   return request(`/api/v1/dtic/knowledge/articles/${id}`, {
     method: "PUT",
     headers: authHeaders(sessionToken),
@@ -130,7 +117,7 @@ export async function updateKBArticle(
 export async function deleteKBArticle(
   sessionToken: string,
   id: number
-): Promise<{ success: boolean; data: any; message: string }> {
+): Promise<{ success: boolean; data: unknown; message: string }> {
   return request(`/api/v1/dtic/knowledge/articles/${id}`, {
     method: "DELETE",
     headers: authHeaders(sessionToken),

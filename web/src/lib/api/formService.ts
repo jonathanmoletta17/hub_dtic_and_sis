@@ -6,13 +6,7 @@
  *   ESCRITA → /domain/formcreator/forms/{id}/submit (API GLPI PluginFormcreatorFormAnswer)
  */
 
-import { useAuthStore } from '@/store/useAuthStore';
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8080`
-    : 'http://glpi-backend:8080');
+import { request } from './httpClient';
 
 // ── Types mirroring backend Pydantic schemas ──
 
@@ -94,36 +88,6 @@ export interface LookupItem {
   id: number;
   name: string;
   completename?: string;
-}
-
-// ── HTTP helpers ──
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
-  const { headers: optionHeaders, ...restOptions } = options || {};
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(optionHeaders as Record<string, string>),
-  };
-
-  const contextMatch = path.match(/^\/api\/v1\/([^/]+)\//);
-  if (contextMatch) {
-    const context = contextMatch[1];
-    const token = useAuthStore.getState().getSessionToken(context);
-    if (token) {
-      headers['Session-Token'] = token;
-    }
-  }
-
-  const res = await fetch(url, { headers, ...restOptions });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(body.detail || `HTTP ${res.status}`);
-  }
-
-  return res.json() as Promise<T>;
 }
 
 // ── API Endpoints ──

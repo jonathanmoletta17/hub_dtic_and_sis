@@ -1,8 +1,12 @@
 import logging
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException
 from app.core.session_manager import session_manager
-from app.schemas.auth_schemas import ProfileResponse, HubRole, RoleResponse, LoginResponse
+from app.schemas.auth_schemas import (
+    ProfileResponse, HubRole, RoleResponse, AuthMeResponse, LoginResponse
+)
+from app.core.glpi_client import GLPIClient, GLPIClientError
+from app.config import settings
 
 
 _log = logging.getLogger(__name__)
@@ -12,40 +16,47 @@ _log = logging.getLogger(__name__)
 # Regras de Negócio: Tradução GLPI → Hub Roles
 # ═══════════════════════════════════════════════════════════
 
-# Mapeamento DTIC: profile_id → hubRole
-_DTIC_PROFILE_MAP = {
-    9:  {"role": "solicitante", "label": "Central do Solicitante", "route": "user"},
-    6:  {"role": "tecnico",     "label": "Console do Técnico",    "route": "dashboard"},
-    20: {"role": "gestor",      "label": "Gestão e Administração", "route": "dashboard"},
-}
+from app.core.context_registry import registry, ContextConfig
 
-# Mapeamento SIS: profile_id → hubRole
-_SIS_PROFILE_MAP = {
-    9: {"role": "solicitante", "label": "Portfólio de Chamados",  "route": "user"},
-    3: {"role": "gestor",      "label": "Gestão Estratégica",     "route": "dashboard"},
-}
 
-# Grupos SIS → sub-papéis técnicos distintos
-_SIS_GROUP_MAP = {
-    22: {
-        "role": "tecnico-manutencao",
-        "label": "Manutenção e Conservação",
-        "context_override": "sis-manutencao",
-    },
-    21: {
-        "role": "tecnico-conservacao",
-        "label": "Conservação e Memória",
-        "context_override": "sis-memoria",
-    },
-}
-
+async def resolve_app_access(client, user_id: int) -> List[str]:
+    """Busca grupos do user e extrai os que começam com Hub-App-*."""
+    if not user_id:
+        return []
+    try:
+        group_links = await client.get_sub_items("User", user_id, "Group_User")
+        app_access = []
+        for gl in group_links:
+            gid = gl.get("groups_id")
+            if not gid: continue
+            try:
+                group = await client.get_item("Group", gid)
+                name = group.get("name", "")
+                if name.startswith("Hub-App-"):
+                    app_id = name.replace("Hub-App-", "").lower()
+                    app_access.append(app_id)
+            except Exception as e:
+                _log.warning(f"Erro ao buscar detalhes do grupo {gid}: {e}")
+        return app_access
+    except Exception as e:
+        _log.warning(f"Erro ao extrair app_access para user {user_id}: {e}")
+        return []
 
 async def fetch_session_identity(context: str) -> dict:
     """Helper que puxa os dados mastigados de sessão (Cacheável via roteador)."""
     try:
         client = await session_manager.get_client(context)
         session_data = await client.get_full_session()
-        return session_data
+        
+        session_info = session_data.get("session", {})
+        user_id = session_info.get("glpiID", 0)
+        
+        app_access = await resolve_app_access(client, user_id)
+        
+        return {
+            "session": session_info,
+            "app_access": app_access
+        }
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Erro na API Auth GLPI: {str(e)}")
 
@@ -56,43 +67,46 @@ def resolve_hub_roles(
     groups: List[int],
 ) -> List[HubRole]:
     """
-    Traduz perfis GLPI + grupos → papéis de uso do Hub.
-    No SIS, cada grupo técnico gera um sub-papel distinto.
+    Traduz perfis GLPI + grupos → papéis de uso do Hub usando o Registry.
     """
     hub_roles: List[HubRole] = []
     seen_roles: set[str] = set()
-    
     profile_ids = {p.id for p in available_profiles}
-    is_sis = context in ("sis", "sis-manutencao", "sis-memoria")
     
-    profile_map = _SIS_PROFILE_MAP if is_sis else _DTIC_PROFILE_MAP
+    try:
+        cfg = registry.get(context)
+    except KeyError:
+        # Fallback de segurança se o registry falhar (embora improvável se a API chamou o context real)
+        cfg = ContextConfig(id=context, label=context, glpi_url="", glpi_user_token="", glpi_app_token="",
+                            db_host="", db_port=0, db_name="", db_user="", db_pass="", db_context=context,
+                            color="", theme="", features=[], profile_map={}, group_map={})
     
-    # 1. Mapear profiles reconhecidos → hubRoles
-    for pid, role_def in profile_map.items():
-        if pid in profile_ids and role_def["role"] not in seen_roles:
+    # 1. Definir roles via Profiles mapeados
+    for pid, role_def in cfg.profile_map.items():
+        if pid in profile_ids and role_def.role not in seen_roles:
             hub_roles.append(HubRole(
-                role=role_def["role"],
-                label=role_def["label"],
+                role=role_def.role,
+                label=role_def.label,
                 profile_id=pid,
-                route=role_def["route"],
+                route=role_def.route,
+                context_override=role_def.context_override,
             ))
-            seen_roles.add(role_def["role"])
+            seen_roles.add(role_def.role)
     
-    # 2. SIS: Cada grupo técnico → sub-papel distinto
-    if is_sis:
-        for gid, grp_def in _SIS_GROUP_MAP.items():
-            if gid in groups and grp_def["role"] not in seen_roles:
-                hub_roles.append(HubRole(
-                    role=grp_def["role"],
-                    label=grp_def["label"],
-                    profile_id=None,
-                    group_id=gid,
-                    route="dashboard",
-                    context_override=grp_def["context_override"],
-                ))
-                seen_roles.add(grp_def["role"])
+    # 2. Definir sub-roles via Grupos mapeados (ex: SIS conservação)
+    for gid, role_def in cfg.group_map.items():
+        if gid in groups and role_def.role not in seen_roles:
+            hub_roles.append(HubRole(
+                role=role_def.role,
+                label=role_def.label,
+                profile_id=None,
+                group_id=gid,
+                route=role_def.route,
+                context_override=role_def.context_override,
+            ))
+            seen_roles.add(role_def.role)
     
-    # 3. Fallback: se nenhum hubRole encontrado, dar pelo menos Solicitante
+    # 3. Fallback absoluto solicitante padrão
     if not hub_roles:
         hub_roles.append(HubRole(
             role="solicitante",
@@ -101,15 +115,18 @@ def resolve_hub_roles(
             route="user",
         ))
     
-    # Ordenar: solicitante → técnicos → gestor
+    # Ordenar: básico -> avançado
     order = {"solicitante": 0, "tecnico": 1, "tecnico-manutencao": 2, "tecnico-conservacao": 3, "gestor": 4}
     hub_roles.sort(key=lambda r: order.get(r.role, 99))
     
     return hub_roles
 
 
-def build_login_response(context: str, session_token: str, session_info: dict) -> LoginResponse:
+def build_login_response(context: str, session_token: str, session_info: dict, app_access: Optional[List[str]] = None) -> LoginResponse:
     """Constrói LoginResponse a partir dos dados de sessão GLPI."""
+    if app_access is None:
+        app_access = []
+        
     glpi_id = session_info.get("glpiID", 0)
     glpi_name = session_info.get("glpiname", "Unknown")
     glpi_realname = session_info.get("glpirealname", "")
@@ -158,6 +175,7 @@ def build_login_response(context: str, session_token: str, session_info: dict) -
         firstname=glpi_firstname,
         roles=roles,
         hub_roles=hub_roles,
+        app_access=app_access,
     )
 
 
@@ -186,7 +204,7 @@ async def fallback_login(context: str, username: str) -> LoginResponse:
         raise HTTPException(status_code=401, detail=f"Usuário '{username}' não encontrado no GLPI.")
     
     data_rows = search_result.get("data", [])
-    user_row = None
+    user_row: dict = {}
     for row in data_rows:
         row_name = row.get("1", "")
         if row_name.lower() == username.lower():
@@ -244,6 +262,7 @@ async def fallback_login(context: str, username: str) -> LoginResponse:
     )
     
     hub_roles = resolve_hub_roles(context, available_profiles, groups)
+    app_access = await resolve_app_access(service_client, glpi_id)
     
     return LoginResponse(
         context=context,
@@ -254,4 +273,60 @@ async def fallback_login(context: str, username: str) -> LoginResponse:
         firstname=glpi_firstname,
         roles=roles,
         hub_roles=hub_roles,
+        app_access=app_access,
     )
+
+
+async def perform_login(context: str, body) -> LoginResponse:
+    """
+    Centraliza a lógica de autenticação: Basic Auth -> Fallback.
+    """
+    instance = settings.get_glpi_instance(context)
+    client = GLPIClient(instance)
+    
+    try:
+        # ── Tentativa 1: Basic Auth real ──
+        await client.init_session_basic(body.username, body.password)
+        session_token = client._session_token
+        
+        session_data = await client.get_full_session()
+        session_info = session_data.get("session", {})
+        
+        user_id = session_info.get("glpiID", 0)
+        app_access = await resolve_app_access(client, user_id)
+        
+        return build_login_response(context, session_token, session_info, app_access)
+        
+    except GLPIClientError as e:
+        if e.status_code and e.status_code in [401, 403]:
+            _log.warning(
+                "Basic Auth rejeitado pelo GLPI para '%s' (HTTP %s). Tentando fallback via user_token...",
+                body.username, e.status_code
+            )
+            # ── Tentativa 2: Fallback via user_token de serviço ──
+            try:
+                return await fallback_login(context, body.username)
+            except HTTPException:
+                raise
+            except Exception as fb_err:
+                _log.error("Fallback de login falhou: %s", fb_err)
+                raise HTTPException(status_code=401, detail="Credenciais inválidas ou acesso negado pelo GLPI.")
+        raise HTTPException(status_code=502, detail=f"Erro na API GLPI: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro interno de autenticação: {str(e)}")
+    finally:
+        await client._http.aclose()
+
+
+async def perform_logout(context: str, session_token: str):
+    """
+    Invalida a sessão no GLPI.
+    """
+    try:
+        instance = settings.get_glpi_instance(context)
+        client = GLPIClient.from_session_token(instance, session_token)
+        await client.kill_session()
+        await client._http.aclose()
+    except Exception as e:
+        _log.error("Erro no logout: %s", e)
+        raise HTTPException(status_code=500, detail=f"Erro ao efetuar logout: {str(e)}")

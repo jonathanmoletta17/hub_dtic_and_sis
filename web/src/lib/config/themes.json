@@ -1,0 +1,34 @@
+{
+  "dtic": {
+    "icon": "Network",
+    "color": "#3B82F6",
+    "accentClass": "bg-accent-blue/10 border-accent-blue text-accent-blue",
+    "gradient": "from-accent-blue/20 to-transparent",
+    "glowColor": "bg-accent-blue/40",
+    "borderColor": "hover:border-accent-blue"
+  },
+  "sis": {
+    "icon": "Wrench",
+    "color": "#F59E0B",
+    "accentClass": "bg-accent-amber/10 border-accent-amber text-accent-amber",
+    "gradient": "from-accent-amber/20 to-transparent",
+    "glowColor": "bg-accent-amber/40",
+    "borderColor": "hover:border-accent-amber"
+  },
+  "sis-manutencao": {
+    "icon": "Wrench",
+    "color": "#F59E0B",
+    "accentClass": "bg-accent-amber/10 border-accent-amber text-accent-amber",
+    "gradient": "from-accent-amber/20 to-transparent",
+    "glowColor": "bg-accent-amber/40",
+    "borderColor": "hover:border-accent-amber"
+  },
+  "sis-memoria": {
+    "icon": "Landmark",
+    "color": "#8B5CF6",
+    "accentClass": "bg-purple-500/10 border-purple-500 text-purple-500",
+    "gradient": "from-purple-500/20 to-transparent",
+    "glowColor": "bg-purple-500/40",
+    "borderColor": "hover:border-purple-500"
+  }
+}

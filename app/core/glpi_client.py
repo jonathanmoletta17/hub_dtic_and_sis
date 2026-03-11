@@ -204,12 +204,17 @@ class GLPIClient:
         """GET /:itemtype — Lista itens com paginação."""
         await self._ensure_session()
         headers = self._base_headers()
-        headers["Range"] = f"{range_start}-{range_end}"
+        
+        # O Nginx Proxy Manager às vezes dropa o Header 'Range'. 
+        # A API REST do GLPI suporta nativamente o fall-back pelo paramético querystring.
+        if params is None:
+            params = {}
+        params["range"] = f"{range_start}-{range_end}"
 
         response = await self._http.get(
             self._url(itemtype),
             headers=headers,
-            params=params or None,
+            params=params,
         )
         self._check_error(response)
         return response.json()
@@ -348,6 +353,38 @@ class GLPIClient:
         )
         self._check_error(response)
         return response.json()
+
+    # === Modificadores Específicos (Fase D) ===
+    
+    async def add_user_to_group(self, user_id: int, group_id: int) -> dict:
+        """Adiciona um usuário a um grupo (Criação de Pivot em Group_User)."""
+        payload = {
+            "users_id": user_id,
+            "groups_id": group_id,
+            "is_dynamic": 0,
+            "is_recursive": 0
+        }
+        return await self.create_item("Group_User", payload)
+
+    async def remove_user_from_group(self, user_id: int, group_id: int) -> bool:
+        """
+        Retira um usuário de um grupo.
+        No GLPI, você não deleta pelo (user_id, group_id) no endpoint DELETE genérico,
+        precisa do `id` da relação. Faremos lookup via get_sub_items.
+        """
+        # Obter todas as relações do usuário com grupos
+        relations = await self.get_sub_items("User", user_id, "Group_User")
+        
+        for rel in relations:
+            # O get_sub_items retorna um array onde cada item é um pivot com id e groups_id.
+            if rel.get("groups_id") == group_id:
+                rel_id = rel.get("id")
+                if rel_id:
+                    # GLPI requer purge para deleção de pivot (ou manda pro lixo - depends de setup)
+                    await self.delete_item("Group_User", rel_id, force_purge=True)
+                    return True
+        
+        return False
 
     # === Cleanup ===
 

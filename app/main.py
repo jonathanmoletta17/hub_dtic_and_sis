@@ -15,11 +15,11 @@ from app.core.session_manager import session_manager
 from app.core.rate_limit import setup_rate_limiting
 from app.core.database import close_all_db_connections
 from app.routers import (
-    health, items, search, session,
+    health, items, search,
     domain_auth, domain_formcreator,
     lookups, events,
     db_read, orchestrator, chargers,
-    knowledge,
+    knowledge, admin
 )
 from app.core.database import local_engine, close_all_db_connections
 # Logging
@@ -88,6 +88,7 @@ app.include_router(chargers.metrics_router)    # /metrics/chargers (ranking, leg
 app.include_router(domain_auth.router)         # /auth/me, /auth/login, /auth/logout
 app.include_router(lookups.router)             # /lookups/locations, /itilcategories, /users/technicians
 app.include_router(domain_formcreator.router)  # /domain/formcreator (catálogo dinâmico)
+app.include_router(admin.router)               # /admin/users (Painel/Matriz permissional)
 
 # SSE
 app.include_router(events.router)              # /events/stream
@@ -99,7 +100,6 @@ app.include_router(search.router)              # /tickets/search
 app.include_router(knowledge.router)           # /knowledge/articles, /knowledge/categories
 
 # CRUD Genérico (catch-all — SEMPRE POR ÚLTIMO)
-app.include_router(session.router)             # /session, /config
 app.include_router(items.router)               # /{itemtype} (catch-all)
 
 

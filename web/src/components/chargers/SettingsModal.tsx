@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { X, Settings, Clock, AlertTriangle, Save, Loader2, Calendar, CheckSquare, Square, Zap, Search, Power, MessageSquare } from 'lucide-react';
 import { KanbanAvailableResource, OperationSettings } from '@/types/charger';
-import { updateChargerSchedule, toggleChargerOffline, batchUpdateChargers, request } from '@/lib/api/chargerService';
+import { updateChargerSchedule, toggleChargerOffline, batchUpdateChargers } from '@/lib/api/chargerService';
+import { request } from '@/lib/api/httpClient';
 
 interface SettingsModalProps {
   isOpen: boolean;

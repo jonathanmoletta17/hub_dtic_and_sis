@@ -1,0 +1,44 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.4, pytest-9.0.1, pluggy-1.6.0
+rootdir: C:\Users\jonathan-moletta\.gemini\antigravity\playground\tensor-aurora
+configfile: pyproject.toml
+plugins: anyio-4.12.0, Faker-40.4.0, langsmith-0.4.59, asyncio-1.3.0, mock-3.15.1, timeout-2.4.0, requests-mock-1.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_______________ ERROR collecting app/tests/test_auth_service.py _______________
+tests\test_auth_service.py:12: in <module>
+    from app.services.auth_service import resolve_hub_roles, build_login_response
+services\auth_service.py:4: in <module>
+    from app.core.session_manager import session_manager
+core\session_manager.py:11: in <module>
+    from app.config import settings, GLPIInstance
+config.py:125: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+..\..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic_settings\main.py:194: in __init__
+    super().__init__(
+E   pydantic_core._pydantic_core.ValidationError: 6 validation errors for Settings
+E   DTIC_GLPI_URL
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   DTIC_GLPI_APP_TOKEN
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   DTIC_GLPI_USER_TOKEN
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   SIS_GLPI_URL
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   SIS_GLPI_APP_TOKEN
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+E   SIS_GLPI_USER_TOKEN
+E     Field required [type=missing, input_value={}, input_type=dict]
+E       For further information visit https://errors.pydantic.dev/2.12/v/missing
+=========================== short test summary info ===========================
+ERROR tests\test_auth_service.py - pydantic_core._pydantic_core.ValidationErr...
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0.43s ===============================

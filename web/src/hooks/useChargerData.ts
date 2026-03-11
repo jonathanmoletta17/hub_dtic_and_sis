@@ -111,7 +111,7 @@ export function useOperationSettings(context: string | undefined, pause: boolean
   );
 
   const settings: OperationSettings = useMemo(() => {
-    if (!data) return { business_start: "08:00", business_end: "18:00", work_on_weekends: false };
+    if (!data) return { business_start: "08:00", business_end: "18:00", work_on_weekends: false } as OperationSettings;
     return data;
   }, [data]);
 

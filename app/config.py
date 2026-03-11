@@ -7,6 +7,9 @@ from __future__ import annotations
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class GLPIInstance:
@@ -47,7 +50,7 @@ class Settings(BaseSettings):
     """Configurações carregadas do .env"""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(BASE_DIR / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -75,6 +78,12 @@ class Settings(BaseSettings):
     db_name_dtic: str = Field(default="glpi2db", alias="DB_NAME_DTIC")
     db_user_dtic: str = Field(default="cau_r", alias="DB_USER_DTIC")
     db_pass_dtic: str = Field(default="", alias="DB_PASS_DTIC")
+
+    # Charger Categories (SIS)
+    sis_charger_itil_categories: str = Field(
+        default="55,56,57,58,101,102,103",
+        alias="SIS_CHARGER_ITIL_CATEGORIES"
+    )
 
     # App
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")

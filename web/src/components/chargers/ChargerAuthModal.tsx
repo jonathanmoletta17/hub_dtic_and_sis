@@ -12,7 +12,7 @@ export default function ChargerAuthModal({ context }: ChargerAuthModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setActiveContext = useAuthStore((state: any) => state.setActiveContext);
+  const setActiveContext = useAuthStore((state) => state.setActiveContext);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +45,9 @@ export default function ChargerAuthModal({ context }: ChargerAuthModalProps) {
       // O endpoint "/auth/login" retorna a interface AuthMeResponse incluindo session_token
       setActiveContext(context, data);
 
-    } catch (err: any) {
-      setError(err.message || "Erro de conexão com o servidor de autenticação.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro de conexão com o servidor de autenticação.";
+      setError(message);
     } finally {
       setLoading(false);
     }

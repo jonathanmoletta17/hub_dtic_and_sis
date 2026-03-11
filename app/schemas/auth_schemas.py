@@ -30,6 +30,7 @@ class AuthMeResponse(BaseModel):
     firstname: Optional[str] = None
     roles: RoleResponse
     hub_roles: List[HubRole] = []
+    app_access: List[str] = []
 
 class LoginRequest(BaseModel):
     """Credenciais do usuário para login real."""
@@ -46,3 +47,4 @@ class LoginResponse(BaseModel):
     firstname: Optional[str] = None
     roles: RoleResponse
     hub_roles: List[HubRole] = []
+    app_access: List[str] = []

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2, ShieldAlert } from "lucide-react";
@@ -21,64 +21,46 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, activeContext, currentUserRole, _hasHydrated } = useAuthStore();
-  const [isAuthorizing, setIsAuthorizing] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const isReady = _hasHydrated && isAuthenticated && activeContext && currentUserRole;
+
+  const isAuthorized = useMemo(() => {
+    if (!isReady) return false;
+    if (requireContext && !activeContext.startsWith(requireContext)) return false;
+
+    if (!allowedHubRoles || allowedHubRoles.length === 0) return true;
+
+    const hubRoles = currentUserRole.hub_roles || [];
+    const activeProfile = currentUserRole.roles?.active_profile;
+    const urlContext = pathname.split('/')[1];
+    const activeHubRole =
+      currentUserRole.active_hub_role ||
+      hubRoles.find(r => r.context_override === urlContext) ||
+      hubRoles.find(r => r.profile_id === activeProfile?.id) ||
+      hubRoles[0];
+
+    if (!activeHubRole) return false;
+
+    return allowedHubRoles.some(allowed =>
+      activeHubRole.role === allowed || activeHubRole.role.startsWith(allowed + "-")
+    );
+  }, [isReady, requireContext, activeContext, allowedHubRoles, currentUserRole, pathname]);
 
   useEffect(() => {
-    // 0. Aguarda Hidratação do Zustand
     if (!_hasHydrated) return;
 
-    // 1. Não está logado no root
     if (!isAuthenticated) {
       router.push("/");
       return;
     }
 
-    // 2. Não escolheu contexto no Seletor
     if (!activeContext || !currentUserRole) {
       router.push("/selector");
       return;
     }
-
-    // 3. Verificação de Contexto Rígido (Cross-Context Bloqueado)
-    if (requireContext && !activeContext.startsWith(requireContext)) {
-      setIsAuthorized(false);
-      setIsAuthorizing(false);
-      return;
-    }
-
-    // 4. Verificação de Papel de Uso Ativo (active_profile)
-    let hasAccess = true;
-    if (allowedHubRoles && allowedHubRoles.length > 0) {
-      const hubRoles = currentUserRole.hub_roles || [];
-      const activeProfile = currentUserRole.roles?.active_profile;
-      
-      // Resolução de Role baseada na URL Contextualizada como prioridade (SIS)
-      // senão cai no Profile matching (DTIC)
-      const urlContext = pathname.split('/')[1];
-      const activeHubRole = 
-        currentUserRole.active_hub_role ||
-        hubRoles.find(r => r.context_override === urlContext) || 
-        hubRoles.find(r => r.profile_id === activeProfile?.id) || 
-        hubRoles[0];
-      
-      if (activeHubRole) {
-        // Verifica se a role ativa completa (ex: tecnico-manutencao) ou o radical (ex: tecnico) está permitido
-        hasAccess = allowedHubRoles.some(allowed => 
-          activeHubRole.role === allowed || activeHubRole.role.startsWith(allowed + "-")
-        );
-      } else {
-        hasAccess = false;
-      }
-    }
-
-    setIsAuthorized(hasAccess);
-    setIsAuthorizing(false);
-
-  }, [isAuthenticated, activeContext, currentUserRole, pathname, router, requireContext, allowedHubRoles, _hasHydrated]);
+  }, [isAuthenticated, activeContext, currentUserRole, router, _hasHydrated]);
 
 
-  if (!_hasHydrated || isAuthorizing) {
+  if (!_hasHydrated || !isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg-main text-text-1">
         <Loader2 className="animate-spin text-accent-blue" size={32} />

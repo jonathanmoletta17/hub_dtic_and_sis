@@ -1,0 +1,281 @@
+# Documento Técnico: Arquitetura Permissional do Hub
+
+> **Data**: 2026-03-09 | **Versão**: 1.0  
+> **Escopo**: Análise ponta a ponta do sistema de autorização, mapeamento de hardcodes, análise SOLID/DRY, roadmap de evolução e métricas de qualidade.
+
+---
+
+## 1. Como a Matriz Permissional Controla o Acesso (Fluxo Ponta a Ponta)
+
+A autorização do Hub opera em **4 camadas** sequenciais. Cada camada filtra progressivamente o que o usuário pode ver e fazer.
+
+### Camada 1 — GLPI (Fonte de Verdade Externa)
+
+| Entidade GLPI | Função no Hub | Exemplo |
+|---|---|---|
+| **Perfil** ([Profile](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/store/useAuthStore.ts#4-8)) | Define o papel funcional base | Profile 6 = Técnico, Profile 9 = Solicitante |
+| **Grupo Operacional** | Define sub-especialização | Grupo 22 = CC-MANUTENCAO, Grupo 21 = CC-CONSERVAÇÃO |
+| **Grupo Hub-App-*** | Concede acesso a módulos satélite | Hub-App-carregadores, Hub-App-busca |
+
+O GLPI é a **única** fonte de verdade para credenciais. O Hub nunca armazena senhas.
+
+### Camada 2 — Backend FastAPI (Tradução GLPI → Hub Roles)
+
+O backend interpreta os dados brutos do GLPI e os traduz em *tokens de autorização do Hub*.
+
+**Arquivo-chave**: [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml)
+
+```yaml
+sis:
+  profile_map:
+    9: { role: solicitante, label: "Portfólio de Chamados", route: user }
+    3: { role: gestor, label: "Gestão Estratégica", route: dashboard }
+  group_map:
+    22: { role: tecnico-manutencao, label: "Manutenção e Conservação", context_override: sis-manutencao }
+    21: { role: tecnico-conservacao, label: "Conservação e Memória", context_override: sis-memoria }
+```
+
+**Funções executoras** em [auth_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py):
+
+| Função | O que faz | Output |
+|---|---|---|
+| [resolve_hub_roles()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#64-123) | Itera `profile_map` + `group_map` do YAML, cruza com perfis/grupos do user | `List[HubRole]` — ex: `[{role:"tecnico-manutencao", context_override:"sis-manutencao"}]` |
+| [resolve_app_access()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#22-44) | Busca grupos `Hub-App-*` do user via API GLPI | `List[str]` — ex: `["dashboard","carregadores","busca"]` |
+
+**O que o backend devolve ao frontend no login:**
+```json
+{
+  "hub_roles": [
+    {"role": "tecnico-manutencao", "label": "Manutenção e Conservação", "context_override": "sis-manutencao"},
+    {"role": "solicitante", "label": "Portfólio de Chamados", "context_override": null}
+  ],
+  "app_access": ["dashboard", "carregadores", "busca"]
+}
+```
+
+### Camada 3 — Frontend: Estado Global (Zustand Store)
+
+O [useAuthStore.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/store/useAuthStore.ts) armazena no navegador:
+- `currentUserRole.hub_roles` → lista de papéis disponíveis
+- `currentUserRole.app_access` → lista de módulos satélite liberados
+- `activeContext` → contexto visual ativo (ex: `"sis-manutencao"`)
+
+### Camada 4 — Frontend: Renderização de Menu (Context Registry)
+
+O [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) é o **manifesto estático** que decide quais botões existem em cada tela.
+
+A função [resolveMenuItems(contextId, userRoles, appAccess)](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts#116-142) executa **dois filtros**:
+
+```
+1. Se o botão exige requireApp → só aparece se appAccess inclui a tag
+2. Se o botão exige requiredRoles → só aparece se o user possui a role
+```
+
+**Por que Carregadores aparece na Manutenção mas não na Conservação:**
+
+| Contexto | Array `features` contém [chargers](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py#322-340)? | Resultado |
+|---|---|---|
+| `sis` | ✅ Sim (linha 65) | Botão aparece se user tem tag `carregadores` |
+| `sis-manutencao` | ✅ Sim (linha 86) | Botão aparece se user tem tag `carregadores` |
+| `sis-memoria` | ❌ Não (linhas 103-108) | Botão **nunca** aparece, independente das permissões |
+
+A decisão é **100% estática no código TypeScript**. A Camada 2 (backend) e Camada 3 (store) permitem o acesso, mas a Camada 4 (manifesto) simplesmente não registrou o botão nesse contexto.
+
+---
+
+## 2. Mapeamento Completo de Pontos Hardcoded
+
+### 2.1 Labels e Textos de Interface
+
+| Arquivo | Linha(s) | O que está hardcoded | Impacto |
+|---|---|---|---|
+| [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) | 27-110 | Labels de botões (`"Dashboard"`, `"Carregadores"`, `"Smart Search"`), títulos de dashboards, descrições, subtítulos | Alto — i18n impossível |
+| [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) | 27-110 | Nomes de ícones Lucide (`"LayoutDashboard"`, `"Cpu"`) | Baixo |
+| [navigation.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/navigation.ts) | 19-41 | Labels duplicados (`"Dashboard"`, `"Smart Search"`, `"Gestão Carregadores"`) | Alto — violação DRY |
+| [AppSidebar.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/ui/AppSidebar.tsx) | 111 | `"Casa Civil"` | Médio |
+| [ProtectedRoute.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/auth/ProtectedRoute.tsx) | 81-83 | `"Acesso Negado"`, texto de permissão | Médio — i18n |
+| [roles.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/roles.ts) | 5-9 | Constantes de role (`"solicitante"`, `"tecnico"`, `"gestor"`) | Baixo |
+
+### 2.2 Estrutura de Menus (Features por Contexto)
+
+| Arquivo | O que está hardcoded | Impacto |
+|---|---|---|
+| [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) | **4 objetos** `CONTEXT_MANIFESTS` definem estaticamente quais features existem em cada contexto | **Crítico** — adicionar/remover módulo requer deploy |
+| [navigation.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/navigation.ts) | `MENU_ITEMS` com seções `tech`, `admin`, `common`, `dtic` | **Crítico** — sistema legado coexistindo |
+
+### 2.3 IDs e Mapeamentos GLPI
+
+| Arquivo | O que está hardcoded | Impacto |
+|---|---|---|
+| [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) | Profile IDs (3, 6, 9, 20), Group IDs (21, 22) | Médio — YAML é configurável sem deploy |
+| [roles.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/roles.ts) | `MANUTENCAO: 21, CONSERVACAO: 22` | **Crítico** — IDs **invertidos** vs [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) (`22: manutencao, 21: conservação`) |
+| [auth_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py) L111 | Fallback Profile ID 9 para solicitante | Baixo |
+| [auth_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py) L119 | Ordem de sorting de roles hardcoded | Baixo |
+
+> [!CAUTION]
+> **Bug Latente Confirmado**: O arquivo [roles.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/roles.ts) define `MANUTENCAO: 21` e `CONSERVACAO: 22`, mas [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) define `22: tecnico-manutencao` e `21: tecnico-conservacao`. Esses IDs estão **invertidos**. Qualquer código frontend que consuma `SIS_ROLES.GROUPS` vai operar com os grupos trocados.
+
+### 2.4 Cores, Temas e Estilos Visuais
+
+| Arquivo | O que está hardcoded |
+|---|---|
+| [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) | `color`, `accentClass`, `gradient`, `glowColor`, `borderColor` por contexto |
+| [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) | `color`, `theme` por contexto |
+
+---
+
+## 3. Análise Crítica: Padrões SOLID, DRY e Clean Code
+
+### 3.1 Single Responsibility Principle (SRP) — ⚠️ Violação Parcial
+
+| Componente | Avaliação |
+|---|---|
+| [auth_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py) | ✅ Responsabilidade clara: traduzir GLPI → Hub Roles |
+| [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) | ❌ **Acumula 3 responsabilidades**: definição de features, temas visuais e resolução de menus |
+| [AppSidebar.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/ui/AppSidebar.tsx) | ✅ Consome dados sem lógica de negócio |
+
+### 3.2 Open/Closed Principle (OCP) — ❌ Violação Significativa
+
+Adicionar um novo módulo (ex: "Inventário") exige editar **3 arquivos em 2 camadas**:
+1. [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) — adicionar na lista `features`
+2. [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) — adicionar no array `features` de cada [ContextManifest](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts#10-25)
+3. Criar a rota Next.js correspondente
+
+O sistema **não é extensível sem modificação do código-fonte**.
+
+### 3.3 DRY (Don't Repeat Yourself) — ❌ Violação Clara
+
+| Duplicação | Onde |
+|---|---|
+| Labels de features | [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts) repete "Dashboard", "Smart Search" em **4 contextos** |
+| Sistema de menu completo | [navigation.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/navigation.ts) coexiste com [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts), ambos resolvendo menus com lógicas diferentes |
+| API_BASE URL | Definido identicamente em **5 arquivos** (glpiService, chargerService, formService, knowledgeService, ticketService) |
+| Definição de [request()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#17-53) | Função HTTP helper duplicada em **4 arquivos** com lógica quase idêntica |
+
+### 3.4 Separation of Concerns — ⚠️ Parcial
+
+O backend (YAML + Python) separa bem dados de lógica. Porém, o Frontend mistura:
+- **Dados estruturais** (quais features existem) com **dados de apresentação** (cores, ícones, labels)
+- **Regras de autorização** (requiredRoles, requireApp) com **layout visual** (gradient, glowColor)
+
+### 3.5 Avaliação Geral de Engenharia
+
+| Aspecto | Nota (1-10) | Justificativa |
+|---|---|---|
+| **Manutenibilidade** | 5/10 | Hardcode disperso torna mudanças operacionais dependentes de deploy |
+| **Escalabilidade** | 4/10 | Cada novo módulo/contexto exige edição manual em múltiplos arquivos |
+| **Segurança** | 7/10 | O backend valida corretamente; frontend é "display-only" (não confere proteção real) |
+| **Testabilidade** | 3/10 | Apenas 2 testes existem ([chargerService.test.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.test.ts), [HorizontalRanking.test.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/chargers/HorizontalRanking.test.tsx)), nenhum cobre permissões |
+| **Coesão Arquitetural** | 4/10 | Dois sistemas de menu coexistindo indica refatoração incompleta |
+
+---
+
+## 4. Roadmap para Eliminação de Hardcode
+
+### Fase 1 — Correções Imediatas (Sprint Atual)
+
+**1.1. Corrigir IDs invertidos em [roles.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/roles.ts)**
+```diff
+  GROUPS: {
+-   MANUTENCAO: 21,
+-   CONSERVACAO: 22,
++   MANUTENCAO: 22,
++   CONSERVACAO: 21,
+  }
+```
+
+**1.2. Remover [navigation.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/navigation.ts) (sistema legado)**
+- O [AppSidebar.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/ui/AppSidebar.tsx) já consome [resolveMenuItems](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts#116-142) do [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts)
+- [navigation.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/constants/navigation.ts) é código morto funcional que gera confusão
+
+**1.3. Extrair [request()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#17-53) HTTP para módulo compartilhado**
+- Criar `web/src/lib/api/httpClient.ts` com a função [request()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#17-53) única
+- Todos os services importam dela (elimina 4 duplicações + normalização de sub-contexto)
+
+### Fase 2 — Externalização de Dados (1-2 Sprints)
+
+**2.1. Separar dados estruturais de dados visuais no [context-registry.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts)**
+
+Proposta de nova arquitetura:
+```
+web/src/lib/config/
+  ├── features.json       ← Quais features existem em cada contexto
+  ├── themes.json         ← Cores, gradients, ícones por contexto
+  └── labels.pt-BR.json   ← Todos os textos (preparação i18n)
+```
+
+**2.2. Criar endpoint `/api/v1/config/features`**
+- O backend já possui o campo `features` no [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml)
+- Expor via API permite que o frontend consuma dinamicamente sem rebuild
+
+**2.3. Implementar feature-flags por contexto**
+- Mover o array `features` do manifesto estático para o payload de login
+- O backend já devolve [app_access](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#22-44); basta enriquecer com `context_features`
+
+### Fase 3 — Internacionalização (i18n) (2-3 Sprints)
+
+**3.1. Adotar `next-intl` ou `react-i18next`**
+
+Estrutura proposta:
+```
+web/src/locales/
+  ├── pt-BR.json    ← Padrão
+  ├── en-US.json    ← Futuro
+  └── es-AR.json    ← Futuro
+```
+
+**3.2. Substituir todos os labels hardcoded por chaves i18n**
+```typescript
+// ANTES (hardcoded)
+{ label: "Dashboard", icon: "LayoutDashboard" }
+
+// DEPOIS (i18n)
+{ labelKey: "features.dashboard.label", icon: "LayoutDashboard" }
+```
+
+**3.3. Labels de roles e contextos via YAML**
+- O [contexts.yaml](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/contexts.yaml) já possui `label` por contexto — basta consumir no frontend
+
+### Fase 4 — Testes e Auditoria (Contínuo)
+
+**4.1. Testes Unitários de Permissão**
+- [resolveMenuItems()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/context-registry.ts#116-142) — validar que cada combinação role × appAccess × contexto gera o menu correto
+- [resolve_hub_roles()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#64-123) — validar mapeamento profile → role e group → sub-role
+- [ProtectedRoute](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/auth/ProtectedRoute.tsx#16-97) — validar bloqueio/liberação por role
+
+**4.2. Testes de Integração**
+- Login E2E → verificar que [app_access](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#22-44) e [hub_roles](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#64-123) chegam corretos ao frontend
+- Navegar entre contextos → verificar que menus mudam dinamicamente
+
+**4.3. Logs de Auditoria**
+- Adicionar log estruturado no [resolve_hub_roles()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/auth_service.py#64-123) com: `user_id`, [context](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/context_registry.py#128-134), `roles_granted`, `apps_granted`
+- Formato JSON para ingestão em ferramentas de observabilidade
+
+---
+
+## 5. Métricas de Qualidade Alvo
+
+| Métrica | Estado Atual | Meta | Como Medir |
+|---|---|---|---|
+| **Cobertura de Testes** | ~5% (2 testes, nenhum de permissão) | ≥ 80% nos módulos de autorização | `jest --coverage` + `pytest --cov` |
+| **Tempo de Carregamento** | ~800ms (baseline) | Δ ≤ 200ms após externalização | Lighthouse CI no pipeline |
+| **Auditabilidade** | Nenhum log de autorização | 100% das decisões de acesso logadas | Verificar logs estruturados no stdout do backend |
+| **DRY Score** | 4 funções [request()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#17-53) duplicadas | 0 duplicações em camada HTTP | Code review + lint rule |
+| **Pontos Hardcoded** | 47 labels + 4 manifestos estáticos | 0 labels hardcoded no TypeScript | Grep automatizado no CI |
+| **Teste E2E de Permissão** | 0 cenários | ≥ 12 cenários (3 roles × 4 contextos) | Playwright test suite |
+
+---
+
+## 6. Análise de Impacto
+
+### Manutenibilidade
+- **Risco atual**: Qualquer mudança operacional (novo módulo, renomear botão) exige PR + build + deploy
+- **Após roadmap**: Mudanças operacionais via YAML/JSON sem tocar em código
+
+### Escalabilidade
+- **Risco atual**: Cada novo contexto exige ~50 linhas de código novo em 3 arquivos
+- **Após roadmap**: Novo contexto = 1 entrada no YAML + 1 entrada no JSON de features
+
+### Segurança
+- **Adequado**: O backend valida perfis/grupos antes de devolver dados; o frontend apenas esconde botões (defesa em profundidade)
+- **Melhoria proposta**: Adicionar middleware de auditoria que loga toda decisão de acesso com timestamp, IP e resultado

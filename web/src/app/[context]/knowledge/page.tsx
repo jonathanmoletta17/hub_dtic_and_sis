@@ -36,9 +36,6 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 
 
-const TECHNICIAN_PROFILE_ID = 6;
-const MANAGER_PROFILE_ID = 20;
-
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const contextData: Record<string, { color: string; accentClass: string }> = {
@@ -323,9 +320,16 @@ function KBContent({
   // Auth state
   const { currentUserRole, getSessionToken } = useAuthStore();
   const sessionToken = getSessionToken("dtic");
-  const profileId = currentUserRole?.roles?.active_profile?.id;
-  const isTechnician = profileId === TECHNICIAN_PROFILE_ID;
-  const canViewAll = profileId === TECHNICIAN_PROFILE_ID || profileId === MANAGER_PROFILE_ID;
+
+  // Permissão via hub_role.role (fonte de verdade semântica — imune a mudanças de IDs)
+  const hubRoles = currentUserRole?.hub_roles || [];
+  const activeHubRole =
+    currentUserRole?.active_hub_role ||
+    hubRoles[0];
+  const hubRole = activeHubRole?.role || "";
+
+  const canManageArticles = hubRole === "tecnico" || hubRole === "gestor";
+  const canViewAll = hubRole === "gestor" || hubRole === "tecnico";
 
   // Data
   const [categories, setCategories] = useState<KBCategory[]>([]);
@@ -484,7 +488,7 @@ function KBContent({
                 {total > 0 ? `${total} artigos disponíveis` : "Encontre respostas e soluções"}
               </p>
             </div>
-              {isTechnician && (
+              {canManageArticles && (
               <button
                 onClick={() => { setFormMode("create"); setEditArticle(null); }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent-blue/15 text-accent-blue hover:bg-accent-blue/25 transition-all text-[13px] font-medium"
@@ -544,7 +548,7 @@ function KBContent({
               <ArticleView
                 article={selectedArticle}
                 onBack={() => setSelectedArticle(null)}
-                isTechnician={isTechnician}
+                canManageArticles={canManageArticles}
                 onEdit={() => startEdit(selectedArticle.id)}
                 onDelete={() => setDeleteTarget({ id: selectedArticle.id, name: selectedArticle.name })}
               />
@@ -625,7 +629,7 @@ function KBContent({
                             </div>
                             <ChevronRight size={14} className="text-text-3/20 group-hover:text-text-3/50 transition-colors shrink-0" />
                           </button>
-                          {isTechnician && (
+                          {canManageArticles && (
                             <div className="flex gap-1 pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => startEdit(article.id)} className="p-2 rounded-lg text-text-3/40 hover:text-accent-blue hover:bg-accent-blue/10 transition-all" title="Editar">
                                 <Pencil size={13} />
@@ -675,13 +679,13 @@ function KBContent({
 function ArticleView({
   article,
   onBack,
-  isTechnician,
+  canManageArticles,
   onEdit,
   onDelete,
 }: {
   article: KBArticleDetail;
   onBack: () => void;
-  isTechnician: boolean;
+  canManageArticles: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -693,7 +697,7 @@ function ArticleView({
           <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
           Voltar aos artigos
         </button>
-        {isTechnician && (
+        {canManageArticles && (
           <div className="flex gap-1.5">
             <button onClick={onEdit} className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-medium text-accent-blue/80 hover:text-accent-blue hover:bg-accent-blue/10 transition-all">
               <Pencil size={13} /> Editar

@@ -22,7 +22,7 @@ import {
   unassignChargerFromTicket,
 } from "../../../lib/api/chargerService";
 import { logoutApi } from "../../../lib/api/glpiService";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ContextGuard } from "@/components/auth/ContextGuard";
 
 export default function GestaoCarregadoresPage() {
   const { context } = useParams() as { context: string };
@@ -62,8 +62,8 @@ export default function GestaoCarregadoresPage() {
   const isInBusinessHours = (() => {
     const now = new Date();
     const h = now.getHours();
-    const bStart = parseInt(settings?.businessStart?.split(":")[0] || settings?.business_start?.split(":")[0] || "8", 10);
-    const bEnd = parseInt(settings?.businessEnd?.split(":")[0] || settings?.business_end?.split(":")[0] || "18", 10);
+    const bStart = parseInt(settings?.businessStart?.split(":")[0] || "8", 10);
+    const bEnd = parseInt(settings?.businessEnd?.split(":")[0] || "18", 10);
     return h >= bStart && h < bEnd;
   })();
 
@@ -130,7 +130,7 @@ export default function GestaoCarregadoresPage() {
   }
 
   return (
-    <ProtectedRoute allowedHubRoles={["gestor"]} requireContext="sis">
+    <ContextGuard featureId="chargers">
       <div className="flex flex-col h-screen bg-slate-950 p-4 md:p-6 overflow-hidden font-sans">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
@@ -230,6 +230,6 @@ export default function GestaoCarregadoresPage() {
         />
       )}
     </div>
-    </ProtectedRoute>
+    </ContextGuard>
   );
 }

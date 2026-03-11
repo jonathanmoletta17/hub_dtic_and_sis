@@ -4,19 +4,13 @@ import React from "react";
 import { useParams } from "next/navigation";
 import { AuroraMesh } from "@/components/ui/aurora-mesh";
 import { AppSidebar } from "@/components/ui/AppSidebar";
+import { getContextTheme } from "@/lib/context-registry";
 
 export default function ContextLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const context = params.context as string;
 
-  const themes: Record<string, string> = {
-    "dtic": "theme-dtic",
-    "sis": "theme-manutencao",
-    "sis-manutencao": "theme-manutencao",
-    "sis-memoria": "theme-memoria"
-  };
-
-  const themeClass = themes[context] || "theme-dtic";
+  const themeClass = getContextTheme(context);
 
   return (
     <div className={`min-h-screen transition-colors duration-700 ${themeClass}`}>

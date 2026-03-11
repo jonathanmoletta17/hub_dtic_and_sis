@@ -24,6 +24,7 @@ export function TicketTimeline({
   currentUserId,
   technicianUserId,
   chatEndRef,
+  isTechOrManager,
 }: {
   ticket: TicketDetail;
   timeline: TimelineEntry[];
@@ -31,7 +32,12 @@ export function TicketTimeline({
   currentUserId: number;
   technicianUserId: number | null;
   chatEndRef: React.RefObject<HTMLDivElement | null>;
+    isTechOrManager: boolean;
 }) {
+  const visibleTimeline = isTechOrManager
+    ? timeline
+    : timeline.filter(entry => entry.type !== "task" && !entry.isPrivate);
+
   return (
     <div className="flex-grow flex flex-col overflow-hidden">
       <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
@@ -41,14 +47,16 @@ export function TicketTimeline({
         </div>
         <div className="flex items-center gap-4 text-[10px] text-text-3/40">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500/40" /> Followup
+            <span className="w-2 h-2 rounded-full bg-blue-500/40" /> Mensagem
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500/40" /> Solução
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-violet-500/40" /> Tarefa
-          </span>
+          {isTechOrManager && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-violet-500/40" /> Tarefa
+            </span>
+          )}
         </div>
       </div>
 
@@ -78,7 +86,7 @@ export function TicketTimeline({
             </div>
           </div>
 
-          {timeline.map((entry) => (
+          {visibleTimeline.map((entry) => (
             <TimelineItem
               key={`${entry.type}-${entry.id}`}
               entry={entry}
@@ -88,7 +96,7 @@ export function TicketTimeline({
             />
           ))}
 
-          {timeline.length === 0 && (
+          {visibleTimeline.length === 0 && (
             <div className="text-center py-8">
               <p className="text-[13px] text-text-3/30 italic">Nenhum acompanhamento registrado ainda.</p>
             </div>

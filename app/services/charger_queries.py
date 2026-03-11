@@ -1,7 +1,17 @@
+from functools import lru_cache
 from sqlalchemy import text
 
-# Categorias de Carregadores no GLPI (SIS)
-CHARGER_ITIL_CATEGORIES = (55, 56, 57, 58, 101, 102, 103)
+from app.config import settings
+
+
+@lru_cache(maxsize=1)
+def get_charger_itil_categories() -> tuple:
+    """Lê categorias ITIL do .env (SIS_CHARGER_ITIL_CATEGORIES). Cacheia em memória."""
+    return tuple(int(x.strip()) for x in settings.sis_charger_itil_categories.split(","))
+
+
+# Alias para retrocompatibilidade de imports existentes
+CHARGER_ITIL_CATEGORIES = get_charger_itil_categories()
 
 SQL_CHARGER_META = text("""
     SELECT 

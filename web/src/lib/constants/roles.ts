@@ -25,7 +25,7 @@ export const SIS_ROLES = {
     SOLICITANTE: 9,
   },
   GROUPS: {
-    MANUTENCAO: 21,
-    CONSERVACAO: 22, 
+    MANUTENCAO: 22,  // CC-MANUTENCAO (contexts.yaml: 22 → tecnico-manutencao)
+    CONSERVACAO: 21,  // CC-CONSERVAÇÃO (contexts.yaml: 21 → tecnico-conservacao)
   }
 };

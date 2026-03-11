@@ -34,7 +34,7 @@ export function KanbanBoard({ context, tickets, loading }: KanbanBoardProps) {
   const newTickets = tickets.filter((t) => t.statusId === 1);
   const inProgress = tickets.filter((t) => [2, 3].includes(t.statusId));
   const pending = tickets.filter((t) => t.statusId === 4);
-  const solved = tickets.filter((t) => t.statusId === 5);
+  const solved = tickets.filter((t) => [5, 6].includes(t.statusId));
 
   if (loading) {
     return (
@@ -117,7 +117,7 @@ export function KanbanBoard({ context, tickets, loading }: KanbanBoardProps) {
             title={t.title}
             description={t.content}
             status={t.status}
-            statusColor="success"
+            statusColor={statusColorMap[t.status] || "success"}
             category={t.category}
             onClick={() => openTicket(t.id)}
           />

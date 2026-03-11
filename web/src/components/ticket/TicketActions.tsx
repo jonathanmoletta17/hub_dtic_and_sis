@@ -1,5 +1,5 @@
 import React from "react";
-import { User, CheckCircle2, Pause, RotateCcw, Play, Loader2 } from "lucide-react";
+import { User, CheckCircle2, Pause, RotateCcw, Play, Loader2, UserPlus } from "lucide-react";
 import type { TicketDetail } from "@/lib/api/types";
 
 function ActionButton({ label, icon, variant, loading, onClick }: {
@@ -22,20 +22,26 @@ function ActionButton({ label, icon, variant, loading, onClick }: {
 
 export function TicketActions({
   ticket,
+  canActOnTicket,
   actionLoading,
   onAssumeTicket,
   onShowSolutionModal,
   onSetPending,
   onReturnToQueue,
   onResume,
+  onReopenTicket,
+  onShowTransferModal,
 }: {
   ticket: TicketDetail;
+    canActOnTicket: boolean;
   actionLoading: string | null;
   onAssumeTicket: () => void;
   onShowSolutionModal: () => void;
   onSetPending: () => void;
   onReturnToQueue: () => void;
   onResume: () => void;
+    onReopenTicket: () => void;
+    onShowTransferModal: () => void;
 }) {
   const isNew = ticket.statusId === 1;
   const isInProgress = [2, 3].includes(ticket.statusId);
@@ -49,15 +55,22 @@ export function TicketActions({
         <ActionButton label="Assumir Ticket" icon={<User size={14} />} variant="primary" loading={actionLoading === "assume"} onClick={onAssumeTicket} />
       )}
 
-      {isInProgress && (
+      {isInProgress && canActOnTicket && (
         <>
           <ActionButton label="Adicionar Solução" icon={<CheckCircle2 size={14} />} variant="primary" loading={actionLoading === "solution"} onClick={onShowSolutionModal} />
+          <ActionButton label="Delegar Ticket" icon={<UserPlus size={14} />} variant="ghost" loading={actionLoading === "transfer"} onClick={onShowTransferModal} />
           <ActionButton label="Colocar em Pendente" icon={<Pause size={14} />} variant="ghost" loading={actionLoading === "pending"} onClick={onSetPending} />
           <ActionButton label="Devolver à Fila" icon={<RotateCcw size={14} />} variant="ghost" loading={actionLoading === "return"} onClick={onReturnToQueue} />
         </>
       )}
 
-      {isPending && (
+      {(isInProgress || isPending) && !canActOnTicket && (
+        <p className="text-[12px] text-amber-400/60 text-center py-2">
+          Apenas relator ou equipe técnica do chamado pode editá-lo.
+        </p>
+      )}
+
+      {isPending && canActOnTicket && (
         <>
           <ActionButton label="Retomar Atendimento" icon={<Play size={14} />} variant="primary" loading={actionLoading === "resume"} onClick={onResume} />
           <ActionButton label="Adicionar Solução" icon={<CheckCircle2 size={14} />} variant="ghost" loading={actionLoading === "solution"} onClick={onShowSolutionModal} />
@@ -65,9 +78,12 @@ export function TicketActions({
       )}
 
       {isResolved && (
-        <p className="text-[12px] text-emerald-400/60 text-center py-2">
-          ✓ Ticket solucionado — aguardando aprovação
-        </p>
+        <>
+          <p className="text-[12px] text-emerald-400/60 text-center py-2">
+            ✓ Ticket solucionado — aguardando aprovação
+          </p>
+          <ActionButton label="Reabrir Chamado" icon={<RotateCcw size={14} />} variant="ghost" loading={actionLoading === "reopen"} onClick={onReopenTicket} />
+        </>
       )}
 
       {isClosed && (

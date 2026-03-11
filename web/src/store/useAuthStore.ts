@@ -29,6 +29,7 @@ export interface AuthMeResponse {
   firstname?: string | null;
   roles: RoleResponse;
   hub_roles: HubRole[];
+  app_access?: string[];
   session_token?: string;
   active_hub_role?: HubRole; // Selecionado ativamente pelo vision selector
 }

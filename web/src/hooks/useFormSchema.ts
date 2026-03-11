@@ -42,10 +42,10 @@ export function useFormSchema() {
     abortRef.current = controller;
 
     let cancelled = false;
-    setLoadingSchema(true);
-    setFetchError(null);
 
     async function load() {
+      setLoadingSchema(true);
+      setFetchError(null);
       const context = activeContext || 'sis-manutencao';
 
       try {

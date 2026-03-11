@@ -1,0 +1,154 @@
+# Relatório de Auditoria: Dashboard de Carregadores
+
+> **Data:** 2026-03-10 04:30 | **Metodologia:** P02  | **Status:** Concluído
+
+---
+
+## FASE 1 — MAPEAMENTO E DECOMPOSIÇÃO LÓGICA
+
+### 1. Mapa de Partes Lógicas
+
+| # | Parte | Arquivo Principal | Consome | Produz |
+|---|-------|------------------|---------|--------|
+| 1 | **View Orquestradora** | [page.tsx](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/app/%5Bcontext%5D/gestao-carregadores/page.tsx) | [useChargerData](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/hooks/useChargerData.ts#32-101), `chargerService`, [ContextGuard](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/auth/ContextGuard.tsx#13-67) | Layout + disparo de modais |
+| 2 | **Data Hook (SWR)** | [useChargerData.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/hooks/useChargerData.ts) | `chargerService` (fetchKanban, fetchChargers, fetchGlobalSchedule) | `kanbanData`, [chargers](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py#322-340), `stats`, `loading`, `refresh` |
+| 3 | **HTTP Client Layer** | [chargerService.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts) | [httpClient.ts](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/httpClient.ts) (request + API_BASE) | 15 funções tipadas (fetch + mutate) |
+| 4 | **API Router Backend** | [chargers.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py) | Schemas Pydantic, [ChargerService](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_service.py#23-280), `charger_commands` | 14 endpoints REST |
+| 5 | **Read Queries (DB)** | [charger_service.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_service.py) + [charger_queries.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_queries.py) | MySQL GLPI (8 SQLs raw) | [KanbanResponse](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/types/charger.ts#146-150), [RankingResponse](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/schemas/charger_schemas.py#114-118), [TicketDetailResponse](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/types/charger.ts#125-138) |
+| 6 | **Write Commands (GLPI API)** | [charger_commands.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_commands.py) | `GLPIClient` (session do usuário logado) | Mutações GLPI (assign, create, delete, offline, schedule) |
+
+### 2. Fluxo de Dados
+
+```mermaid
+graph TD
+    U[Usuário Autenticado] -->|Rota ContextGuard| P1[page.tsx]
+    P1 -->|SWR mount| P2[useChargerData Hook]
+    P2 -->|fetch every 15/30s| P3[chargerService.ts]
+    P3 -->|HTTP + Session-Token| P4[chargers.py Router]
+    P4 -->|SELECT| P5[charger_service.py → MySQL]
+    P4 -->|CRUD via API| P6[charger_commands.py → GLPI PHP]
+    P5 -->|KanbanResponse JSON| P4
+    P4 -->|JSON| P3
+    P3 -->|Deserialized| P2
+    P2 -->|kanbanData + stats| P1
+```
+
+### 3. Dependências Externas
+
+| Dependência | Tipo | Criticidade |
+|-------------|------|-------------|
+| MySQL GLPI (5 tabelas + 2 plugins) | Banco de Dados | **Alta** |
+| API REST GLPI PHP | Integração | **Alta** |
+| SWR Cache (polling 15s/30s) | Biblioteca | Média |
+| `useAuthStore` (token de sessão) | Estado Global | **Alta** |
+
+### 4. Pontos de Fronteira
+
+- **Entrada Frontend:** Rota `/{context}/gestao-carregadores` → `ContextGuard featureId="chargers"` (2 camadas: `requiredRoles` + `requireApp`)
+- **Entrada Backend:** Router com `Depends(verify_session)` → aceita `X-Session-Token`, `Session-Token` ou cookie
+- **Saída:** Dados visuais em tempo real + mutações que afetam diretamente o GLPI legado
+
+---
+
+## FASE 2 — RESULTADOS DA AUDITORIA
+
+### Parte 1: Dashboard View — ✅ Validado
+
+**Análise Estática:**
+- [x] Loading state funcional (spinner "Sincronizando com SIS...")
+- [x] `isInBusinessHours` — protegido contra nulls via coalescência (`settings?.businessStart?.split(":")[0] || settings?.business_start?.split(":")[0] || "8"`)
+
+**E2E Verificado:**
+- [x] **Relógio:** Mostrando `04:23:31` com "● Oper. Encerrada" (correto para fora do expediente)
+- [x] **Stat Cards:** 10 Disponíveis | 0 Ocupados | 0 Offline | 10 Total
+- [x] **Kanban:** 3 colunas: "Disponíveis" (10 livres), "Em Atendimento" (0), "Aguardando Atribuição" (6 demandas)
+- [x] **Ranking:** 8 carregadores listados com posição, histórico e total de horas
+
+![Dashboard completo com Menu Gerenciar aberto](C:/Users/jonathan-moletta/.gemini/antigravity/brain/c6cec28d-1ce4-457d-a360-af2f21956ba5/gerenciar_menu_options_1773127411484.png)
+
+---
+
+### Parte 2: useChargerData Hook — ✅ Validado
+
+**Análise Estática:**
+- [x] Stats derivados conferem: `available` = filtro `!is_offline`, `occupied` = soma chargers de allocatedResources, [offline](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py#115-133) = filtro `is_offline` + `is_deleted`
+- [x] SWR keys condicionais (`context === "sis"`) impedem fetching em contextos errados
+- [x] `keepPreviousData: true` garante que a tela não pisca durante revalidação
+
+---
+
+### Parte 3: chargerService.ts — ✅ Validado
+
+**Análise Estática:**
+- [x] [fetchChargers()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#23-64) aceita ambos os formatos: [RankingResponse](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/schemas/charger_schemas.py#114-118) (wrapper) e `Charger[]` (array nativo) — tratamento dual na L38-39
+- [x] [assignMultipleChargersToTicket](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/lib/api/chargerService.ts#161-189) verifica permissão local antes de disparar (L163-170)
+
+> [!NOTE]
+> O `catch` silencioso em `createCharger/deleteCharger` (retorna `false`) é intencional — o componente react decide se exibe toast.
+
+---
+
+### Parte 4: Backend Router + Auth Guard — ✅ Validado com ressalva
+
+**Análise Estática:**
+- [x] Rate limiter `30/minute` nos 3 endpoints de leitura ([kanban](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py#51-67), `ticket-detail`, `chargers-metrics`)
+- [x] Guard de contexto `if context != "sis"` nos endpoints críticos
+- [x] [verify_session](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/auth_guard.py#19-56) aceita 3 fontes de token (X-Session-Token, Session-Token, cookie)
+
+> [!WARNING]
+> O [auth_guard.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/auth_guard.py) **não valida o token contra o GLPI** — apenas verifica presença. Comentário no código (L51): *"verificação simplificada: token existe = válido"*. Isso significa que um token expirado ou inventado passaria no guard do backend. A proteção real acontece no [get_user_glpi_session](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/routers/chargers.py#34-44) (que usa o token para instanciar `GLPIClient` — falha se inválido).
+
+---
+
+### Parte 5: Read Queries (MySQL) — ✅ Validado
+
+**Análise Estática:**
+- [x] 8 SQL queries confirmadas sem SQL injection (todas usam [text()](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/components/auth/ContextGuard.tsx#13-67) com parâmetros nomeados `:param`)
+- [x] Tabela plugin corretamente referenciada: `glpi_plugin_fields_plugingenericobjectcarregadorcarregadors`
+- [x] Categorias ITIL fixas: [(55, 56, 57, 58, 101, 102, 103)](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/context_registry.py#117-121) — acoplamento forte mas funcional
+
+---
+
+### Parte 6: Write Commands (GLPI API) — ✅ Validado
+
+**Análise Estática:**
+- [x] Guard de duplicata em [assign_charger_to_ticket](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_commands.py#83-111) (L88-102) — verifica via SQL se vínculo já existe
+- [x] [create_charger](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/services/charger_commands.py#135-154) injeta bloco Fields padrão imediatamente após criação (L144-152) — evita órfãos
+- [x] Soft delete (is_deleted=1) ao invés de purge — seguro para rollback
+
+---
+
+### Parte 7: TicketDetailModal — ✅ Validado via E2E
+
+- [x] Modal abre com dados reais do Ticket #6923
+- [x] Exibe: Título, Requerente, Categoria, Data, Localização, Descrição completa
+- [x] Lista 10 carregadores disponíveis com checkboxes para atribuição
+
+![Modal de Detalhes do Ticket #6923](C:/Users/jonathan-moletta/.gemini/antigravity/brain/c6cec28d-1ce4-457d-a360-af2f21956ba5/ticket_detail_modal_attempt_1773127349832.png)
+
+---
+
+### Parte 8: Modal de Gestão Rápida — ✅ Validado via E2E
+
+- [x] Lista 8+ carregadores com localização (Casa Civil 1005)
+- [x] Campo de busca/filtro funcional
+- [x] Botão "Selecionar Todos" e "Aplicar Alterações"
+
+![Modal de Gestão Rápida de Operação](C:/Users/jonathan-moletta/.gemini/antigravity/brain/c6cec28d-1ce4-457d-a360-af2f21956ba5/expediente_ajustes_modal_1773127420084.png)
+
+---
+
+## Gravação da Auditoria E2E
+
+![Gravação completa da sessão de auditoria E2E](C:/Users/jonathan-moletta/.gemini/antigravity/brain/c6cec28d-1ce4-457d-a360-af2f21956ba5/auditoria_carregadores_e2e_1773127107094.webp)
+
+---
+
+## Achados e Recomendações
+
+| # | Severidade | Achado | Local |
+|---|-----------|--------|-------|
+| 1 | ⚠️ Média | [auth_guard.py](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/auth_guard.py) não valida token contra GLPI (apenas presença) | `app/core/auth_guard.py:51` |
+| 2 | ℹ️ Info | Categorias ITIL hardcoded [(55,56,57,58,101,102,103)](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/app/core/context_registry.py#117-121) | `charger_queries.py:4` |
+| 3 | ℹ️ Info | [OperationSettings](file:///c:/Users/jonathan-moletta/.gemini/antigravity/playground/tensor-aurora/web/src/types/charger.ts#32-40) tem campos duplicados (camelCase + snake_case) | `types/charger.ts:32-38` |
+| 4 | ℹ️ Info | Global schedule é mock estático (retorna 08:00-18:00 hardcoded) | `chargers.py:100-103` |

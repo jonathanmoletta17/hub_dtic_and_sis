@@ -2,9 +2,18 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Monitor, Wrench, Loader2, ArrowLeft, AlertTriangle, ShieldCheck, ChevronRight } from "lucide-react";
+import { Monitor, Wrench, Loader2, ArrowLeft, AlertTriangle, ShieldCheck, ChevronRight, Network, Landmark } from "lucide-react";
 import { useAuthStore, AuthMeResponse } from "@/store/useAuthStore";
 import { GlassCard } from "@/components/ui/glass-card";
+import { CONTEXT_MANIFESTS } from "@/lib/context-registry";
+import { API_BASE } from "@/lib/api/httpClient";
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  "Network": <Network size={28} />,
+  "Wrench": <Wrench size={28} />,
+  "Landmark": <Landmark size={28} />,
+  "Monitor": <Monitor size={28} />
+};
 
 export default function WorkspaceSelectorPage() {
   const router = useRouter();
@@ -12,30 +21,8 @@ export default function WorkspaceSelectorPage() {
   const [loadingContext, setLoadingContext] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const workspaces = [
-    {
-      id: "dtic",
-      title: "Ecossistema Digital",
-      subtitle: "DTIC • Inteligência & Sistemas",
-      description: "Operações de TI, sistemas corporativos, infraestrutura de rede e suporte especializado.",
-      icon: <Monitor size={28} />,
-      accentColor: "text-accent-blue",
-      glowColor: "bg-accent-blue/20",
-      borderColor: "group-hover:border-accent-blue/40",
-      gradient: "from-accent-blue/10 to-transparent",
-    },
-    {
-      id: "sis",
-      title: "Ecossistema Físico",
-      subtitle: "SIS • Infraestrutura & Manutenção",
-      description: "Manutenção predial, conservação, serviços de engenharia e gestão de frotas SIS.",
-      icon: <Wrench size={28} />,
-      accentColor: "text-accent-amber",
-      glowColor: "bg-accent-amber/20",
-      borderColor: "group-hover:border-accent-amber/40",
-      gradient: "from-accent-amber/10 to-transparent",
-    },
-  ];
+  // Consideramos apenas os contextos principais no seletor primário (sem traço de sub-contexto)
+  const workspaces = CONTEXT_MANIFESTS.filter(ws => !ws.id.includes('-'));
 
   const handleWorkspaceSelection = async (workspaceId: string) => {
     if (loadingContext) return;
@@ -88,8 +75,7 @@ export default function WorkspaceSelectorPage() {
     }
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8080` : "http://localhost:8080");
-      const res = await fetch(`${apiBase}/api/v1/${workspaceId}/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/v1/${workspaceId}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,26 +169,26 @@ export default function WorkspaceSelectorPage() {
           >
             <GlassCard className={`h-full flex flex-col p-6 transition-all duration-500 border-white/[0.03] ${ws.borderColor} group-hover:bg-surface-3 group-hover:-translate-y-2 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden`}>
               {/* Dynamic Gradient Edge */}
-              <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${ws.id === 'dtic' ? 'from-accent-blue to-transparent' : 'from-accent-amber to-transparent'} opacity-50 group-hover:opacity-100 transition-opacity`} />
+              <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${ws.gradient} opacity-50 group-hover:opacity-100 transition-opacity`} />
 
               {/* Context Aura */}
               <div className={`absolute -top-24 -right-24 w-64 h-64 ${ws.glowColor} blur-[100px] rounded-full transition-all duration-700 group-hover:scale-150 group-hover:opacity-100 opacity-20`} />
 
               <div className="flex items-start justify-between mb-8 relative z-10">
-                <div className={`w-16 h-16 rounded-2xl bg-surface-1 flex items-center justify-center shadow-2xl border border-white/5 transition-transform duration-500 group-hover:scale-110 ${ws.accentColor}`}>
-                  {loadingContext === ws.id ? <Loader2 size={32} className="animate-spin" /> : ws.icon}
+                <div className={`w-16 h-16 rounded-2xl bg-surface-1 flex items-center justify-center shadow-2xl border border-white/5 transition-transform duration-500 group-hover:scale-110 ${ws.accentClass.split(' ')[2]}`}>
+                  {loadingContext === ws.id ? <Loader2 size={32} className="animate-spin" /> : ICON_MAP[ws.icon]}
                 </div>
                 <ChevronRight size={24} className="text-text-3/30 group-hover:text-text-1 group-hover:translate-x-2 transition-all duration-500" />
               </div>
 
               <div className="space-y-3 relative z-10">
                 <div className="flex items-center gap-3">
-                  <span className={`h-1 w-1 rounded-full ${ws.id === 'dtic' ? 'bg-accent-blue' : 'bg-accent-amber'} group-hover:animate-ping`} />
+                  <span className={`h-1 w-1 rounded-full ${ws.accentClass.split(' ')[0]} group-hover:animate-ping`} />
                   <h3 className="text-[11px] uppercase tracking-[0.4em] font-bold text-text-3 group-hover:text-text-2 transition-colors">{ws.id} CONTEXT</h3>
                 </div>
 
-                <h2 className="text-3xl font-black text-text-1 tracking-tight group-hover:text-white transition-colors">{ws.title}</h2>
-                <h4 className={`text-sm font-bold uppercase tracking-wider ${ws.accentColor} opacity-90`}>{ws.subtitle}</h4>
+                <h2 className="text-3xl font-black text-text-1 tracking-tight group-hover:text-white transition-colors">{ws.label}</h2>
+                <h4 className={`text-sm font-bold uppercase tracking-wider ${ws.accentClass.split(' ')[2]} opacity-90`}>{ws.subtitle}</h4>
 
                 <p className="text-[15px] text-text-3 font-medium leading-relaxed mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
                   {ws.description}
@@ -212,7 +198,7 @@ export default function WorkspaceSelectorPage() {
               {/* Action Footer */}
               <div className="mt-auto pt-8 flex items-center justify-between relative z-10 border-t border-white/5">
                 <div className="text-[10px] font-bold text-text-3/40 uppercase tracking-widest">Acesso Restrito</div>
-                <div className={`text-[10px] font-black uppercase tracking-widest ${ws.accentColor} opacity-0 group-hover:opacity-100 transition-opacity`}>Identificar Visão</div>
+                <div className={`text-[10px] font-black uppercase tracking-widest ${ws.accentClass.split(' ')[2]} opacity-0 group-hover:opacity-100 transition-opacity`}>Identificar Visão</div>
               </div>
             </GlassCard>
           </button>
