@@ -22,7 +22,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.database import get_db
 from app.core.glpi_client import GLPIClient, GLPIClientError
-from app.schemas.knowledge_schemas import KBArticleCreate, KBArticleUpdate
+from app.schemas.knowledge_schemas import (
+    KBArticleCreate, 
+    KBArticleUpdate,
+    KBListResponse,
+    KBArticleResponse,
+    KBCategoriesResponse
+)
 from app.services.knowledge_service import (
     get_kb_categories,
     search_kb_articles,
@@ -31,7 +37,8 @@ from app.services.knowledge_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/{context}", tags=["Knowledge Base"])
+from app.core.auth_guard import verify_session
+router = APIRouter(prefix="/api/v1/{context}", tags=["Knowledge Base"], dependencies=[Depends(verify_session)])
 
 
 def _validate_kb_context(context: str) -> str:
@@ -54,7 +61,7 @@ def _get_glpi_client(session_token: str) -> GLPIClient:
 # LEITURA (SQL direto — CQRS)
 # ═══════════════════════════════════════════════════════════════
 
-@router.get("/knowledge/categories")
+@router.get("/knowledge/categories", response_model=KBCategoriesResponse)
 async def list_categories(
     context: str,
     is_faq: Optional[bool] = Query(None, description="Filtrar contagem por FAQs"),
@@ -67,7 +74,7 @@ async def list_categories(
         return {"categories": categories}
 
 
-@router.get("/knowledge/articles")
+@router.get("/knowledge/articles", response_model=KBListResponse)
 async def list_articles(
     context: str,
     q: Optional[str] = Query(None, description="Texto de busca"),
@@ -89,7 +96,7 @@ async def list_articles(
         return result
 
 
-@router.get("/knowledge/articles/{article_id}")
+@router.get("/knowledge/articles/{article_id}", response_model=KBArticleResponse)
 async def get_article(context: str, article_id: int):
     """Retorna artigo completo com conteúdo HTML sanitizado."""
     _validate_kb_context(context)

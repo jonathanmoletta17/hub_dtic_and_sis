@@ -3,8 +3,9 @@ from datetime import datetime
 from app.core.utils.time_utils import calculate_business_minutes
 
 @pytest.fixture
-def service_calc():
-    return calculate_business_minutes
+def service():
+    import app.core.utils.time_utils as utils
+    return utils
 
 def test_business_minutes_same_day(service):
     """Teste de chamado dentro do mesmo dia útil, sem corte de horário."""

@@ -1,5 +1,6 @@
 import pytest
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from unittest.mock import AsyncMock, MagicMock
 from app.services.charger_service import ChargerService
 
@@ -26,21 +27,23 @@ async def test_get_ranking_calculates_business_hours_correctly():
     # Mocks para o banco de dados simulando retorno de queries
     # Serão duas chamadas await glpi_db.execute(), uma pros tickets, outra pros carregadores gerais
     
+    tz = ZoneInfo("America/Sao_Paulo")
+    
     # 1. Mock dos tickets brutos
     # Ticket 1: Começa 17h, termina 09h dia seguinte. (Apenas 90 mins comerciais de 08:00->18:00)
     row_t1 = MockRowDetail(
         cid=1, name="Leonardo", b_start="08:00", b_end="18:00", 
-        tid=100, t_date=datetime(2023, 10, 2, 17, 0, 0), 
-        s_date=datetime(2023, 10, 3, 9, 0, 0), 
-        assigned_at=datetime(2023, 10, 2, 17, 30, 0)
+        tid=100, t_date=datetime(2023, 10, 2, 17, 0, 0, tzinfo=tz), 
+        s_date=datetime(2023, 10, 3, 9, 0, 0, tzinfo=tz), 
+        assigned_at=datetime(2023, 10, 2, 17, 30, 0, tzinfo=tz)
     )
     
     # Ticket 2: (Para o mesmo Leonardo) Fim de semana (17h sexta -> 10h segunda = 180 min)
     row_t2 = MockRowDetail(
         cid=1, name="Leonardo", b_start="08:00", b_end="18:00", 
-        tid=101, t_date=datetime(2023, 10, 6, 17, 0, 0), 
-        s_date=datetime(2023, 10, 9, 10, 0, 0), 
-        assigned_at=datetime(2023, 10, 6, 17, 0, 0)
+        tid=101, t_date=datetime(2023, 10, 6, 17, 0, 0, tzinfo=tz), 
+        s_date=datetime(2023, 10, 9, 10, 0, 0, tzinfo=tz), 
+        assigned_at=datetime(2023, 10, 6, 17, 0, 0, tzinfo=tz)
     )
 
     # 2. Mock dos carregadores

@@ -6,10 +6,12 @@ from sqlalchemy import text
 from app.core.database import get_db
 from app.core.rate_limit import limiter
 from app.core.cache import identity_cache
+from app.core.auth_guard import verify_session
+from app.schemas.lookup_schemas import LocationsResponse, CategoriesResponse, TechniciansResponse
 
-router = APIRouter(prefix="/api/v1/{context}/lookups", tags=["Domain: Lookups & Arrays (CQRS)"])
+router = APIRouter(prefix="/api/v1/{context}/lookups", tags=["Domain: Lookups & Arrays (CQRS)"], dependencies=[Depends(verify_session)])
 
-@router.get("/locations", operation_id="getLocations")
+@router.get("/locations", response_model=LocationsResponse, operation_id="getLocations")
 @limiter.limit("200/minute")
 async def get_locations(
     request: Request,
@@ -48,7 +50,7 @@ async def get_locations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error on locations lookup: {str(e)}")
 
-@router.get("/itilcategories", operation_id="getItilCategories")
+@router.get("/itilcategories", response_model=CategoriesResponse, operation_id="getItilCategories")
 @limiter.limit("200/minute")
 async def get_itilcategories(
     request: Request,
@@ -86,7 +88,7 @@ async def get_itilcategories(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error on itilcategories lookup: {str(e)}")
 
-@router.get("/users/technicians", operation_id="getTechnicians")
+@router.get("/users/technicians", response_model=TechniciansResponse, operation_id="getTechnicians")
 @limiter.limit("100/minute")
 async def get_technicians(request: Request, context: str, db: AsyncSession = Depends(get_db)):
     """[CQRS Cacheable] Retorna Técnicos Elegíveis (Profile Tech, Admin, Super-Admin)"""

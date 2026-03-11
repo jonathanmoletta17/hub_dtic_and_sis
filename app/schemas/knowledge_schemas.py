@@ -41,6 +41,11 @@ class KBListResponse(BaseModel):
     articles: list[KBArticleSummary] = []
 
 
+class KBCategoriesResponse(BaseModel):
+    """Resposta apenas da listagem de categorias."""
+    categories: list[KBCategory] = []
+
+
 class KBArticleResponse(BaseModel):
     """Resposta do artigo individual."""
     article: KBArticleDetail

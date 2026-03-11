@@ -32,7 +32,7 @@ interface WizardState {
   /** Seleciona um serviço e carrega o schema (chamado no Step 1) */
   selectForm: (formId: number) => void;
   /** Define o schema carregado do backend */
-  setSchema: (schema: FormSchema) => void;
+  setSchema: (schema: FormSchema | null) => void;
   /** Define o estado de loading do schema */
   setLoadingSchema: (loading: boolean) => void;
   /** Atualiza uma resposta específica */

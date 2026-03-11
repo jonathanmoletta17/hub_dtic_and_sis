@@ -8,7 +8,8 @@ from sqlalchemy import text
 # Import database injector
 from app.core.database import get_db
 
-router = APIRouter(prefix="/api/v1/{context}/events", tags=["Domain: Events (SSE)"])
+from app.core.auth_guard import verify_session
+router = APIRouter(prefix="/api/v1/{context}/events", tags=["Domain: Events (SSE)"], dependencies=[Depends(verify_session)])
 
 @router.get("/stream")
 async def sse_stream(request: Request, context: str, db: AsyncSession = Depends(get_db)):
@@ -27,8 +28,9 @@ async def sse_stream(request: Request, context: str, db: AsyncSession = Depends(
             row = res.fetchone()
             if row and row[0]:
                 last_id = row[0]
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Erro no fetch inicial de MAX(id) no SSE events: %s", e)
 
         while True:
             # Verifica se o cliente desconectou
@@ -62,7 +64,8 @@ async def sse_stream(request: Request, context: str, db: AsyncSession = Depends(
                         last_id = r[0]
                         
             except Exception as e:
-                pass
+                import logging
+                logging.getLogger(__name__).error("Erro no processamento central do SSE events: %s", e)
             
             # Ping para manter conexão ativa (previne timeout de proxy)
             yield ": keep-alive\\n\\n"

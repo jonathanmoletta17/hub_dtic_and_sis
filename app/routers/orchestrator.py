@@ -17,8 +17,9 @@ from app.schemas.universal import (
     OrchestrationResult,
     OrchestrationStepResult,
 )
+from app.core.auth_guard import verify_session
 
-router = APIRouter(prefix="/api/v1/{context}/orchestrate", tags=["Orchestrator (Multi-Step)"])
+router = APIRouter(prefix="/api/v1/{context}/orchestrate", tags=["Orchestrator (Multi-Step)"], dependencies=[Depends(verify_session)])
 
 # Regex para resolver referências: $ref:step_name.field
 _REF_PATTERN = re.compile(r"^\$ref:(\w+)\.(\w+)$")

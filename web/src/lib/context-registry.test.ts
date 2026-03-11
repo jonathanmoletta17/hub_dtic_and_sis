@@ -44,15 +44,17 @@ describe('context-registry', () => {
   });
 
   // ─── Cenário 2: Gestor SIS com carregadores+permissoes ───
-  test('gestor SIS com carregadores+permissoes → Dashboard + Permissões + Carregadores + Novo Chamado', () => {
+  test('gestor SIS com carregadores+permissoes → Dashboard + Carregadores + Novo Chamado + Meus Chamados', () => {
     const items = resolveMenuItems('sis', ['gestor'], ['carregadores', 'permissoes']);
     const ids = items.map(i => i.id);
     expect(ids).toContain('dashboard');
-    expect(ids).toContain('permissoes');
     expect(ids).toContain('chargers');
     expect(ids).toContain('new-ticket');
+    expect(ids).toContain('user-tickets');
     // search requer requireApp=busca que não foi passado
     expect(ids).not.toContain('search');
+    // permissoes não está nas features de SIS
+    expect(ids).not.toContain('permissoes');
   });
 
   // ─── Cenário 3: Solicitante DTIC sem nenhum appAccess ───
@@ -95,7 +97,7 @@ describe('context-registry', () => {
     const m = getContextManifest('dtic');
     expect(m).not.toBeNull();
     expect(m!.id).toBe('dtic');
-    expect(m!.label).toBe('Ecossistema Digital');
+    expect(m!.label).toBe('Gestão de Chamados');
   });
 
   // ─── Rotas injetadas com contexto ───

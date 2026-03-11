@@ -46,7 +46,8 @@ export function useFormSchema() {
     async function load() {
       setLoadingSchema(true);
       setFetchError(null);
-      const context = activeContext || 'sis-manutencao';
+      if (!activeContext) return;
+      const context = activeContext;
 
       try {
         // Fetch schema real do backend
@@ -62,12 +63,9 @@ export function useFormSchema() {
         setLoadingSchema(false);
       } catch (err) {
         if (cancelled) return;
-        console.warn('[useFormSchema] Backend indisponível, usando mock:', err);
+        console.warn('[useFormSchema] Falha ao carregar schema:', err);
         setFetchError(String(err));
-
-        // Fallback para mock
-        const mockSchema = buildMockSchema(selectedFormId!);
-        setSchema(mockSchema);
+        setSchema(null);
         setLoadingSchema(false);
       }
     }
@@ -202,73 +200,5 @@ function transformQuestion(
     resolvedOptions,
     showRule: conditions.length > 0 ? 'conditional' : 'always',
     conditions,
-  };
-}
-
-// ── Mock schema (fallback) ──
-
-function buildMockSchema(formId: number): FormSchema {
-  return {
-    id: formId,
-    name: `Serviço ${formId}`,
-    category: null,
-    accessRights: 'PRIVATE',
-    sections: [
-      {
-        id: 100,
-        name: 'Dados Gerais',
-        order: 1,
-        showRule: 'always',
-        conditions: [],
-        questions: [
-          {
-            id: 1001, name: 'Este atendimento é para quem?', fieldtype: 'select',
-            required: true, row: 0, col: 0, width: 4, options: ['Para mim', 'Para outra Pessoa'],
-            showRule: 'always', conditions: [],
-          },
-          {
-            id: 1002, name: 'Qual o nome desta pessoa?', fieldtype: 'text',
-            required: true, row: 1, col: 0, width: 4, showRule: 'conditional',
-            conditions: [{ questionId: 1001, operator: '==', value: 'Para outra Pessoa', logic: 'AND' }],
-          },
-          {
-            id: 1003, name: 'Localização', fieldtype: 'dropdown',
-            required: true, row: 2, col: 0, width: 4, showRule: 'always', conditions: [],
-            resolvedOptions: [
-              { id: 71, name: 'Ala Governamental', completename: 'Locais > Ala Governamental' },
-              { id: 72, name: 'Ala Residencial', completename: 'Locais > Ala Residencial' },
-              { id: 73, name: 'Prédio Administrativo', completename: 'Locais > Prédio Administrativo' },
-            ],
-          },
-          {
-            id: 1004, name: 'Telefone de Contato', fieldtype: 'integer',
-            required: true, row: 3, col: 0, width: 2, showRule: 'always', conditions: [],
-          },
-          {
-            id: 1005, name: 'Urgência', fieldtype: 'urgency',
-            required: false, row: 3, col: 2, width: 2, showRule: 'always', conditions: [],
-          },
-        ],
-      },
-      {
-        id: 200,
-        name: 'Detalhamento',
-        order: 2,
-        showRule: 'always',
-        conditions: [],
-        questions: [
-          {
-            id: 2001, name: 'Tipo', fieldtype: 'dropdown', required: true, row: 0, col: 0, width: 4,
-            showRule: 'always', conditions: [],
-            resolvedOptions: [
-              { id: 1, name: 'Conserto' }, { id: 2, name: 'Instalação' }, { id: 3, name: 'Troca' },
-            ],
-          },
-          { id: 2002, name: 'Assunto', fieldtype: 'text', required: true, row: 1, col: 0, width: 4, showRule: 'always', conditions: [] },
-          { id: 2003, name: 'Descrição', fieldtype: 'textarea', required: true, row: 2, col: 0, width: 4, showRule: 'always', conditions: [] },
-          { id: 2004, name: 'Anexar Arquivo', fieldtype: 'file', required: false, row: 3, col: 0, width: 4, showRule: 'always', conditions: [] },
-        ],
-      },
-    ],
   };
 }

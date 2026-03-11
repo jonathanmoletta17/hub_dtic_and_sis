@@ -128,7 +128,11 @@ export function ServiceSelector() {
 
       {!isLoading && filteredCatalog.length === 0 && (
         <div className="service-empty">
-          <span>Nenhum serviço encontrado para &quot;{search}&quot;</span>
+          {error ? (
+            <span>Serviço indisponível no momento. Tente novamente mais tarde.</span>
+          ) : (
+            <span>Nenhum serviço encontrado para &quot;{search}&quot;</span>
+          )}
         </div>
       )}
 

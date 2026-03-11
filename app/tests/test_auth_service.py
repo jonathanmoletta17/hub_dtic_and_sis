@@ -39,8 +39,8 @@ class TestResolveHubRoles:
         assert gestor is not None
         assert gestor.route == "dashboard"
 
-    def test_sis_gestor_no_context_override(self):
-        """Perfil 3 (Supervisor) no contexto sis → role=gestor, SEM context_override."""
+    def test_sis_gestor_with_context_override(self):
+        """Perfil 3 (Supervisor) no contexto sis → role=gestor, COM context_override."""
         profiles = [ProfileResponse(id=3, name="Supervisor")]
         groups: list[int] = []
         
@@ -48,9 +48,8 @@ class TestResolveHubRoles:
         
         gestor = next((r for r in result if r.role == "gestor"), None)
         assert gestor is not None
-        # CRITICAL: Gestor SIS NÃO deve ter context_override
-        # (o bug F1 acontecia porque context_override era None)
-        assert gestor.context_override is None
+        # CRITICAL: Gestor SIS deve ter context_override ("sis") para não perder contexto (fix Bug F1)
+        assert gestor.context_override == "sis"
 
     def test_sis_grupo_manutencao(self):
         """Grupo 22 no contexto sis → role=tecnico-manutencao, context_override=sis-manutencao."""

@@ -28,8 +28,9 @@ def calculate_business_minutes(
             current_dt = current_dt.replace(hour=b_start.hour, minute=b_start.minute)
             continue
         
-        day_start = datetime.combine(current_dt.date(), b_start)
-        day_end = datetime.combine(current_dt.date(), b_end)
+        # Garante que day_start/day_end herdam o tzinfo para evitar 'can't compare offset-naive and offset-aware'
+        day_start = datetime.combine(current_dt.date(), b_start, tzinfo=current_dt.tzinfo)
+        day_end = datetime.combine(current_dt.date(), b_end, tzinfo=current_dt.tzinfo)
         
         # Janela de sobreposição no dia atual
         overlap_start = max(current_dt, day_start)

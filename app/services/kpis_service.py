@@ -5,6 +5,7 @@ Dynamic permissions: group_ids are injected from the frontend user context (Auth
 """
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
+import zoneinfo
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 import logging
@@ -35,7 +36,7 @@ def _evaluate_status(value: float, kpi_key: str) -> str:
         else: return "red"
 
 def _get_period_range(period: Optional[str] = None):
-    now = datetime.now()
+    now = datetime.now(zoneinfo.ZoneInfo("America/Sao_Paulo"))
     if not period or period == "current_month":
         start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         next_month = start.replace(day=28) + timedelta(days=4)
@@ -60,7 +61,8 @@ def _get_period_range(period: Optional[str] = None):
         if int(month) == 12: end = datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)
         else: end = datetime(int(year), int(month) + 1, 1) - timedelta(seconds=1)
         return start, end
-    except:
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.warning("Falha ao parsear o período '%s' no kpis_service: %s", period, e)
         return _get_period_range("current_month")
 
 async def calc_sla(db: AsyncSession, start_date: datetime, end_date: datetime, group_ids: List[int]) -> dict:

@@ -13,12 +13,13 @@ from sqlalchemy import text
 from app.core.database import get_db
 from app.core.rate_limit import limiter
 from app.services import kpis_service, stats_service, ticket_list_service, query_engine_service
+from app.core.auth_guard import verify_session
 # Falta de arquivo no repositório local: import inconsistency_service removido para compilação.
 
 # NOTA (Fase 0): Auth guard removido deste router porque o frontend (ticketService.ts)
 # faz requests de leitura SQL sem session token — design atual é "service token no backend".
 # Na Fase 1, ao refatorar o fluxo de auth, adicionar: dependencies=[Depends(verify_session)]
-router = APIRouter(prefix="/api/v1/{context}/db", tags=["DB Read Engine (CQRS)"])
+router = APIRouter(prefix="/api/v1/{context}/db", tags=["DB Read Engine (CQRS)"], dependencies=[Depends(verify_session)])
 
 
 # ─── Endpoint: Agregação Dinâmica ────────────────────────────────────────

@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 from typing import List, Optional, Dict, Any
 
 from sqlalchemy import text
@@ -12,6 +13,7 @@ from app.schemas.charger_schemas import (
     TicketDetailResponse, AvailableChargerBrief, LastTicketBrief
 )
 from app.core.utils.time_utils import calculate_business_minutes, format_elapsed_time
+from app.core.utils.cache_utils import ttl_cache
 from app.services.charger_queries import (
     CHARGER_ITIL_CATEGORIES, SQL_CHARGER_META, SQL_AVAILABLE_CHARGERS, SQL_LAST_RESOLVED_TICKET,
     SQL_ALLOCATED_CHARGERS, SQL_PENDING_DEMANDS, SQL_RANKING_LOGS, SQL_ALL_ACTIVE_CHARGERS,
@@ -19,8 +21,18 @@ from app.services.charger_queries import (
 )
 
 logger = logging.getLogger(__name__)
+_TZ = ZoneInfo("America/Sao_Paulo")
+
+def _now_local() -> datetime:
+    return datetime.now(tz=_TZ)
+
+def _ensure_tz(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None: return None
+    if dt.tzinfo is None: return dt.replace(tzinfo=_TZ)
+    return dt
 
 class ChargerService:
+    @ttl_cache(ttl_seconds=10, ignore_args=[0, 2, 3])  # Ignora self, glpi_db, local_db
     async def get_kanban_data(
         self, 
         context: str, 
@@ -28,7 +40,7 @@ class ChargerService:
         local_db: AsyncSession
     ) -> KanbanResponse:
         """Gera o estado completo do Kanban de Carregadores."""
-        now = datetime.now()
+        now = _now_local()
         default_b_start = "08:00"
         default_b_end = "18:00"
         default_weekends = False
@@ -84,8 +96,9 @@ class ChargerService:
             
             service_mins = 0
             if charger_assigned_date:
+                assigned_dt = _ensure_tz(charger_assigned_date)
                 service_mins = calculate_business_minutes(
-                    charger_assigned_date, now, ch_b_start, ch_b_end, default_weekends
+                    assigned_dt, now, ch_b_start, ch_b_end, default_weekends
                 )
 
             if tid not in ticket_groups:
@@ -155,6 +168,7 @@ class ChargerService:
             allocatedResources=allocated
         )
 
+    @ttl_cache(ttl_seconds=25, ignore_args=[0, 2])  # Ignora self, glpi_db
     async def get_ranking(
         self, 
         context: str, 
@@ -163,7 +177,7 @@ class ChargerService:
         end_date: Optional[str] = None
     ) -> RankingResponse:
         """Calcula o ranking de performance dos carregadores."""
-        now = datetime.now()
+        now = _now_local()
         if not start_date:
             start_date = (now - timedelta(days=30)).strftime("%Y-%m-%d")
         if not end_date:
@@ -172,7 +186,8 @@ class ChargerService:
             try:
                 end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
                 end_date = end_dt.strftime("%Y-%m-%d")
-            except: pass
+            except ValueError as e:
+                logger.warning("Falha ao interpretar/formatar end_date '%s': %s", end_date, e)
 
         res = await glpi_db.execute(SQL_RANKING_LOGS, {"start": start_date, "end": end_date})
         rows = res.fetchall()
@@ -192,13 +207,17 @@ class ChargerService:
             cid = r.id
             if cid not in ch_stats: continue
             ch_stats[cid]["resolved_count"] += 1
-            end_activity = r.solvedate or now
+            
+            # Determina o fim da atividade para last_activity e cálculo de tempo
+            end_activity = _ensure_tz(r.solvedate) if r.solvedate else now
+            
             if ch_stats[cid]["last_activity"] is None or end_activity > ch_stats[cid]["last_activity"]:
                 ch_stats[cid]["last_activity"] = end_activity
-            
+
             if r.assigned_at:
+                assigned_dt = _ensure_tz(r.assigned_at)
                 active_mins = calculate_business_minutes(
-                    r.assigned_at, end_activity, r.b_start, r.b_end, False
+                    assigned_dt, end_activity, r.b_start, r.b_end, False
                 )
                 ch_stats[cid]["total_service_mins"] += active_mins
 
@@ -231,7 +250,7 @@ class ChargerService:
         glpi_db: AsyncSession
     ) -> TicketDetailResponse:
         """Busca detalhes completos de um ticket para o modal."""
-        now = datetime.now()
+        now = _now_local()
 
         res_ticket = await glpi_db.execute(SQL_TICKET_BASIC_DETAILS, {"tid": ticket_id})
         ticket_row = res_ticket.fetchone()
@@ -245,7 +264,8 @@ class ChargerService:
             a_date = cr.assigned_date or ticket_row.date
             service_mins = 0
             if a_date:
-                service_mins = calculate_business_minutes(a_date, now, cr.b_start, cr.b_end, False)
+                assigned_dt = _ensure_tz(a_date)
+                service_mins = calculate_business_minutes(assigned_dt, now, cr.b_start, cr.b_end, False)
             chargers_list.append(ChargerInTicket(
                 id=cr.id, name=cr.name,
                 assigned_date=a_date.isoformat() if a_date else None,

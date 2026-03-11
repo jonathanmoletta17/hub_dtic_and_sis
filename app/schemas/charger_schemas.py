@@ -2,11 +2,12 @@ from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-# --- Horários (Schedules) ---
+# Regex para validação rigorosa de formato HH:MM (00:00 - 23:59)
+HH_MM_REGEX = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 class ScheduleBase(BaseModel):
-    business_start: str = Field("08:00", pattern=r"^\d{2}:\d{2}$")
-    business_end: str = Field("18:00", pattern=r"^\d{2}:\d{2}$")
+    business_start: str = Field("08:00", pattern=HH_MM_REGEX)
+    business_end: str = Field("18:00", pattern=HH_MM_REGEX)
     work_on_weekends: bool = False
 
 class ScheduleUpdate(ScheduleBase):
@@ -34,7 +35,7 @@ class GlobalScheduleResponse(ScheduleBase):
 class OfflineBase(BaseModel):
     is_offline: bool = False
     reason: Optional[str] = None
-    expected_return: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    expected_return: Optional[str] = Field(None, pattern=HH_MM_REGEX)
 
 class OfflineUpdate(OfflineBase):
     pass

@@ -41,17 +41,21 @@ export function ReviewStep() {
   );
 
   const handleSubmit = async () => {
+    if (!activeContext) {
+      setSubmitError('Sessão expirada. Por favor, atualize a página.');
+      return;
+    }
+    
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const context = activeContext || 'sis-manutencao';
       // Formata answers: {"question_id": "valor"}
       const formatted: Record<string, unknown> = {};
       for (const [key, val] of Object.entries(answers)) {
         const qId = key.replace('q_', '');
         formatted[qId] = val;
       }
-      await submitFormAnswers(context, selectedFormId!, formatted);
+      await submitFormAnswers(activeContext, selectedFormId!, formatted);
       if (selectedFormId) clearDraft(selectedFormId);
       reset();
     } catch (err) {

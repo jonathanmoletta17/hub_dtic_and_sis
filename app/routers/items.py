@@ -11,8 +11,9 @@ from pydantic import BaseModel
 from app.core.session_manager import session_manager
 from app.core.rate_limit import limiter
 from app.config import settings
+from app.core.auth_guard import verify_session
 
-router = APIRouter(prefix="/api/v1/{context}", tags=["Items"])
+router = APIRouter(prefix="/api/v1/{context}", tags=["Items"], dependencies=[Depends(verify_session)])
 
 
 class ItemInput(BaseModel):

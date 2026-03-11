@@ -57,7 +57,8 @@ export const fetchChargers = async (
           : undefined,
       };
     });
-  } catch {
+  } catch (error) {
+    console.error("Silenced API error fetching chargers:", error);
     return [];
   }
 };
@@ -212,7 +213,7 @@ export const createCharger = (
   request(`/api/v1/${context}/chargers`, {
     method: "POST",
     body: JSON.stringify({ name, locations_id: locationId }),
-  }).then(() => true).catch(() => false);
+  }).then(() => true).catch((e) => { console.error("API Error creating charger:", e); return false; });
 
 export const updateCharger = (
   context: string,
@@ -223,7 +224,7 @@ export const updateCharger = (
   request(`/api/v1/${context}/chargers/${chargerId}`, {
     method: "PUT",
     body: JSON.stringify({ name, locations_id: locationId }),
-  }).then(() => true).catch(() => false);
+  }).then(() => true).catch((e) => { console.error("API Error updating charger:", e); return false; });
 
 export const deleteCharger = (
   context: string,
@@ -231,7 +232,7 @@ export const deleteCharger = (
 ): Promise<boolean> =>
   request(`/api/v1/${context}/chargers/${chargerId}`, {
     method: "DELETE",
-  }).then(() => true).catch(() => false);
+  }).then(() => true).catch((e) => { console.error("API Error deleting charger:", e); return false; });
 
 export const reactivateCharger = (
   context: string,
@@ -239,7 +240,7 @@ export const reactivateCharger = (
 ): Promise<boolean> =>
   request(`/api/v1/${context}/chargers/${chargerId}/reactivate`, {
     method: "POST",
-  }).then(() => true).catch(() => false);
+  }).then(() => true).catch((e) => { console.error("API Error reactivating charger:", e); return false; });
 
 export const batchUpdateChargers = (
   context: string,
@@ -276,4 +277,4 @@ export const batchUpdateChargers = (
         expected_return: payload.offline.expected_return
       } : undefined
     }),
-  }).then(() => true).catch(() => false);
+  }).then(() => true).catch((e) => { console.error("API Error batch updating chargers:", e); return false; });

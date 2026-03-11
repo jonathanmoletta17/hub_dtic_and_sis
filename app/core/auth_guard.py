@@ -9,6 +9,8 @@ import logging
 import time
 from collections import OrderedDict
 from typing import Optional
+import httpx
+import asyncio
 
 from fastapi import Request, HTTPException, Header
 
@@ -108,9 +110,9 @@ async def verify_session(
             status_code=401,
             detail="Token de sessão inválido ou expirado. Faça login novamente."
         )
-    except Exception as e:
-        # GLPI indisponível — degradação graciosa
-        _log.warning("GLPI indisponível para validação (degradação graciosa): %s", e)
+    except (httpx.ConnectError, httpx.TimeoutException, asyncio.TimeoutError) as e:
+        # GLPI indisponível (Erro de Rede/Timeout) — degradação graciosa
+        _log.warning("GLPI indisponível para validação devide a %s (degradação graciosa): %s", type(e).__name__, str(e))
         return {"session_token": token, "validated": True, "source": "fallback"}
 
 

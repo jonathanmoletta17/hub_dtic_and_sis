@@ -46,18 +46,26 @@ async def get_user_glpi_session(
 
 from app.core.auth_guard import verify_session
 
+router = APIRouter(prefix="/api/v1/{context}/chargers", tags=["Chargers"], dependencies=[Depends(verify_session)])
+logger = logging.getLogger(__name__)
+
 # ── Global Schedule persistence (JSON local) ─────────────
 _SETTINGS_FILE = Path(__file__).resolve().parent.parent.parent / "data" / "charger_settings.json"
 _DEFAULT_SCHEDULE = {"business_start": "08:00", "business_end": "18:00", "work_on_weekends": False}
 
 def _read_global_schedule() -> dict:
-    """Lê o schedule global do arquivo JSON. Fallback para defaults se não existir."""
+    """Lê o schedule global do arquivo JSON. Fallback para defaults se não existir ou for inválido."""
+    if not _SETTINGS_FILE.exists():
+        return _DEFAULT_SCHEDULE.copy()
+        
     try:
-        if _SETTINGS_FILE.exists():
-            return json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+        content = _SETTINGS_FILE.read_text(encoding="utf-8")
+        if not content.strip():
+            return _DEFAULT_SCHEDULE.copy()
+        return json.loads(content)
     except Exception as e:
-        logger.warning("Erro ao ler charger_settings.json: %s", e)
-    return _DEFAULT_SCHEDULE.copy()
+        logger.warning("Falha ao processar charger_settings.json (usando defaults): %s", e)
+        return _DEFAULT_SCHEDULE.copy()
 
 def _write_global_schedule(data: dict) -> None:
     """Persiste o schedule global em arquivo JSON."""
@@ -65,10 +73,8 @@ def _write_global_schedule(data: dict) -> None:
         _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
         _SETTINGS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     except Exception as e:
-        logger.error("Erro ao gravar charger_settings.json: %s", e)
+        logger.error("Erro crítico ao gravar charger_settings.json: %s", e)
 
-router = APIRouter(prefix="/api/v1/{context}/chargers", tags=["Chargers"], dependencies=[Depends(verify_session)])
-logger = logging.getLogger(__name__)
 service = ChargerService()
 
 @router.get("/kanban", response_model=KanbanResponse, operation_id="getChargerKanban")
