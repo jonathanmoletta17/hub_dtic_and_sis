@@ -58,6 +58,7 @@ Thumbs.db
 *.temp
 .cache/
 output/
+tensor-aurora-audit-clean/
 *.Zone.Identifier
 *:Zone.Identifier
 data/*.db

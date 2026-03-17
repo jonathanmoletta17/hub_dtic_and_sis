@@ -178,10 +178,21 @@ async function createTicketThroughWizard(page: Page, seed: TicketSeed): Promise<
 }
 
 async function openCreatedTicketFromDashboard(page: Page, subject: string): Promise<number> {
-  await Promise.all([
-    page.waitForURL(/\/sis\/dashboard$/),
-    page.getByRole("button", { name: /^Dashboard$/i }).click(),
-  ]);
+  const painelButton = page.getByRole("button", { name: /^Painel$/i });
+  const dashboardButton = page.getByRole("button", { name: /^Dashboard$/i });
+  const navTarget = /\/sis\/dashboard(?:\?.*)?$/;
+
+  if (await painelButton.count()) {
+    await Promise.all([
+      page.waitForURL(navTarget),
+      painelButton.first().click(),
+    ]);
+  } else {
+    await Promise.all([
+      page.waitForURL(navTarget),
+      dashboardButton.first().click(),
+    ]);
+  }
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const ticketCard = page.locator("button").filter({ hasText: subject }).first();

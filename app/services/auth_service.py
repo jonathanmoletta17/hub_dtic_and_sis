@@ -16,6 +16,8 @@
 # ║  REFERÊNCIA: ARCHITECTURE_RULES.md → Zonas de Proteção          ║
 # ╚══════════════════════════════════════════════════════════════════╝
 import logging
+import hashlib
+import time
 from typing import List, Optional
 from fastapi import HTTPException
 from app.core.session_manager import session_manager
@@ -23,10 +25,12 @@ from app.schemas.auth_schemas import (
     ProfileResponse, HubRole, RoleResponse, AuthMeResponse, LoginResponse
 )
 from app.core.glpi_client import GLPIClient, GLPIClientError
+from app.core.cache import AsyncTTLMemoryCache, identity_cache
 from app.config import settings
 
 
 _log = logging.getLogger(__name__)
+_hub_group_map_cache = AsyncTTLMemoryCache(ttl_seconds=300)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -36,47 +40,123 @@ _log = logging.getLogger(__name__)
 from app.core.context_registry import registry, ContextConfig
 
 
-async def resolve_app_access(client, user_id: int) -> List[str]:
-    """Busca grupos do user e extrai os que começam com Hub-App-*."""
+async def _fetch_all_groups(client: GLPIClient, max_limit: int = 5000) -> List[dict]:
+    results: List[dict] = []
+    start = 0
+    step = 100
+    while start < max_limit:
+        try:
+            batch = await client.get_all_items("Group", range_start=start, range_end=start + step - 1)
+        except GLPIClientError as e:
+            if e.status_code in (400, 416):
+                break
+            raise
+
+        if not isinstance(batch, list) or not batch:
+            break
+
+        results.extend(batch)
+        start += len(batch)
+
+    return results
+
+
+async def _get_hub_group_name_map(context: str) -> dict[int, str]:
+    base_context = registry.get_base_context(context)
+    cache_key = f"auth_hub_group_map:{base_context}"
+
+    async def _load() -> dict[int, str]:
+        service_client = await session_manager.get_client(base_context)
+        groups = await _fetch_all_groups(service_client, max_limit=5000)
+        result: dict[int, str] = {}
+        for group in groups:
+            gid = group.get("id")
+            gname = str(group.get("name") or "").strip()
+            if isinstance(gid, int) and gname.startswith("Hub-App-"):
+                result[gid] = gname
+        return result
+
+    return await _hub_group_map_cache.get_or_set(cache_key, _load)
+
+
+async def resolve_app_access(
+    context: str,
+    client: GLPIClient,
+    user_id: int,
+    prefetched_group_links: Optional[List[dict]] = None,
+) -> List[str]:
+    """Busca grupos do user e extrai os que começam com Hub-App-* sem N+1 por grupo."""
     if not user_id:
         return []
+
     try:
-        group_links = await client.get_sub_items("User", user_id, "Group_User")
-        app_access = []
+        group_links = prefetched_group_links or await client.get_sub_items("User", user_id, "Group_User")
+        hub_group_names = await _get_hub_group_name_map(context)
+        app_access: List[str] = []
+        seen: set[str] = set()
+
         for gl in group_links:
             gid = gl.get("groups_id")
-            if not gid: continue
-            try:
-                group = await client.get_item("Group", gid)
-                name = group.get("name", "")
-                if name.startswith("Hub-App-"):
-                    app_id = name.replace("Hub-App-", "").lower()
-                    app_access.append(app_id)
-            except Exception as e:
-                _log.warning(f"Erro ao buscar detalhes do grupo {gid}: {e}")
+            if not isinstance(gid, int):
+                continue
+            group_name = hub_group_names.get(gid)
+            if not group_name:
+                continue
+            app_id = group_name.replace("Hub-App-", "").strip().lower()
+            if not app_id or app_id in seen:
+                continue
+            seen.add(app_id)
+            app_access.append(app_id)
         return app_access
     except Exception as e:
-        _log.warning(f"Erro ao extrair app_access para user {user_id}: {e}")
+        _log.warning("Erro ao extrair app_access para user=%s context=%s: %s", user_id, context, e)
         return []
 
-async def fetch_session_identity(context: str, session_token: Optional[str] = None) -> dict:
+async def fetch_session_identity(
+    context: str,
+    session_token: Optional[str] = None,
+    prefetched_session: Optional[dict] = None,
+) -> dict:
     """Helper que puxa os dados mastigados de sessão (Cacheável via roteador)."""
     ephemeral_client: Optional[GLPIClient] = None
+    started_at = time.perf_counter()
+    base_context = registry.get_base_context(context)
     try:
         if session_token:
-            base_context = registry.get_base_context(context)
             instance = settings.get_glpi_instance(base_context)
             ephemeral_client = GLPIClient.from_session_token(instance, session_token)
             client = ephemeral_client
         else:
-            client = await session_manager.get_client(context)
-        session_data = await client.get_full_session()
-        
-        session_info = session_data.get("session", {})
+            client = await session_manager.get_client(base_context)
+
+        session_info: dict = {}
+        if isinstance(prefetched_session, dict) and prefetched_session:
+            session_info = prefetched_session
+        elif session_token:
+            gate_key = f"admin_gate_session:{base_context}:{session_token}"
+            found, cached_gate_session = identity_cache.try_get(gate_key)
+            if found and isinstance(cached_gate_session, dict):
+                session_info = cached_gate_session
+
+        if not session_info:
+            session_data = await client.get_full_session()
+            session_info = session_data.get("session", {}) if isinstance(session_data, dict) else {}
+            if session_token:
+                identity_cache.set(f"admin_gate_session:{base_context}:{session_token}", session_info)
+
         user_id = session_info.get("glpiID", 0)
-        
-        app_access = await resolve_app_access(client, user_id)
-        
+
+        app_access = await resolve_app_access(base_context, client, user_id)
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
+        _log.debug(
+            "auth.fetch_session_identity context=%s user_id=%s elapsed_ms=%.1f app_access=%d prefetched=%s",
+            base_context,
+            user_id,
+            elapsed_ms,
+            len(app_access),
+            bool(prefetched_session),
+        )
+
         return {
             "session": session_info,
             "app_access": app_access
@@ -291,7 +371,7 @@ async def fallback_login(context: str, username: str) -> LoginResponse:
     )
     
     hub_roles = resolve_hub_roles(context, available_profiles, groups)
-    app_access = await resolve_app_access(service_client, glpi_id)
+    app_access = await resolve_app_access(context, service_client, glpi_id)
     
     return LoginResponse(
         context=context,
@@ -322,7 +402,7 @@ async def perform_login(context: str, body) -> LoginResponse:
         session_info = session_data.get("session", {})
         
         user_id = session_info.get("glpiID", 0)
-        app_access = await resolve_app_access(client, user_id)
+        app_access = await resolve_app_access(context, client, user_id)
         
         return build_login_response(context, session_token, session_info, app_access)
         

@@ -43,6 +43,11 @@ async def lifespan(app: FastAPI):
     
     logger.info("Inicializando estado local SQLite em %s", settings.local_state_db_path)
     await initialize_local_state(local_engine)
+    logger.info("Prewarm de caches admin (DTIC/SIS) iniciado...")
+    try:
+        await admin.prewarm_admin_runtime_caches(["dtic", "sis"])
+    except Exception as prewarm_error:
+        logger.warning("Prewarm de caches admin falhou: %s", prewarm_error)
     logger.info("=" * 60)
     yield
     # Shutdown: encerrar sessões

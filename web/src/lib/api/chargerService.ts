@@ -62,19 +62,14 @@ export const fetchChargers = async (
   startDate?: string,
   endDate?: string
 ): Promise<Charger[]> => {
-  try {
-    const response = await apiGet<RankingResponseDto>(
-      buildApiPath(context, "metrics/chargers"),
-      {
-        start_date: startDate,
-        end_date: endDate,
-      },
-    );
-    return mapRankingResponseToChargers(response);
-  } catch (error) {
-    console.error("Silenced API error fetching chargers:", error);
-    return [];
-  }
+  const response = await apiGet<RankingResponseDto>(
+    buildApiPath(context, "metrics/chargers"),
+    {
+      start_date: startDate,
+      end_date: endDate,
+    },
+  );
+  return mapRankingResponseToChargers(response);
 };
 
 export const fetchGlobalSchedule = async (
@@ -134,13 +129,8 @@ export const toggleChargerOffline = (
   }).then(() => true);
 
 export const assignChargerToTicket = async (context: string, ticketId: number, chargerId: number): Promise<boolean> => {
-  try {
-    await apiPost(buildApiPath(context, `chargers/${chargerId}/assign/${ticketId}`));
-    return true;
-  } catch (error) {
-    console.error("Error error assigning charger:", error);
-    return false;
-  }
+  await apiPost(buildApiPath(context, `chargers/${chargerId}/assign/${ticketId}`));
+  return true;
 };
 
 export const assignMultipleChargersToTicket = async (context: string, ticketId: number, chargerIds: number[]): Promise<boolean> => {
@@ -191,7 +181,7 @@ export const createCharger = (
   locationId: number = 0
 ): Promise<boolean> =>
   apiPost(buildApiPath(context, "chargers"), { name, locations_id: locationId })
-    .then(() => true).catch((e) => { console.error("API Error creating charger:", e); return false; });
+    .then(() => true);
 
 export const updateCharger = (
   context: string,
@@ -200,21 +190,21 @@ export const updateCharger = (
   locationId: number = 0
 ): Promise<boolean> =>
   apiPut(buildApiPath(context, `chargers/${chargerId}`), { name, locations_id: locationId })
-    .then(() => true).catch((e) => { console.error("API Error updating charger:", e); return false; });
+    .then(() => true);
 
 export const deleteCharger = (
   context: string,
   chargerId: number
 ): Promise<boolean> =>
   apiDelete(buildApiPath(context, `chargers/${chargerId}`))
-    .then(() => true).catch((e) => { console.error("API Error deleting charger:", e); return false; });
+    .then(() => true);
 
 export const reactivateCharger = (
   context: string,
   chargerId: number
 ): Promise<boolean> =>
   apiPost(buildApiPath(context, `chargers/${chargerId}/reactivate`))
-    .then(() => true).catch((e) => { console.error("API Error reactivating charger:", e); return false; });
+    .then(() => true);
 
 export const batchUpdateChargers = (
   context: string,

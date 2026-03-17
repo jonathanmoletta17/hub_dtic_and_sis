@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import pytest
+from httpx import ASGITransport, AsyncClient
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.core.glpi_client import GLPIClientError
+from app.core.cache import identity_cache
 from app.routers import admin
 
 
@@ -28,8 +31,10 @@ class _DummyGLPIClient:
         self.revoked: list[tuple[int, int]] = []
         self.add_result = add_result
         self.add_error = add_error
+        self.get_all_items_calls: dict[str, int] = {}
 
     async def get_all_items(self, itemtype: str, range_start: int = 0, range_end: int = 49, **_params):
+        self.get_all_items_calls[itemtype] = self.get_all_items_calls.get(itemtype, 0) + 1
         data = self.datasets.get(itemtype, [])
         return data[range_start : range_end + 1]
 
@@ -83,6 +88,19 @@ def client_factory():
     yield _build, created_clients
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def clear_admin_runtime_caches():
+    admin.admin_users_cache.clear()
+    admin.module_catalog_cache.clear()
+    admin.admin_reference_cache.clear()
+    identity_cache.clear()
+    yield
+    admin.admin_users_cache.clear()
+    admin.module_catalog_cache.clear()
+    admin.admin_reference_cache.clear()
+    identity_cache.clear()
 
 
 def test_module_catalog_returns_only_hub_app_groups(client_factory):
@@ -202,3 +220,125 @@ def test_list_users_deduplicates_by_id_and_merges_access(client_factory):
     assert user["id"] == 7
     assert user["app_access"] == ["busca", "permissoes"]
     assert user["roles"] == ["solicitante", "gestor"]
+
+
+def test_list_users_uses_cache_and_assign_invalidates_cache(client_factory):
+    build_client, created_clients = client_factory
+    datasets = {
+        "User": [
+            {"id": 10, "name": "glpi", "realname": "GLPI", "firstname": "User"},
+        ],
+        "Group_User": [
+            {"users_id": 10, "groups_id": 112},
+        ],
+        "Profile_User": [
+            {"users_id": 10, "profiles_id": 20},
+        ],
+        "Group": [
+            {"id": 109, "name": "Hub-App-busca"},
+            {"id": 112, "name": "Hub-App-dtic-metrics"},
+        ],
+        "Profile": [
+            {"id": 20, "name": "Gestão e Administração"},
+        ],
+    }
+    client = build_client(datasets, user_groups={10: [{"groups_id": 112}]})
+
+    first = client.get("/api/v1/dtic/admin/users")
+    dummy = created_clients[0]
+    after_first = dummy.get_all_items_calls.get("User", 0)
+    second = client.get("/api/v1/dtic/admin/users")
+    after_second = dummy.get_all_items_calls.get("User", 0)
+    assign = client.post("/api/v1/dtic/admin/users/10/groups", json={"group_id": 109})
+    third = client.get("/api/v1/dtic/admin/users")
+    after_third = dummy.get_all_items_calls.get("User", 0)
+    client.close()
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert assign.status_code == 200
+    assert third.status_code == 200
+
+    # Primeira listagem popula cache, segunda usa cache, terceira recarrega apos invalidacao do assign.
+    assert after_first >= 1
+    assert after_second == after_first
+    assert after_third > after_second
+
+
+def test_list_users_uses_cache_and_revoke_invalidates_cache(client_factory):
+    build_client, created_clients = client_factory
+    datasets = {
+        "User": [
+            {"id": 10, "name": "glpi", "realname": "GLPI", "firstname": "User"},
+        ],
+        "Group_User": [
+            {"users_id": 10, "groups_id": 112},
+        ],
+        "Profile_User": [
+            {"users_id": 10, "profiles_id": 20},
+        ],
+        "Group": [
+            {"id": 112, "name": "Hub-App-dtic-metrics"},
+        ],
+        "Profile": [
+            {"id": 20, "name": "Gestão e Administração"},
+        ],
+    }
+    client = build_client(datasets, user_groups={10: [{"groups_id": 112}]})
+
+    first = client.get("/api/v1/dtic/admin/users")
+    dummy = created_clients[0]
+    after_first = dummy.get_all_items_calls.get("User", 0)
+    second = client.get("/api/v1/dtic/admin/users")
+    after_second = dummy.get_all_items_calls.get("User", 0)
+    revoke = client.delete("/api/v1/dtic/admin/users/10/groups/112")
+    third = client.get("/api/v1/dtic/admin/users")
+    after_third = dummy.get_all_items_calls.get("User", 0)
+    client.close()
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert revoke.status_code == 200
+    assert third.status_code == 200
+
+    # Primeira listagem popula cache, segunda usa cache, terceira recarrega apos invalidacao do revoke.
+    assert after_first >= 1
+    assert after_second == after_first
+    assert after_third > after_second
+
+
+@pytest.mark.asyncio
+async def test_list_users_handles_40_parallel_requests_with_single_cache_fill():
+    datasets = {
+        "User": [
+            {"id": 10, "name": "glpi", "realname": "GLPI", "firstname": "User"},
+        ],
+        "Group_User": [
+            {"users_id": 10, "groups_id": 112},
+        ],
+        "Profile_User": [
+            {"users_id": 10, "profiles_id": 20},
+        ],
+        "Group": [
+            {"id": 112, "name": "Hub-App-dtic-metrics"},
+        ],
+        "Profile": [
+            {"id": 20, "name": "Gestão e Administração"},
+        ],
+    }
+    dummy_client = _DummyGLPIClient(datasets=datasets)
+
+    async def override_admin_deps(context: str, target_context: str | None = None):
+        return dummy_client, 1
+
+    app.dependency_overrides[admin._require_gestor_cross_context] = override_admin_deps
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        responses = await asyncio.gather(*[client.get("/api/v1/dtic/admin/users") for _ in range(40)])
+
+    app.dependency_overrides.clear()
+
+    assert all(response.status_code == 200 for response in responses)
+    # Em cada execução real há duas paginas (1 item + pagina vazia), então cache fill único = 2 chamadas.
+    assert dummy_client.get_all_items_calls.get("User") == 2

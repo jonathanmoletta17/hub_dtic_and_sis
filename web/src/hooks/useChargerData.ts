@@ -24,6 +24,7 @@ export interface UseOperationDataResult {
   chargers: Charger[];
   stats: OperationDashboardStats;
   loading: boolean;
+  error: string | null;
   refresh: () => void;
   rankingPeriod: { startDate: string; endDate: string };
   setRankingPeriod: (period: { startDate: string; endDate: string }) => void;
@@ -50,6 +51,7 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
   // SWR 2: Chargers com métricas (para ranking)
   const {
     data: rawChargers,
+    error: chargersError,
     mutate: mutateChargers,
   } = useSWR(
     !pause && context === "sis"
@@ -69,6 +71,11 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     [rawKanban]
   );
   const chargers = useMemo<Charger[]>(() => rawChargers ?? [], [rawChargers]);
+  const error = useMemo(() => {
+    const sourceError = kanbanError || chargersError;
+    if (!sourceError) return null;
+    return sourceError instanceof Error ? sourceError.message : "Falha ao carregar dados de carregadores.";
+  }, [chargersError, kanbanError]);
 
   // Stats derivados (exatamente como o legado)
   const stats = useMemo<OperationDashboardStats>(
@@ -95,7 +102,8 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     kanbanData,
     chargers,
     stats,
-    loading: !rawKanban && !kanbanError,
+    loading: !rawKanban && !kanbanError && !chargersError,
+    error,
     refresh,
     rankingPeriod,
     setRankingPeriod,

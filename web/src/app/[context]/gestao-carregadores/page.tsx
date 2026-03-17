@@ -37,7 +37,7 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
 
   // O fetch só deveria acontecer se houver token, porém a refatoração do hook é externa e
   // o ProtectedRoute já garante a autenticação antes de chegar aqui.
-  const { kanbanData, chargers, stats, loading, refresh } = useChargerData(context);
+  const { kanbanData, chargers, stats, loading, error, refresh } = useChargerData(context);
   const { settings } = useOperationSettings(context);
 
   // ─── Estado dos Modais ───
@@ -45,6 +45,7 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [mutationLoading, setMutationLoading] = useState(false);
+  const [operationError, setOperationError] = useState<string | null>(null);
   const [detailTicketId, setDetailTicketId] = useState<number | null>(null);
   const [unassignTarget, setUnassignTarget] = useState<{
     ticketId: number;
@@ -74,9 +75,12 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
   // ─── Callbacks de Mutação ───
   const handleCreate = useCallback(async (name: string, locationId: number) => {
     setMutationLoading(true);
+    setOperationError(null);
     try {
       await apiCreateCharger(context, name, locationId);
       refresh();
+    } catch (err) {
+      setOperationError(err instanceof Error ? err.message : "Erro ao criar carregador.");
     } finally {
       setMutationLoading(false);
     }
@@ -84,9 +88,12 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
 
   const handleDelete = useCallback(async (id: number) => {
     setMutationLoading(true);
+    setOperationError(null);
     try {
       await apiDeleteCharger(context, id);
       refresh();
+    } catch (err) {
+      setOperationError(err instanceof Error ? err.message : "Erro ao excluir carregador.");
     } finally {
       setMutationLoading(false);
     }
@@ -99,12 +106,13 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
   const handleConfirmUnassign = useCallback(async () => {
     if (!unassignTarget) return;
     setMutationLoading(true);
+    setOperationError(null);
     try {
       await unassignChargerFromTicket(context, unassignTarget.ticketId, unassignTarget.chargerId);
       // Delay para GLPI propagar commit antes de re-fetch
       setTimeout(() => refresh(), 500);
-    } catch {
-      alert("Erro ao desvincular carregador.");
+    } catch (err) {
+      setOperationError(err instanceof Error ? err.message : "Erro ao desvincular carregador.");
     } finally {
       setMutationLoading(false);
       setUnassignTarget(null);
@@ -170,6 +178,12 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
           />
         </div>
       </div>
+
+      {(error || operationError) && (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {operationError || error}
+        </div>
+      )}
 
       {/* Stat Cards */}
       <StatCards stats={stats} />

@@ -34,7 +34,11 @@ async def get_my_identity(request: Request, context: str, auth_data: dict = Depe
     
     session_data = await identity_cache.get_or_set(
         cache_key, 
-        lambda: auth_service.fetch_session_identity(context, session_token=session_token)
+        lambda: auth_service.fetch_session_identity(
+            context,
+            session_token=session_token,
+            prefetched_session=auth_data.get("session") if isinstance(auth_data.get("session"), dict) else None,
+        )
     )
     
     try:
@@ -154,7 +158,7 @@ async def diagnose_access(request: Request, context: str, username: str):
             except Exception:
                 gname = f"Group {gid}"
             groups.append(gname)
-        app_access = await auth_service.resolve_app_access(client, glpi_id)
+        app_access = await auth_service.resolve_app_access(context, client, glpi_id)
         feature_to_app = {
             "search": "busca",
             "chargers": "carregadores",

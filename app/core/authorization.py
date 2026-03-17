@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import time
 from typing import Any, Iterable
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 
 from app.core.auth_guard import verify_session
 from app.core.cache import identity_cache
@@ -36,10 +37,13 @@ def _expand_role(role: str) -> set[str]:
 
 
 async def get_authorization_identity(
+    request: Request,
     context: str,
     auth_data: dict[str, Any] = Depends(verify_session),
     active_hub_role_header: str | None = Header(default=None, alias="X-Active-Hub-Role"),
 ) -> dict[str, Any]:
+    started_at = time.perf_counter()
+    request_id = str(auth_data.get("request_id") or request.headers.get("X-Request-ID") or "-")
     session_token = auth_data.get("session_token")
     if not session_token:
         raise HTTPException(status_code=401, detail="Sessao invalida para autorizacao.")
@@ -47,9 +51,14 @@ async def get_authorization_identity(
     token_hash = hashlib.sha256(session_token.encode("utf-8")).hexdigest()[:16]
     cache_key = f"authz_identity_{context}_{token_hash}"
 
+    prefetched_session = auth_data.get("session")
     session_data = await identity_cache.get_or_set(
         cache_key,
-        lambda: auth_service.fetch_session_identity(context, session_token=session_token),
+        lambda: auth_service.fetch_session_identity(
+            context,
+            session_token=session_token,
+            prefetched_session=prefetched_session if isinstance(prefetched_session, dict) else None,
+        ),
     )
 
     session_info = session_data.get("session", {})
@@ -70,8 +79,20 @@ async def get_authorization_identity(
             detail="Acesso negado: papel ativo invalido para esta sessao.",
         )
 
+    elapsed_ms = (time.perf_counter() - started_at) * 1000
+    logger.debug(
+        "authz.identity resolved context=%s user_id=%s request_id=%s elapsed_ms=%.1f roles=%s app_access=%d",
+        context,
+        login_response.user_id,
+        request_id,
+        elapsed_ms,
+        [item.role for item in login_response.hub_roles],
+        len(login_response.app_access or []),
+    )
+
     return {
         "context": context,
+        "request_id": request_id,
         "session_token": session_token,
         "user_id": login_response.user_id,
         "hub_roles": [item.role for item in login_response.hub_roles],

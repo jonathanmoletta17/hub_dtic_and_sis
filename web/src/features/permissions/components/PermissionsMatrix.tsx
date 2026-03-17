@@ -251,6 +251,10 @@ function UserCard({
     const displayName = user.realname ? `${user.firstname} ${user.realname}`.trim() : user.username;
     const highestRole = user.roles[user.roles.length - 1] || 'solicitante';
     const alerts = computeDiagnostics([user], targetContext);
+    const activeContext = useAuthStore((state) => state.activeContext);
+    const currentUserRole = useAuthStore((state) => state.currentUserRole);
+    const setActiveContext = useAuthStore((state) => state.setActiveContext);
+    const cacheContextSession = useAuthStore((state) => state.cacheContextSession);
     const localSearchRef = useRef<HTMLDivElement>(null);
     const [fixingId, setFixingId] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -302,6 +306,20 @@ function UserCard({
         return [...moduleMatches, ...profileMatches].slice(0, 6);
     }, [availableModules, normalizedModuleSearch, user.profiles]);
 
+    const syncCurrentUserAccess = useCallback((nextAppAccess: string[]) => {
+        if (!currentUserRole || !activeContext) return;
+        if (currentUserRole.user_id !== user.id) return;
+        if (normalizeContextRoot(activeContext) !== normalizeContextRoot(targetContext)) return;
+        if (sameAccessValues(currentUserRole.app_access || [], nextAppAccess)) return;
+
+        const updatedIdentity = {
+            ...currentUserRole,
+            app_access: normalizeAccessValues(nextAppAccess),
+        };
+        setActiveContext(activeContext, updatedIdentity);
+        cacheContextSession(activeContext, updatedIdentity);
+    }, [activeContext, cacheContextSession, currentUserRole, setActiveContext, targetContext, user.id]);
+
     const executeModuleAction = useCallback(async (action: PendingModuleAction) => {
         setIsSubmitting(true);
         setFeedback(null);
@@ -311,6 +329,11 @@ function UserCard({
             } else {
                 await assignModuleToUser(routingContext, user.id, action.mod.group_id, targetContext);
             }
+
+            const nextAppAccess = action.hasAccess
+                ? user.app_access.filter((tag) => tag !== action.mod.tag)
+                : Array.from(new Set([...user.app_access, action.mod.tag]));
+            syncCurrentUserAccess(nextAppAccess);
             await onRefresh();
             setFeedback({
                 type: 'success',
@@ -324,7 +347,7 @@ function UserCard({
             setIsSubmitting(false);
             setPendingAction(null);
         }
-    }, [onRefresh, routingContext, targetContext, user.id]);
+    }, [onRefresh, routingContext, syncCurrentUserAccess, targetContext, user.app_access, user.id]);
 
     const handleQuickFix = useCallback(async () => {
         const permMod = permissaoModule;

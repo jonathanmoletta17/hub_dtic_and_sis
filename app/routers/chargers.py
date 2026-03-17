@@ -1,6 +1,8 @@
 import logging
+import asyncio
 from datetime import datetime
 from typing import Optional
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
@@ -17,7 +19,7 @@ from app.services.charger_commands import (
     assign_charger_to_ticket, remove_charger_from_ticket,
     create_charger, update_charger, delete_charger, reactivate_charger
 )
-from app.core.glpi_client import GLPIClient
+from app.core.glpi_client import GLPIClient, GLPIClientError
 from app.schemas.charger_schemas import (
     KanbanResponse, ScheduleResponse, ScheduleUpdate,
     GlobalScheduleResponse, GlobalScheduleUpdate,
@@ -53,8 +55,31 @@ logger = logging.getLogger(__name__)
 
 service = ChargerService()
 
+CHARGERS_READ_RATE_LIMIT = "240/minute"
+
+
+def _extract_request_id(request: Request) -> str:
+    return (
+        request.headers.get("X-Request-ID")
+        or request.headers.get("X-Correlation-ID")
+        or request.headers.get("X-Trace-ID")
+        or "-"
+    )
+
+
+def _raise_chargers_http_error(error: Exception, *, fallback_detail: str) -> None:
+    if isinstance(error, HTTPException):
+        raise error
+    if isinstance(error, GLPIClientError):
+        status_code = error.status_code if isinstance(error.status_code, int) and 400 <= error.status_code < 600 else 502
+        detail = str(error.detail).strip() if error.detail is not None else ""
+        raise HTTPException(status_code=status_code, detail=detail or fallback_detail)
+    if isinstance(error, (httpx.TimeoutException, asyncio.TimeoutError, TimeoutError)):
+        raise HTTPException(status_code=504, detail="Tempo limite excedido ao consultar servico externo.")
+    raise HTTPException(status_code=500, detail=fallback_detail)
+
 @router.get("/kanban", response_model=KanbanResponse, operation_id="getChargerKanban")
-@limiter.limit("30/minute")
+@limiter.limit(CHARGERS_READ_RATE_LIMIT)
 async def get_kanban(
     request: Request,
     context: str,
@@ -72,11 +97,27 @@ async def get_kanban(
     if context != "sis":
         raise HTTPException(status_code=400, detail="Módulo disponível apenas no contexto SIS.")
     
+    request_id = _extract_request_id(request)
+    started_at = datetime.now()
     try:
         return await service.get_kanban_data(context, db, db) # db is passed twice temporally
-    except Exception as e:
-        logger.error(f"Erro ao buscar Kanban de Carregadores: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as error:
+        logger.warning(
+            "chargers.get_kanban failed request_id=%s context=%s error_type=%s detail=%s",
+            request_id,
+            context,
+            type(error).__name__,
+            str(error),
+        )
+        _raise_chargers_http_error(error, fallback_detail="Falha ao carregar kanban de carregadores.")
+    finally:
+        elapsed_ms = (datetime.now() - started_at).total_seconds() * 1000
+        logger.info(
+            "chargers.get_kanban completed request_id=%s context=%s elapsed_ms=%.1f",
+            request_id,
+            context,
+            elapsed_ms,
+        )
 
 @router.get("/{charger_id}/schedule", response_model=ChargerScheduleReadResponse, operation_id="getChargerSchedule")
 async def get_schedule(
@@ -477,7 +518,7 @@ async def get_ticket_detail(
 metrics_router = APIRouter(prefix="/api/v1/{context}/metrics", tags=["Charger Metrics"])
 
 @metrics_router.get("/chargers", response_model=RankingResponse, operation_id="getChargersMetrics")
-@limiter.limit("30/minute")
+@limiter.limit(CHARGERS_READ_RATE_LIMIT)
 async def get_chargers_metrics(
     request: Request,
     context: str,
@@ -497,14 +538,30 @@ async def get_chargers_metrics(
     if context != "sis":
         raise HTTPException(status_code=400, detail="Módulo disponível apenas no contexto SIS.")
     
+    request_id = _extract_request_id(request)
+    started_at = datetime.now()
     try:
         return await service.get_ranking(context, db, start_date=start_date, end_date=end_date)
-    except Exception as e:
-        logger.error(f"Erro ao buscar métricas de carregadores: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as error:
+        logger.warning(
+            "chargers.get_chargers_metrics failed request_id=%s context=%s error_type=%s detail=%s",
+            request_id,
+            context,
+            type(error).__name__,
+            str(error),
+        )
+        _raise_chargers_http_error(error, fallback_detail="Falha ao carregar metricas de carregadores.")
+    finally:
+        elapsed_ms = (datetime.now() - started_at).total_seconds() * 1000
+        logger.info(
+            "chargers.get_chargers_metrics completed request_id=%s context=%s elapsed_ms=%.1f",
+            request_id,
+            context,
+            elapsed_ms,
+        )
 
 @metrics_router.get("/chargers/kanban", response_model=KanbanResponse, operation_id="getChargerKanbanMetrics")
-@limiter.limit("30/minute")
+@limiter.limit(CHARGERS_READ_RATE_LIMIT)
 async def get_kanban_metrics(
     request: Request,
     context: str,
@@ -522,8 +579,24 @@ async def get_kanban_metrics(
     if context != "sis":
         raise HTTPException(status_code=400, detail="Módulo disponível apenas no contexto SIS.")
     
+    request_id = _extract_request_id(request)
+    started_at = datetime.now()
     try:
         return await service.get_kanban_data(context, db, db)
-    except Exception as e:
-        logger.error(f"Erro ao buscar Kanban: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as error:
+        logger.warning(
+            "chargers.get_kanban_metrics failed request_id=%s context=%s error_type=%s detail=%s",
+            request_id,
+            context,
+            type(error).__name__,
+            str(error),
+        )
+        _raise_chargers_http_error(error, fallback_detail="Falha ao carregar kanban de metricas.")
+    finally:
+        elapsed_ms = (datetime.now() - started_at).total_seconds() * 1000
+        logger.info(
+            "chargers.get_kanban_metrics completed request_id=%s context=%s elapsed_ms=%.1f",
+            request_id,
+            context,
+            elapsed_ms,
+        )

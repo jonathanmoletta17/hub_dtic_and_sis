@@ -1,13 +1,16 @@
 import logging
+import time
+import asyncio
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.core.auth_guard import verify_session
+from app.core.session_manager import session_manager
 from app.services.auth_service import resolve_hub_roles
 from app.schemas.auth_schemas import ProfileResponse
 from app.core.glpi_client import GLPIClient, GLPIClientError
+from app.core.cache import AsyncTTLMemoryCache, identity_cache
 from app.config import settings
-from app.core.context_registry import registry
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -45,6 +48,7 @@ ROLE_ORDER = {
 
 MODULE_LABEL_OVERRIDES = {
     "busca": "Smart Search",
+    "inventario": "Inventário",
     "permissoes": "Gestão de Acessos",
     "carregadores": "Carregadores",
     "dtic-infra": "Infraestrutura DTIC",
@@ -52,6 +56,16 @@ MODULE_LABEL_OVERRIDES = {
     "dtic-metrics": "Métricas DTIC",
     "sis-dashboard": "Dashboard SIS",
 }
+
+ADMIN_USERS_CACHE_TTL_SECONDS = 60
+MODULE_CATALOG_CACHE_TTL_SECONDS = 300
+ADMIN_REFERENCE_CACHE_TTL_SECONDS = 300
+
+admin_users_cache = AsyncTTLMemoryCache(ttl_seconds=ADMIN_USERS_CACHE_TTL_SECONDS)
+module_catalog_cache = AsyncTTLMemoryCache(ttl_seconds=MODULE_CATALOG_CACHE_TTL_SECONDS)
+admin_reference_cache = AsyncTTLMemoryCache(ttl_seconds=ADMIN_REFERENCE_CACHE_TTL_SECONDS)
+admin_users_refresh_tasks: Dict[str, asyncio.Task] = {}
+admin_users_refresh_lock = asyncio.Lock()
 
 
 def _unique_sorted(values: List[str]) -> List[str]:
@@ -133,7 +147,7 @@ def _extract_binding_id(result: Any) -> int | None:
 
 def _is_duplicate_membership_error(error: GLPIClientError) -> bool:
     payload = f"{error} {error.detail}".lower()
-    duplicate_markers = ("duplicate", "already exists", "já existe", "error_glpi_add")
+    duplicate_markers = ("duplicate", "already exists", "ja existe", "já existe", "error_glpi_add")
     return any(marker in payload for marker in duplicate_markers)
 
 
@@ -143,9 +157,73 @@ def _raise_glpi_http_error(error: GLPIClientError, fallback_detail: str) -> None
     raise HTTPException(status_code=status_code, detail=detail or fallback_detail)
 
 
-async def _fetch_module_catalog(client: GLPIClient) -> List[ModuleCatalogItemResponse]:
-    groups_data = await _fetch_all_paginated(client, "Group", max_limit=5000)
-    return _build_module_catalog(groups_data)
+def _normalize_context_key(value: str) -> str:
+    return (value or "").strip().lower()
+
+
+def _extract_request_id(request: Request) -> str:
+    return (
+        request.headers.get("X-Request-ID")
+        or request.headers.get("X-Correlation-ID")
+        or request.headers.get("X-Trace-ID")
+        or "-"
+    )
+
+
+def _admin_users_cache_key(target_context: str) -> str:
+    return f"admin_users:{_normalize_context_key(target_context)}"
+
+
+def _module_catalog_cache_key(target_context: str) -> str:
+    return f"module_catalog:{_normalize_context_key(target_context)}"
+
+
+def _group_reference_cache_key(target_context: str) -> str:
+    return f"admin_groups:{_normalize_context_key(target_context)}"
+
+
+def _profile_reference_cache_key(target_context: str) -> str:
+    return f"admin_profiles:{_normalize_context_key(target_context)}"
+
+
+def _invalidate_admin_runtime_caches() -> None:
+    # assign/revoke impacta permissao em tempo de sessao.
+    logger.info(
+        "admin.cache.invalidate admin_users_size=%d module_catalog_size=%d",
+        len(admin_users_cache._cache),
+        len(module_catalog_cache._cache),
+    )
+    admin_users_cache.clear()
+    module_catalog_cache.clear()
+    admin_reference_cache.clear()
+    identity_cache.clear()
+
+
+async def _fetch_group_reference_data(client: GLPIClient, target_context: str, max_limit: int = 5000) -> List[dict]:
+    cache_key = _group_reference_cache_key(target_context)
+    return await admin_reference_cache.get_or_set(
+        cache_key,
+        lambda: _fetch_all_paginated(client, "Group", max_limit=max_limit),
+    )
+
+
+async def _fetch_profile_reference_data(client: GLPIClient, target_context: str, max_limit: int = 500) -> List[dict]:
+    cache_key = _profile_reference_cache_key(target_context)
+    return await admin_reference_cache.get_or_set(
+        cache_key,
+        lambda: _fetch_all_paginated(client, "Profile", max_limit=max_limit),
+    )
+
+
+async def _fetch_module_catalog(client: GLPIClient, target_context: str) -> List[ModuleCatalogItemResponse]:
+    cache_key = _module_catalog_cache_key(target_context)
+
+    async def _fetch_and_build() -> List[dict]:
+        groups_data = await _fetch_group_reference_data(client, target_context, max_limit=5000)
+        return [item.model_dump() for item in _build_module_catalog(groups_data)]
+
+    payload = await module_catalog_cache.get_or_set(cache_key, _fetch_and_build)
+    return [ModuleCatalogItemResponse(**item) for item in payload]
 
 
 def _merge_admin_users(users: List[AdminUserResponse]) -> List[AdminUserResponse]:
@@ -202,7 +280,7 @@ def _merge_admin_users(users: List[AdminUserResponse]) -> List[AdminUserResponse
     return normalized
 
 async def _fetch_all_paginated(client: GLPIClient, itemtype: str, max_limit: int = 5000, **params) -> List[dict]:
-    """Helper para contornar limites padrão de paginação do GLPI (como o default 30 itens/página)."""
+    """Helper para contornar limites padrao de paginacao do GLPI (ex: default 30 itens/pagina)."""
     results = []
     start = 0
     step = 100
@@ -220,11 +298,163 @@ async def _fetch_all_paginated(client: GLPIClient, itemtype: str, max_limit: int
             
         results.extend(batch)
         
-        # A própria API do GLPI pode limitar a entrega em, ex, 30 itens por frame se a configuração do profile exigir.
+        # A propria API do GLPI pode limitar a entrega em, ex., 30 itens por frame.
         # Portanto iteramos a partir do start original + quantos ele efetivamente entregou:
         start += len(batch)
         
     return results
+
+
+async def _build_admin_users_payload(client: GLPIClient, target_context: str) -> List[AdminUserResponse]:
+    users, group_users, profile_users, groups_data, profiles_data = await asyncio.gather(
+        _fetch_all_paginated(client, "User", max_limit=2000, is_active=1, is_deleted=0),
+        _fetch_all_paginated(client, "Group_User", max_limit=10000),
+        _fetch_all_paginated(client, "Profile_User", max_limit=10000),
+        _fetch_group_reference_data(client, target_context, max_limit=5000),
+        _fetch_profile_reference_data(client, target_context, max_limit=500),
+        return_exceptions=True,
+    )
+
+    if isinstance(users, Exception):
+        raise users
+    if isinstance(group_users, Exception):
+        raise group_users
+    if isinstance(profile_users, Exception):
+        raise profile_users
+    if isinstance(groups_data, Exception):
+        raise groups_data
+
+    # Falha de referência de perfil não deve derrubar o endpoint inteiro.
+    if isinstance(profiles_data, Exception):
+        logger.warning(
+            "admin.build_users_payload profile_reference_fallback context=%s error_type=%s detail=%s",
+            target_context,
+            type(profiles_data).__name__,
+            profiles_data,
+        )
+        profiles_data = []
+
+    group_map = {group["id"]: group for group in groups_data}
+    profile_map = {profile["id"]: profile for profile in profiles_data}
+
+    user_groups = {}
+    for group_user in group_users:
+        user_id = group_user.get("users_id")
+        if user_id:
+            user_groups.setdefault(user_id, []).append(group_user.get("groups_id"))
+
+    user_profiles = {}
+    for profile_user in profile_users:
+        user_id = profile_user.get("users_id")
+        if user_id:
+            user_profiles.setdefault(user_id, []).append(profile_user.get("profiles_id"))
+
+    response_items = []
+    for user in users:
+        user_id = user.get("id")
+        user_group_ids = user_groups.get(user_id, [])
+        user_profile_ids = user_profiles.get(user_id, [])
+
+        profile_names = list(dict.fromkeys([profile_map[profile_id].get("name", "") for profile_id in user_profile_ids if profile_id in profile_map]))
+        group_names = list(dict.fromkeys([group_map[group_id].get("name", "") for group_id in user_group_ids if group_id in group_map]))
+
+        profile_responses = [
+            ProfileResponse(id=profile_id, name=profile_map[profile_id].get("name", ""))
+            for profile_id in dict.fromkeys(user_profile_ids)
+            if profile_id in profile_map
+        ]
+
+        unique_group_ids = list(dict.fromkeys(user_group_ids))
+        app_access = list(
+            dict.fromkeys([group_name[8:].lower() for group_name in group_names if group_name.lower().startswith("hub-app-")])
+        )
+        hub_roles_raw = resolve_hub_roles(target_context, profile_responses, unique_group_ids)
+        roles = list(dict.fromkeys([role.role for role in hub_roles_raw]))
+
+        response_items.append(
+            AdminUserResponse(
+                id=user_id,
+                username=user.get("name", ""),
+                realname=user.get("realname") or "",
+                firstname=user.get("firstname") or "",
+                profiles=profile_names,
+                groups=group_names,
+                app_access=app_access,
+                roles=roles,
+            )
+        )
+
+    return _merge_admin_users(response_items)
+
+
+async def _prewarm_single_context(target_context: str) -> None:
+    started_at = time.perf_counter()
+    client = await session_manager.get_client(target_context)
+    await _fetch_group_reference_data(client, target_context, max_limit=5000)
+    await _fetch_profile_reference_data(client, target_context, max_limit=500)
+    await _fetch_module_catalog(client, target_context)
+    users_payload = await _build_admin_users_payload(client, target_context)
+    admin_users_cache.set(_admin_users_cache_key(target_context), users_payload)
+    elapsed_ms = (time.perf_counter() - started_at) * 1000
+    logger.info(
+        "admin.prewarm done target=%s users=%d elapsed_ms=%.1f",
+        target_context,
+        len(users_payload),
+        elapsed_ms,
+    )
+
+
+async def prewarm_admin_runtime_caches(target_contexts: Optional[List[str]] = None) -> None:
+    contexts = [(_normalize_context_key(ctx) or "").strip() for ctx in (target_contexts or ["dtic", "sis"])]
+    contexts = [ctx for ctx in contexts if ctx]
+    if not contexts:
+        return
+
+    logger.info("admin.prewarm starting contexts=%s", contexts)
+    results = await asyncio.gather(
+        *[asyncio.wait_for(_prewarm_single_context(ctx), timeout=45) for ctx in contexts],
+        return_exceptions=True,
+    )
+    for ctx, result in zip(contexts, results):
+        if isinstance(result, Exception):
+            logger.warning(
+                "admin.prewarm failed target=%s error_type=%s detail=%s",
+                ctx,
+                type(result).__name__,
+                result,
+            )
+
+
+async def _build_admin_users_payload_with_service_client(target_context: str) -> List[AdminUserResponse]:
+    client = await session_manager.get_client(target_context)
+    return await _build_admin_users_payload(client, target_context)
+
+
+async def _run_admin_users_refresh(cache_key: str, target_context: str) -> None:
+    try:
+        await admin_users_cache.get_or_set(
+            cache_key,
+            lambda: _build_admin_users_payload_with_service_client(target_context),
+        )
+    except Exception:
+        logger.exception(
+            "admin.list_users background_refresh_failed target=%s cache_key=%s",
+            target_context,
+            cache_key,
+        )
+    finally:
+        async with admin_users_refresh_lock:
+            admin_users_refresh_tasks.pop(cache_key, None)
+
+
+async def _schedule_admin_users_refresh(cache_key: str, target_context: str) -> None:
+    async with admin_users_refresh_lock:
+        existing = admin_users_refresh_tasks.get(cache_key)
+        if existing and not existing.done():
+            return
+        admin_users_refresh_tasks[cache_key] = asyncio.create_task(
+            _run_admin_users_refresh(cache_key, target_context)
+        )
 
 
 
@@ -240,16 +470,26 @@ async def _require_gestor_cross_context(
     target_context: Optional[str] = None,
     auth_data: dict = Depends(verify_session)
 ):
-    """Verifica se o usuário executando a chamada possui a Role Hub-App 'gestor'.
-    Suporta gerência Cross-Context escalando privileges para Service Account
-    quando o target é diferente da origem do token.
+    """Verifica se o usuario executando a chamada possui a Role Hub-App 'gestor'.
+    Suporta gerencia cross-context escalando privileges para Service Account
+    quando o target e diferente da origem do token.
     """
     target = target_context or context
     client_origin = await _get_glpi_client(context, auth_data)
-    try:
+    session_token = auth_data.get("session_token")
+    if not session_token:
+        await client_origin._http.aclose()
+        raise HTTPException(status_code=401, detail="Sessao nao autenticada.")
+
+    cache_key = f"admin_gate_session:{_normalize_context_key(context)}:{session_token}"
+
+    async def _fetch_session_info() -> dict:
         session_data = await client_origin.get_full_session()
-        session_info = session_data.get("session", {})
-        
+        return session_data.get("session", {})
+
+    try:
+        session_info = await identity_cache.get_or_set(cache_key, _fetch_session_info)
+
         # Obter perfis ativos
         glpiprofiles = session_info.get("glpiprofiles", {})
         available_profiles = []
@@ -260,7 +500,7 @@ async def _require_gestor_cross_context(
                         id=int(pid_str),
                         name=pdata.get("name", "Unknown")
                     ))
-        
+
         # Obter grupos
         groups_raw = session_info.get("glpigroups", [])
         groups = []
@@ -270,14 +510,15 @@ async def _require_gestor_cross_context(
                     groups.append(g)
                 elif isinstance(g, dict):
                     gid = g.get("id")
-                    if gid: groups.append(gid)
-                    
+                    if gid:
+                        groups.append(gid)
+
         hub_roles = resolve_hub_roles(context, available_profiles, groups)
         if not any(r.role == "gestor" for r in hub_roles):
             raise HTTPException(status_code=403, detail="Acesso negado: Requer role gestor.")
-            
+
         admin_id = session_info.get("glpiID", 0)
-        
+
         # Cross Context Elevation
         if target != context:
             await client_origin._http.aclose()
@@ -285,89 +526,83 @@ async def _require_gestor_cross_context(
             client_target = GLPIClient(instance_target)
             await client_target.init_session()
             return client_target, admin_id
-        else:
-            return client_origin, admin_id
-            
+
+        return client_origin, admin_id
+
     except GLPIClientError as e:
         await client_origin._http.aclose()
         raise HTTPException(status_code=401, detail=str(e))
 
 @router.get("/users", response_model=List[AdminUserResponse])
 async def list_users(
+    request: Request,
     context: str, 
     target_context: Optional[str] = None,
     admin_deps: tuple = Depends(_require_gestor_cross_context)
 ):
+    request_id = _extract_request_id(request)
     target = target_context or context
     client, admin_id = admin_deps
-    
-    try:
-        # Puxa usuários ativos e nao deletados
-        users = await _fetch_all_paginated(client, "User", max_limit=2000, is_active=1, is_deleted=0)
-        
-        # Batch Fetch: Puxar relacional iterando nas pages limitadas (evita N+1 para cada usuario)
-        group_users = await _fetch_all_paginated(client, "Group_User", max_limit=10000)
-        profile_users = await _fetch_all_paginated(client, "Profile_User", max_limit=10000)
-        
-        # Dict de mappings locais para lookup O(1) de nomes de grupos e perfis
-        groups_data = await _fetch_all_paginated(client, "Group", max_limit=2000)
-        profiles_data = await _fetch_all_paginated(client, "Profile", max_limit=500)
-        
-        group_map = {g['id']: g for g in groups_data}
-        profile_map = {p['id']: p for p in profiles_data}
-        
-        # Mapeando os relaciomentos por usuario ID
-        user_groups = {}
-        for gu in group_users:
-            uid = gu.get("users_id")
-            if uid:
-                user_groups.setdefault(uid, []).append(gu.get("groups_id"))
-                
-        user_profiles = {}
-        for pu in profile_users:
-            uid = pu.get("users_id")
-            if uid:
-                user_profiles.setdefault(uid, []).append(pu.get("profiles_id"))
-                
-        result = []
-        for u in users:
-            uid = u.get("id")
-            
-            u_gids = user_groups.get(uid, [])
-            u_pids = user_profiles.get(uid, [])
-            
-            p_names = list(dict.fromkeys([profile_map[pid].get("name", "") for pid in u_pids if pid in profile_map]))
-            g_names = list(dict.fromkeys([group_map[gid].get("name", "") for gid in u_gids if gid in group_map]))
-            
-            # Formatar `ProfileResponse` necessarios pelo construtor da Service `resolve_hub_roles` baseada em contexts.yaml
-            profile_responses = [ProfileResponse(id=pid, name=profile_map[pid].get("name", "")) for pid in dict.fromkeys(u_pids) if pid in profile_map]
-            
-            # Extrair os Roles do Hub usando Profile_User e Group_User
-            u_gids_unique = list(dict.fromkeys(u_gids))
-            # Extrair o access (modulos liberados baseados em Grupos Hub-App-*)
-            app_access = list(dict.fromkeys([
-                gname[8:].lower() for gname in g_names if gname.lower().startswith("hub-app-")
-            ]))
-            
-            # Repassar target no lugar do context nativo pra roles ficarem corretas do target GLPI
-            hub_roles_raw = resolve_hub_roles(target, profile_responses, u_gids_unique)
-            roles = list(dict.fromkeys([r.role for r in hub_roles_raw]))
-            
-            result.append(AdminUserResponse(
-                id=uid,
-                username=u.get("name", ""),
-                realname=u.get("realname") or "",
-                firstname=u.get("firstname") or "",
-                profiles=p_names,
-                groups=g_names,
-                app_access=app_access,
-                roles=roles
-            ))
 
-        return _merge_admin_users(result)
-        
-    except Exception as e:
-        logger.error(f"Erro em list_users: {e}")
+    started_at = time.perf_counter()
+    try:
+        cache_key = _admin_users_cache_key(target)
+        stale_entry = admin_users_cache._cache.get(cache_key)
+        cache_hit_pre = False
+        if stale_entry:
+            timestamp, cached_payload = stale_entry
+            if admin_users_cache._is_fresh(timestamp):
+                cache_hit_pre = True
+                payload = cached_payload
+            else:
+                payload = cached_payload
+                await _schedule_admin_users_refresh(cache_key, target)
+                logger.info(
+                    "admin.list_users stale_return request_id=%s context=%s target=%s admin_id=%s cache_key=%s",
+                    request_id,
+                    context,
+                    target,
+                    admin_id,
+                    cache_key,
+                )
+        else:
+            payload = await admin_users_cache.get_or_set(
+                cache_key,
+                lambda: _build_admin_users_payload(client, target),
+            )
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
+        logger.info(
+            "admin.list_users ok request_id=%s context=%s target=%s admin_id=%s users=%d elapsed_ms=%.1f cache_hit_pre=%s cache_size=%d",
+            request_id,
+            context,
+            target,
+            admin_id,
+            len(payload),
+            elapsed_ms,
+            cache_hit_pre,
+            len(admin_users_cache._cache),
+        )
+        return payload
+    except GLPIClientError as error:
+        logger.warning(
+            "admin.list_users glpi_error request_id=%s context=%s target=%s admin_id=%s status=%s detail=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            error.status_code,
+            error.detail,
+        )
+        _raise_glpi_http_error(error, "Falha ao carregar usuarios do GLPI.")
+    except Exception as error:
+        logger.exception(
+            "admin.list_users unexpected_error request_id=%s context=%s target=%s admin_id=%s error_type=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            type(error).__name__,
+        )
         raise HTTPException(status_code=500, detail="Erro interno ao acessar API GLPI.")
     finally:
         await client._http.aclose()
@@ -375,16 +610,46 @@ async def list_users(
 
 @router.get("/module-catalog", response_model=List[ModuleCatalogItemResponse])
 async def list_module_catalog(
+    request: Request,
     context: str,
     target_context: Optional[str] = None,
     admin_deps: tuple = Depends(_require_gestor_cross_context),
 ):
-    client, _admin_id = admin_deps
+    request_id = _extract_request_id(request)
+    target = target_context or context
+    client, admin_id = admin_deps
     try:
-        return await _fetch_module_catalog(client)
-    except Exception as e:
-        logger.error(f"Erro em list_module_catalog: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno ao montar catálogo de módulos.")
+        payload = await _fetch_module_catalog(client, target)
+        logger.info(
+            "admin.list_module_catalog ok request_id=%s context=%s target=%s admin_id=%s modules=%d",
+            request_id,
+            context,
+            target,
+            admin_id,
+            len(payload),
+        )
+        return payload
+    except GLPIClientError as error:
+        logger.warning(
+            "admin.list_module_catalog glpi_error request_id=%s context=%s target=%s admin_id=%s status=%s detail=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            error.status_code,
+            error.detail,
+        )
+        _raise_glpi_http_error(error, "Falha ao montar catalogo de modulos no GLPI.")
+    except Exception as error:
+        logger.exception(
+            "admin.list_module_catalog unexpected_error request_id=%s context=%s target=%s admin_id=%s error_type=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            type(error).__name__,
+        )
+        raise HTTPException(status_code=500, detail="Erro interno ao montar catalogo de modulos.")
     finally:
         await client._http.aclose()
 
@@ -400,36 +665,58 @@ class RevokeGroupResponse(BaseModel):
 
 @router.post("/users/{user_id}/groups")
 async def assign_user_to_group(
+    request: Request,
     context: str,
     user_id: int,
     payload: GroupAssignmentRequest,
     target_context: Optional[str] = None,
     admin_deps: tuple = Depends(_require_gestor_cross_context)
 ):
+    request_id = _extract_request_id(request)
+    started_at = time.perf_counter()
     client, admin_id = admin_deps
     target = target_context or context
     
     try:
-        catalog = await _fetch_module_catalog(client)
+        catalog = await _fetch_module_catalog(client, target)
         allowed_group_ids = {item.group_id for item in catalog}
         if payload.group_id not in allowed_group_ids:
+            logger.warning(
+                "admin.assign_user_to_group validation_failed request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s reason=group_not_allowed",
+                request_id,
+                context,
+                target,
+                admin_id,
+                user_id,
+                payload.group_id,
+            )
             raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
         
         # Impedir criacao duplicada caso API já conste (retornando exactly already_exists=true se pre-existe)
         user_groups = await client.get_sub_items("User", user_id, "Group_User")
         if any(g.get("groups_id") == payload.group_id for g in user_groups):
+            logger.info(
+                "admin.assign_user_to_group already_exists request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s",
+                request_id,
+                context,
+                target,
+                admin_id,
+                user_id,
+                payload.group_id,
+            )
             return {"success": True, "binding_id": None, "message": "Usuário já possui este acesso", "already_exists": True}
         try:
             result = await client.add_user_to_group(user_id, payload.group_id)
         except GLPIClientError as glpi_error:
             if glpi_error.status_code in (400, 409) and _is_duplicate_membership_error(glpi_error):
                 logger.info(
-                    "[ADMIN] %s (via %s) tentou atribuir grupo %s duplicado ao usuário %s (target: %s)",
+                    "admin.assign_user_to_group duplicate_glpi request_id=%s admin_id=%s context=%s target=%s user_id=%s group_id=%s",
+                    request_id,
                     admin_id,
                     context,
-                    payload.group_id,
-                    user_id,
                     target,
+                    user_id,
+                    payload.group_id,
                 )
                 return {
                     "success": True,
@@ -440,14 +727,38 @@ async def assign_user_to_group(
             raise
 
         binding_id = _extract_binding_id(result)
-        logger.info(f"[ADMIN] {admin_id} (via {context}) atribuiu grupo {payload.group_id} ao usuário {user_id} (target: {target})")
+        _invalidate_admin_runtime_caches()
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
+        logger.info(
+            "admin.assign_user_to_group ok request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s binding_id=%s elapsed_ms=%.1f",
+            request_id,
+            context,
+            target,
+            admin_id,
+            user_id,
+            payload.group_id,
+            binding_id,
+            elapsed_ms,
+        )
         
         return {"success": True, "binding_id": binding_id, "message": "Acesso concedido", "already_exists": False}
-    except HTTPException:
+    except HTTPException as error:
+        logger.warning(
+            "admin.assign_user_to_group http_error request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s status=%s detail=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            user_id,
+            payload.group_id,
+            error.status_code,
+            error.detail,
+        )
         raise
     except GLPIClientError as error:
         logger.warning(
-            "Erro GLPI ao atribuir grupo em admin.assign_user_to_group: context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            "admin.assign_user_to_group glpi_error request_id=%s context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            request_id,
             context,
             target,
             user_id,
@@ -458,7 +769,8 @@ async def assign_user_to_group(
         _raise_glpi_http_error(error, "Falha ao conceder acesso no GLPI.")
     except Exception:
         logger.exception(
-            "Erro inesperado em assign_user_to_group: context=%s target=%s user_id=%s group_id=%s",
+            "admin.assign_user_to_group unexpected_error request_id=%s context=%s target=%s user_id=%s group_id=%s",
+            request_id,
             context,
             target,
             user_id,
@@ -471,32 +783,67 @@ async def assign_user_to_group(
 
 @router.delete("/users/{user_id}/groups/{group_id}", response_model=RevokeGroupResponse)
 async def remove_user_from_group(
+    request: Request,
     context: str,
     user_id: int,
     group_id: int,
     target_context: Optional[str] = None,
     admin_deps: tuple = Depends(_require_gestor_cross_context)
 ):
+    request_id = _extract_request_id(request)
+    started_at = time.perf_counter()
     client, admin_id = admin_deps
     target = target_context or context
     
     try:
-        catalog = await _fetch_module_catalog(client)
+        catalog = await _fetch_module_catalog(client, target)
         allowed_group_ids = {item.group_id for item in catalog}
         if group_id not in allowed_group_ids:
+            logger.warning(
+                "admin.remove_user_from_group validation_failed request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s reason=group_not_allowed",
+                request_id,
+                context,
+                target,
+                admin_id,
+                user_id,
+                group_id,
+            )
             raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
 
         success = await client.remove_user_from_group(user_id, group_id)
         if success:
-            logger.info(f"[ADMIN] {admin_id} (via {context}) revogou grupo {group_id} do usuário {user_id} (target: {target})")
+            _invalidate_admin_runtime_caches()
+            elapsed_ms = (time.perf_counter() - started_at) * 1000
+            logger.info(
+                "admin.remove_user_from_group ok request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s elapsed_ms=%.1f",
+                request_id,
+                context,
+                target,
+                admin_id,
+                user_id,
+                group_id,
+                elapsed_ms,
+            )
             return RevokeGroupResponse(success=True, message="Acesso revogado", user_id=user_id, group_id=group_id)
         else:
             raise HTTPException(status_code=404, detail="Usuário não possui este acesso.")
-    except HTTPException:
+    except HTTPException as error:
+        logger.warning(
+            "admin.remove_user_from_group http_error request_id=%s context=%s target=%s admin_id=%s user_id=%s group_id=%s status=%s detail=%s",
+            request_id,
+            context,
+            target,
+            admin_id,
+            user_id,
+            group_id,
+            error.status_code,
+            error.detail,
+        )
         raise
     except GLPIClientError as error:
         logger.warning(
-            "Erro GLPI ao revogar grupo em admin.remove_user_from_group: context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            "admin.remove_user_from_group glpi_error request_id=%s context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            request_id,
             context,
             target,
             user_id,
@@ -507,7 +854,8 @@ async def remove_user_from_group(
         _raise_glpi_http_error(error, "Falha ao revogar acesso no GLPI.")
     except Exception:
         logger.exception(
-            "Erro inesperado em remove_user_from_group: context=%s target=%s user_id=%s group_id=%s",
+            "admin.remove_user_from_group unexpected_error request_id=%s context=%s target=%s user_id=%s group_id=%s",
+            request_id,
             context,
             target,
             user_id,
