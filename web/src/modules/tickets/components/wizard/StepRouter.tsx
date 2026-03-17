@@ -46,7 +46,8 @@ function FormStepWrapper({ stepSections }: { stepSections: number[] }) {
       setLocalErrors((prev) => {
         const key = `q_${questionId}`;
         if (prev[key]) {
-          const { [key]: _, ...rest } = prev;
+          const rest = { ...prev };
+          delete rest[key];
           return rest;
         }
         return prev;

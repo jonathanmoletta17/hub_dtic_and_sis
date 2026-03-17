@@ -15,11 +15,12 @@ import React from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import {
   LayoutDashboard, Search, Ticket, BookOpen, User,
-  Truck, Cpu, Network, PlusSquare, Wrench, Landmark, Database, Shield
+  Truck, Cpu, Network, PlusSquare, Wrench, Landmark, Database, Shield, BarChart3
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { UserProfileMenu } from "@/components/ui/UserProfileMenu";
-import { resolveMenuItems, getContextManifest, FeatureManifest } from "@/lib/context-registry";
+import { resolveMenuItems, FeatureManifest } from "@/lib/context-registry";
+import Image from "next/image";
 
 // ─── Mapa de ícones (resolve string → componente) ───
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -35,7 +36,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
   Wrench,
   Landmark,
   Database,
-  Shield
+  Shield,
+  BarChart3,
 };
 
 export function AppSidebar() {
@@ -78,11 +80,12 @@ export function AppSidebar() {
     <aside className="w-16 lg:w-56 border-r border-white/[0.06] bg-surface-1/80 backdrop-blur-sm flex flex-col py-6 shrink-0">
       {/* ═══ Header: Identidade Institucional ═══ */}
       <div className="px-3 lg:px-5 mb-8 flex items-center gap-3">
-        <div className="w-10 h-10 lg:w-11 lg:h-11 flex items-center justify-center shrink-0">
-          <img
+        <div className="w-10 h-10 lg:w-11 lg:h-11 relative flex items-center justify-center shrink-0">
+          <Image
             src="/assets/branding/brasao_rs.svg"
             alt="Brasão RS"
-            className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]"
+            fill
+            className="object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]"
           />
         </div>
         <div className="hidden lg:block min-w-0">

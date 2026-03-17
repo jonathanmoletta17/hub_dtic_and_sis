@@ -1,4 +1,4 @@
-import { request } from './httpClient';
+import { apiDelete, apiGet, apiPost, buildApiPath, withQuery } from './client';
 
 export interface AdminUser {
     id: number;
@@ -25,13 +25,27 @@ export interface RevokeGroupResponse {
     group_id: number;
 }
 
+export interface ModuleCatalogItem {
+    group_id: number;
+    tag: string;
+    group_name: string;
+    label: string;
+}
+
 /**
  * Busca todos os usuários com seus módulos e roles.
  * O Endpoint no backend consolida dados e atende ao contrato Frontend.
  */
 export async function fetchUsersDiagnostics(context: string, targetContext?: string): Promise<AdminUser[]> {
-    const query = targetContext ? `?target_context=${targetContext}` : '';
-    return request<AdminUser[]>(`/api/v1/${context}/admin/users${query}`, { method: "GET" });
+    return apiGet<AdminUser[]>(
+        withQuery(buildApiPath(context, "admin/users"), { target_context: targetContext }),
+    );
+}
+
+export async function fetchModuleCatalog(context: string, targetContext?: string): Promise<ModuleCatalogItem[]> {
+    return apiGet<ModuleCatalogItem[]>(
+        withQuery(buildApiPath(context, "admin/module-catalog"), { target_context: targetContext }),
+    );
 }
 
 /**
@@ -43,11 +57,10 @@ export async function assignModuleToUser(
     groupId: number,
     targetContext?: string
 ): Promise<AssignGroupResponse> {
-    const query = targetContext ? `?target_context=${targetContext}` : '';
-    return request<AssignGroupResponse>(`/api/v1/${context}/admin/users/${userId}/groups${query}`, {
-        method: "POST",
-        body: JSON.stringify({ group_id: groupId })
-    });
+    return apiPost<AssignGroupResponse, { group_id: number }>(
+        withQuery(buildApiPath(context, `admin/users/${userId}/groups`), { target_context: targetContext }),
+        { group_id: groupId },
+    );
 }
 
 /**
@@ -59,8 +72,7 @@ export async function revokeModuleFromUser(
     groupId: number,
     targetContext?: string
 ): Promise<RevokeGroupResponse> {
-    const query = targetContext ? `?target_context=${targetContext}` : '';
-    return request<RevokeGroupResponse>(`/api/v1/${context}/admin/users/${userId}/groups/${groupId}${query}`, {
-        method: "DELETE"
-    });
+    return apiDelete<RevokeGroupResponse>(
+        withQuery(buildApiPath(context, `admin/users/${userId}/groups/${groupId}`), { target_context: targetContext }),
+    );
 }

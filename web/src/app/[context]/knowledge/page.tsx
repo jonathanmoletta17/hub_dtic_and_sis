@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  BookOpen,
   Search,
   FileText,
   ChevronRight,
@@ -33,23 +32,16 @@ import {
   type KBArticleDetail,
   type KBArticlePayload,
 } from "@/lib/api/knowledgeService";
+import { formatIsoDate } from "@/lib/datetime/iso";
 import { useAuthStore } from "@/store/useAuthStore";
 
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const contextData: Record<string, { color: string; accentClass: string }> = {
-  dtic: { color: "text-accent-blue", accentClass: "bg-accent-blue" },
-};
+// Colors usually handled here but currently KBContent relies on context registry from other parts
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatIsoDate(dateStr) || "";
 }
 
 // ─── Toast Component ───
@@ -101,45 +93,45 @@ function DeleteModal({ articleName, onConfirm, onCancel, loading }: {
   );
 }
 
-// ─── Formatting Toolbar ───
 function FormatToolbar({ textareaRef, onUpdate }: { textareaRef: React.RefObject<HTMLTextAreaElement | null>; onUpdate: (v: string) => void }) {
-  const wrap = (before: string, after: string) => {
+  const handleAction = useCallback((type: string) => {
     const ta = textareaRef.current;
     if (!ta) return;
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
     const text = ta.value;
     const selected = text.substring(start, end) || "texto";
-    const newText = text.substring(0, start) + before + selected + after + text.substring(end);
-    onUpdate(newText);
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(start + before.length, start + before.length + selected.length); }, 0);
-  };
-  const insert = (tag: string) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const pos = ta.selectionStart;
-    const text = ta.value;
-    const newText = text.substring(0, pos) + tag + text.substring(pos);
-    onUpdate(newText);
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(pos + tag.length, pos + tag.length); }, 0);
-  };
 
-  const tools = [
-    { label: "B", title: "Negrito", action: () => wrap("<b>", "</b>"), style: "font-bold" },
-    { label: "I", title: "Itálico", action: () => wrap("<i>", "</i>"), style: "italic" },
-    { label: "H", title: "Título", action: () => wrap("<h3>", "</h3>"), style: "font-semibold" },
-    { label: "•", title: "Lista", action: () => insert("\n<ul>\n  <li>Item</li>\n</ul>\n"), style: "" },
-    { label: "🔗", title: "Link", action: () => wrap('<a href="url">', "</a>"), style: "" },
-    { label: "<>", title: "Código", action: () => wrap("<code>", "</code>"), style: "font-mono text-[11px]" },
-  ];
+    let wrapB = ""; let wrapA = ""; let tag = "";
+    if (type === "B") { wrapB = "<b>"; wrapA = "</b>"; }
+    else if (type === "I") { wrapB = "<i>"; wrapA = "</i>"; }
+    else if (type === "H") { wrapB = "<h3>"; wrapA = "</h3>"; }
+    else if (type === "LINK") { wrapB = '<a href="url">'; wrapA = "</a>"; }
+    else if (type === "CODE") { wrapB = "<code>"; wrapA = "</code>"; }
+    else if (type === "LIST") { tag = "\n<ul>\n  <li>Item</li>\n</ul>\n"; }
+
+    let newText = "";
+    let focusPos = 0;
+    if (tag) {
+      newText = text.substring(0, start) + tag + text.substring(start);
+      focusPos = start + tag.length;
+    } else {
+      newText = text.substring(0, start) + wrapB + selected + wrapA + text.substring(end);
+      focusPos = start + wrapB.length + selected.length;
+    }
+
+    onUpdate(newText);
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(type === "LIST" ? focusPos : start + wrapB.length, focusPos); }, 0);
+  }, [textareaRef, onUpdate]);
 
   return (
     <div className="flex gap-1 mb-1.5">
-      {tools.map((t) => (
-        <button key={t.label} type="button" onClick={t.action} title={t.title}
-          className={`px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04] ${t.style}`}
-        >{t.label}</button>
-      ))}
+      <button type="button" onClick={() => handleAction("B")} title="Negrito" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04] font-bold">B</button>
+      <button type="button" onClick={() => handleAction("I")} title="Itálico" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04] italic">I</button>
+      <button type="button" onClick={() => handleAction("H")} title="Título" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04] font-semibold">H</button>
+      <button type="button" onClick={() => handleAction("LIST")} title="Lista" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04]">•</button>
+      <button type="button" onClick={() => handleAction("LINK")} title="Link" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04]">🔗</button>
+      <button type="button" onClick={() => handleAction("CODE")} title="Código" className="px-2.5 py-1.5 rounded-md text-[12px] bg-white/[0.04] hover:bg-white/[0.08] text-text-3/60 hover:text-text-2 transition-all border border-white/[0.04] font-mono text-[11px]">&lt;&gt;</button>
     </div>
   );
 }
@@ -294,7 +286,6 @@ export default function KnowledgeBasePage() {
   const params = useParams();
   const router = useRouter();
   const context = params.context as string;
-  const current = contextData[context] || contextData["dtic"];
 
   useEffect(() => {
     if (context !== "dtic") {
@@ -304,19 +295,11 @@ export default function KnowledgeBasePage() {
 
   if (context !== "dtic") return null;
 
-  return <KBContent context={context} current={current} router={router} />;
+  return <KBContent />;
 }
 
 
-function KBContent({
-  context,
-  current,
-  router,
-}: {
-  context: string;
-  current: { color: string; accentClass: string };
-  router: ReturnType<typeof useRouter>;
-}) {
+function KBContent() {
   // Auth state
   const { currentUserRole, getSessionToken } = useAuthStore();
   const sessionToken = getSessionToken("dtic");
@@ -386,8 +369,8 @@ function KBContent({
       });
       setArticles(result.articles);
       setTotal(result.total);
-    } catch (err: any) {
-      setError(err.message || "Erro ao carregar artigos");
+    } catch (err: unknown) {
+      setError(err instanceof Error && err.message ? err.message : "Erro ao carregar artigos");
       setArticles([]);
     } finally {
       setLoading(false);
@@ -420,8 +403,8 @@ function KBContent({
       setFormMode(null);
       await loadArticles();
       reloadCategories();
-    } catch (err: any) {
-      setToast({ message: err.message || "Erro ao criar artigo.", type: "error" });
+    } catch (err: unknown) {
+      setToast({ message: err instanceof Error && err.message ? err.message : "Erro ao criar artigo.", type: "error" });
     } finally {
       setSaving(false);
     }
@@ -439,8 +422,8 @@ function KBContent({
       await sleep(500);
       await loadArticles();
       reloadCategories();
-    } catch (err: any) {
-      setToast({ message: err.message || "Erro ao atualizar artigo.", type: "error" });
+    } catch (err: unknown) {
+      setToast({ message: err instanceof Error && err.message ? err.message : "Erro ao atualizar artigo.", type: "error" });
     } finally {
       setSaving(false);
     }
@@ -456,8 +439,8 @@ function KBContent({
       setSelectedArticle(null);
       await loadArticles();
       reloadCategories();
-    } catch (err: any) {
-      setToast({ message: err.message || "Erro ao excluir artigo.", type: "error" });
+    } catch (err: unknown) {
+      setToast({ message: err instanceof Error && err.message ? err.message : "Erro ao excluir artigo.", type: "error" });
     } finally {
       setSaving(false);
     }

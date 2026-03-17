@@ -9,10 +9,9 @@ interface DeleteChargerModalProps {
   onClose: () => void;
   onDelete: (id: number) => Promise<void>;
   chargers: KanbanAvailableResource[];
-  loading: boolean;
 }
 
-export default function DeleteChargerModal({ isOpen, onClose, onDelete, chargers, loading }: DeleteChargerModalProps) {
+export default function DeleteChargerModal({ isOpen, onClose, onDelete, chargers }: DeleteChargerModalProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmName, setConfirmName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');

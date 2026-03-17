@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { RotateCw, ShieldAlert } from "lucide-react";
+import { useParams } from "next/navigation";
+import { RotateCw } from "lucide-react";
 
 import { useChargerData, useOperationSettings } from "../../../hooks/useChargerData";
 import StatCards from "../../../components/chargers/ChargerStats";
@@ -15,7 +15,6 @@ import CreateChargerModal from "../../../components/chargers/CreateChargerModal"
 import DeleteChargerModal from "../../../components/chargers/DeleteChargerModal";
 import SettingsModal from "../../../components/chargers/SettingsModal";
 import { useAuthStore } from "../../../store/useAuthStore";
-import type { KanbanDemand } from "../../../types/charger";
 import {
   createCharger as apiCreateCharger,
   deleteCharger as apiDeleteCharger,
@@ -26,9 +25,14 @@ import { ContextGuard } from "@/components/auth/ContextGuard";
 
 export default function GestaoCarregadoresPage() {
   const { context } = useParams() as { context: string };
-  const router = useRouter();
+  return (
+    <ContextGuard featureId="chargers">
+      <GestaoCarregadoresContent context={context} />
+    </ContextGuard>
+  );
+}
 
-  const token = useAuthStore(state => state.sessionTokens[context]);
+function GestaoCarregadoresContent({ context }: { context: string }) {
   const logoutStore = useAuthStore(state => state.logout);
 
   // O fetch só deveria acontecer se houver token, porém a refatoração do hook é externa e
@@ -99,7 +103,7 @@ export default function GestaoCarregadoresPage() {
       await unassignChargerFromTicket(context, unassignTarget.ticketId, unassignTarget.chargerId);
       // Delay para GLPI propagar commit antes de re-fetch
       setTimeout(() => refresh(), 500);
-    } catch (_err) {
+    } catch {
       alert("Erro ao desvincular carregador.");
     } finally {
       setMutationLoading(false);
@@ -113,6 +117,9 @@ export default function GestaoCarregadoresPage() {
     } catch (err) {
       console.warn("API de Logout falhou ou sessão já expirada.", err);
     } finally {
+      if (typeof document !== 'undefined') {
+        document.cookie = 'sessionToken=; path=/; max-age=0; samesite=strict';
+      }
       logoutStore();
     }
   }, [context, logoutStore]);
@@ -130,8 +137,7 @@ export default function GestaoCarregadoresPage() {
   }
 
   return (
-    <ContextGuard featureId="chargers">
-      <div className="flex flex-col h-screen bg-slate-950 p-4 md:p-6 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-slate-950 p-4 md:p-6 overflow-hidden font-sans">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -202,7 +208,6 @@ export default function GestaoCarregadoresPage() {
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleDelete}
         chargers={kanbanData.availableResources}
-        loading={mutationLoading}
       />
 
       <SettingsModal
@@ -230,6 +235,5 @@ export default function GestaoCarregadoresPage() {
         />
       )}
     </div>
-    </ContextGuard>
   );
 }

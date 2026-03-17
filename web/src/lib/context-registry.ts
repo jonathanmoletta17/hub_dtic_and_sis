@@ -136,13 +136,27 @@ export function getContextManifest(contextId: string | null): ContextManifest | 
   return CONTEXT_MANIFESTS.find(m => m.id === contextId) || null;
 }
 
+function hasFeatureAppAccess(requireApp: string | undefined, appAccess: string[]): boolean {
+  if (!requireApp) return true;
+
+  // Suporta OR sem quebrar contrato legado:
+  // requireApp="tag-a|tag-b" => aceita qualquer uma das tags.
+  const candidates = requireApp
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (candidates.length === 0) return true;
+  return candidates.some((candidate) => appAccess.includes(candidate));
+}
+
 export function resolveMenuItems(contextId: string, userRoles: string[], appAccess: string[] = []): FeatureManifest[] {
   const manifest = getContextManifest(contextId);
   if (!manifest) return [];
 
   return manifest.features.filter(feature => {
     // 1. Verificação de App-Level Access (Abordagem C)
-    if (feature.requireApp && !appAccess.includes(feature.requireApp)) {
+    if (!hasFeatureAppAccess(feature.requireApp, appAccess)) {
       return false; // Bloqueia imediatamente
     }
 

@@ -28,8 +28,10 @@ export function DropdownTree({ question, value, onChange, error }: FieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const options = question.resolvedOptions ?? [];
-  const allFlat = useMemo(() => flattenOptions(options), [options]);
+  const allFlat = useMemo(
+    () => flattenOptions(question.resolvedOptions ?? []),
+    [question.resolvedOptions]
+  );
 
   const filtered = useMemo(() => {
     if (!search.trim()) return allFlat;

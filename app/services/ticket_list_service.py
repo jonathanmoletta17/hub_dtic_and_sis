@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 import logging
 import html as html_module
+from app.core.datetime_contract import serialize_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ async def list_tickets(
     department: Optional[str] = None,
     status_filter: Optional[List[int]] = None,
     requester_id: Optional[int] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
     limit: int = 100,
     offset: int = 0,
 ) -> dict:
@@ -78,6 +81,14 @@ async def list_tickets(
         joins.append("JOIN glpi_tickets_users rtu ON rtu.tickets_id = t.id AND rtu.type = 1")
         wheres.append("rtu.users_id = :req_id")
         params["req_id"] = requester_id
+
+    # Filtro temporal opcional (sem filtro por padrão)
+    if date_from:
+        wheres.append("DATE(t.date) >= :date_from")
+        params["date_from"] = date_from
+    if date_to:
+        wheres.append("DATE(t.date) <= :date_to")
+        params["date_to"] = date_to
 
     # JOINs para requester e technician (subqueries para evitar duplicação)
     joins.append("""
@@ -139,17 +150,17 @@ async def list_tickets(
     for r in rows:
         tickets.append({
             "id": r[0],
-            "title": r[1] or "Sem título",
+            "title": _clean_html(r[1] or "Sem título"),
             "content": _clean_html(r[2] or ""),
             "statusId": r[3],
             "status": STATUS_MAP.get(r[3], f"Status {r[3]}"),
             "urgencyId": r[4],
             "urgency": URGENCY_MAP.get(r[4], f"Urgência {r[4]}"),
             "priority": r[5],
-            "dateCreated": str(r[6]) if r[6] else "",
-            "dateModified": str(r[7]) if r[7] else "",
-            "solveDate": str(r[8]) if r[8] else None,
-            "closeDate": str(r[9]) if r[9] else None,
+            "dateCreated": serialize_datetime(r[6]) or "",
+            "dateModified": serialize_datetime(r[7]) or "",
+            "solveDate": serialize_datetime(r[8]),
+            "closeDate": serialize_datetime(r[9]),
             "requester": r[10],
             "technician": r[11],
             "category": r[12],

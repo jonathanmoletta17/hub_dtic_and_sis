@@ -16,9 +16,10 @@ export function ServiceSelector() {
   const [search, setSearch] = useState('');
   const { selectForm } = useWizardStore();
   const { hasDraft, loadDraft } = useDraftStore();
-  const { activeView } = useAuthStore();
+  const { activeContext, activeView, getOperationalViewForContext } = useAuthStore();
   const { catalog, isLoading, error } = useServiceCatalog();
-  const isTech = activeView === 'tech';
+  const isTech =
+    (getOperationalViewForContext(activeContext) ?? activeView) === 'tech';
 
   const filteredCatalog = useMemo(() => {
     const term = search.toLowerCase().trim();

@@ -134,7 +134,12 @@ async def remove_charger_from_ticket(client: GLPIClient, charger_id: int, ticket
 
 async def create_charger(client: GLPIClient, name: str, locations_id: int = 0) -> dict:
     """Cadastra um novo carregador (PluginGenericobjectCarregador) e seu bloco Fields Padrão."""
-    payload = {"name": name, "is_deleted": 0}
+    payload = {
+        "name": name,
+        "is_deleted": 0,
+        "is_recursive": 1,          # Entidades filhas: Sim
+        "is_helpdesk_visible": 1,    # Associável a um chamado: Sim
+    }
     if locations_id:
         payload["locations_id"] = locations_id
         

@@ -1,7 +1,6 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.config import settings
 from app.core.context_registry import registry
@@ -12,9 +11,9 @@ _session_makers = {}
 
 # Local SQLite Engine for Domain State (Chargers, Audit, etc.)
 local_engine = create_async_engine(
-    "sqlite+aiosqlite:///auth.db",
+    f"sqlite+aiosqlite:///{settings.local_state_db_path}",
     connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    pool_pre_ping=True,
 )
 local_session_maker = sessionmaker(
     local_engine, class_=AsyncSession, expire_on_commit=False

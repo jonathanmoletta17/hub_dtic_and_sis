@@ -2,13 +2,15 @@
 // Tipos — Gestão de Carregadores (Alinhados com Projeto Legado)
 // ═══════════════════════════════════════════════════════════════════
 
+import type { IsoDateTimeString } from "@/lib/datetime/iso";
+
 // --- Charger (Recurso com métricas) ---
 
 export interface ChargerLastTicket {
   id: number;
   title: string;
   location?: string;
-  solvedate?: string;
+  solvedate?: IsoDateTimeString;
 }
 
 export interface Charger {
@@ -19,7 +21,7 @@ export interface Charger {
   is_deleted: boolean;
   is_offline?: boolean;
   offline_reason?: string;
-  offline_since?: string;
+  offline_since?: IsoDateTimeString;
   expected_return?: string;
   totalTicketsInPeriod: number;
   totalServiceMinutes: number;
@@ -58,8 +60,8 @@ export interface KanbanDemand {
   name?: string;             // alias
   status: number;
   priority: number;
-  date: string;              // data de criação ISO
-  date_creation?: string;    // alias
+  date: IsoDateTimeString;              // data de criação ISO
+  date_creation?: IsoDateTimeString;    // alias
   location?: string;
   category?: string;
   requester?: string;          // legado
@@ -70,7 +72,7 @@ export interface KanbanDemand {
 export interface KanbanLastTicket {
   id: number;
   title: string;
-  solvedate?: string;
+  solvedate?: IsoDateTimeString;
   location?: string;
 }
 
@@ -90,7 +92,7 @@ export interface KanbanAvailableResource {
 export interface ChargerInTicket {
   id: number;
   name: string;
-  assigned_date?: string;
+  assigned_date?: IsoDateTimeString;
   service_time_minutes?: number;
   schedule?: OperationSettings;
 }
@@ -98,7 +100,7 @@ export interface ChargerInTicket {
 export interface KanbanAllocatedResource {
   ticket_id: number;
   title: string;
-  date?: string;               // data de abertura do ticket
+  date?: IsoDateTimeString;               // data de abertura do ticket
   status?: number;             // status GLPI (1-4 para ativos)
   category?: string;
   location?: string;
@@ -114,7 +116,7 @@ export interface AvailableChargerBrief {
   lastTicket?: {
     id: number;
     title: string;
-    solvedate?: string;
+    solvedate?: IsoDateTimeString;
     location?: string;
   };
 }
@@ -123,7 +125,7 @@ export interface TicketDetailResponse {
   id: number;
   name: string;
   content?: string;
-  date?: string;
+  date?: IsoDateTimeString;
   status: number;
   priority: number;
   location?: string;
@@ -142,7 +144,7 @@ export interface KanbanData {
 // Resposta completa do backend (pode incluir metadata)
 export interface KanbanResponse extends KanbanData {
   context?: string;
-  timestamp?: string;
+  timestamp?: IsoDateTimeString;
 }
 
 // --- Ranking Response ---
@@ -153,13 +155,13 @@ export interface RankingItem {
   completed_tickets: number;
   average_wait_time: string;
   total_service_minutes?: number;
-  last_activity?: string;
+  last_activity?: IsoDateTimeString;
 }
 
 export interface RankingResponse {
   context: string;
   ranking: RankingItem[];
-  timestamp?: string;
+  timestamp?: IsoDateTimeString;
 }
 
 // --- Offline Status ---
@@ -168,6 +170,6 @@ export interface ChargerOfflineStatus {
   charger_id: number;
   is_offline: boolean;
   reason?: string;
-  offline_since?: string;
+  offline_since?: IsoDateTimeString;
   expected_return?: string;
 }

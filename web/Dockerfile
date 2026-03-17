@@ -1,20 +1,38 @@
-FROM node:20-alpine
+FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json* ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copy source code
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Environment setup
+RUN npm run build
+
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV HOST=0.0.0.0
-ENV PORT=3001
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
-EXPOSE 3001
+RUN addgroup -S app && adduser -S nextjs -G app
 
-# Start in dev mode to bypass heavy Webpack OOM issues on WSL2, binding explicitly to 0.0.0.0
-CMD ["npx", "next", "dev", "-H", "0.0.0.0", "-p", "3000"]
+COPY --from=builder --chown=nextjs:app /app/public ./public
+COPY --from=builder --chown=nextjs:app /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:app /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

@@ -1,27 +1,24 @@
 import React from "react";
 import { CheckCircle2, Clock, Lock, ListTodo } from "lucide-react";
-import type { TimelineEntry } from "./useTicketDetail";
 
-function getInitials(name: any): string {
+import { formatIsoDateTime } from "@/lib/datetime/iso";
+import type { TicketTimelineEntry } from "@/lib/api/models/ticket-detail";
+
+function getInitials(name?: string | null): string {
   if (!name) return "?";
   return String(name).split(/[\s.]+/).map((n: string) => n[0]).filter(Boolean).join("").toUpperCase().slice(0, 2);
 }
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return "—";
-  try {
-    return new Date(dateStr).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch { return dateStr; }
+  return formatIsoDateTime(dateStr) || "—";
 }
 
 export function TimelineItem({ 
   entry, 
-  requesterName, 
   currentUserId, 
   technicianUserId 
 }: { 
-  entry: TimelineEntry; 
-  requesterName: string; 
+  entry: TicketTimelineEntry; 
   currentUserId: number; 
   technicianUserId: number | null;
 }) {

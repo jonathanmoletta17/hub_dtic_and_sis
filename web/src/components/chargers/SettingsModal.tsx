@@ -2,9 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { X, Settings, Clock, AlertTriangle, Save, Loader2, Calendar, CheckSquare, Square, Zap, Search, Power, MessageSquare } from 'lucide-react';
-import { KanbanAvailableResource, OperationSettings } from '@/types/charger';
-import { updateChargerSchedule, toggleChargerOffline, batchUpdateChargers } from '@/lib/api/chargerService';
-import { request } from '@/lib/api/httpClient';
+import { KanbanAvailableResource } from '@/types/charger';
+import { toggleChargerOffline, batchUpdateChargers } from '@/lib/api/chargerService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -95,7 +94,7 @@ export default function SettingsModal({ isOpen, onClose, chargers, context, onUp
     try {
       await toggleChargerOffline(context, charger.id, !charger.is_offline, "Ação Rápida via Painel", "");
       onUpdate();
-    } catch (error) {
+    } catch {
       alert("Erro na ação rápida.");
     } finally {
       setLocalLoading(prev => ({ ...prev, [charger.id]: false }));
@@ -110,28 +109,25 @@ export default function SettingsModal({ isOpen, onClose, chargers, context, onUp
 
     setLoading(true);
     try {
-      const data = await request<any>(`/api/v1/${context}/chargers/batch-action`, {
-        method: "POST",
-        body: JSON.stringify({
-          charger_ids: selectedIds,
-          update_schedule: applySchedule,
-          schedule: {
-            business_start: businessStart,
-            business_end: businessEnd,
-            work_on_weekends: false
-          },
-          update_offline: applyOffline,
-          offline: {
-            is_offline: isOffline,
-            reason: offlineReason || null,
-            expected_return: expectedReturn || null
-          }
-        }),
+      const data = await batchUpdateChargers(context, {
+        charger_ids: selectedIds,
+        update_schedule: applySchedule,
+        schedule: {
+          businessStart,
+          businessEnd,
+          workOnWeekends: false,
+        },
+        update_offline: applyOffline,
+        offline: {
+          is_offline: isOffline,
+          reason: offlineReason || null,
+          expected_return: expectedReturn || null,
+        },
       });
       
       if (data.success) {
-        const failures = data.results?.filter((r: any) => 
-          r.updates.some((u: any) => !u.success)
+        const failures = data.results?.filter((result) =>
+          result.updates.some((update) => !update.success)
         );
 
         if (failures && failures.length > 0) {
@@ -143,13 +139,12 @@ export default function SettingsModal({ isOpen, onClose, chargers, context, onUp
       } else {
         throw new Error(data.message || "Batch failed");
       }
-    } catch (error) {
+    } catch {
       alert("Erro ao aplicar em lote.");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div 

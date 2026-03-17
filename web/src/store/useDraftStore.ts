@@ -67,8 +67,9 @@ export const useDraftStore = create<DraftState>()(
 
       clearDraft: (formId) =>
         set((state) => {
-          const { [String(formId)]: _, ...rest } = state.drafts;
-          return { drafts: rest };
+          const drafts = { ...state.drafts };
+          delete drafts[String(formId)];
+          return { drafts };
         }),
 
       hasDraft: (formId) => {

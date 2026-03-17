@@ -37,6 +37,8 @@ export default function TicketDetailPage() {
     handleResume,
     handleReturnToQueue,
     handleReopenTicket,
+    handleApproveSolution,
+    handleRejectSolution,
     handleTransferTicket,
   } = useTicketDetail(ticketId, context);
 
@@ -92,6 +94,8 @@ export default function TicketDetailPage() {
         onReturnToQueue={handleReturnToQueue}
         onResume={handleResume}
         onReopenTicket={handleReopenTicket}
+        onApproveSolution={handleApproveSolution}
+        onRejectSolution={handleRejectSolution}
         onShowTransferModal={() => setShowTransferModal(true)}
       />
 

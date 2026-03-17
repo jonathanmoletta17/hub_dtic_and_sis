@@ -86,6 +86,8 @@ interface AuthState {
   clearActiveContext: () => void;
   getCredentials: () => { username: string; password: string } | null;
   getSessionToken: (context: string) => string | null;
+  getActiveHubRoleForContext: (context?: string | null) => HubRole | null;
+  getOperationalViewForContext: (context?: string | null) => 'user' | 'tech' | null;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -155,6 +157,34 @@ export const useAuthStore = create<AuthState>()(
       getCredentials: () => get()._credentials,
       
       getSessionToken: (context) => get().sessionTokens[context] || null,
+
+      getActiveHubRoleForContext: (context) => {
+        const state = get();
+        const identity = state.currentUserRole;
+        if (!identity) return null;
+
+        const resolvedContext = context || state.activeContext || identity.context || null;
+        const hubRoles = identity.hub_roles || [];
+        const activeProfile = identity.roles?.active_profile;
+
+        return (
+          identity.active_hub_role ||
+          hubRoles.find((role) => role.context_override === resolvedContext) ||
+          hubRoles.find((role) => role.profile_id === activeProfile?.id) ||
+          hubRoles[0] ||
+          null
+        );
+      },
+
+      getOperationalViewForContext: (context) => {
+        const state = get();
+        const role = state.getActiveHubRoleForContext(context);
+        if (!role) return null;
+
+        if (role.role === "solicitante") return "user";
+        if (role.role === "gestor" || role.role.startsWith("tecnico")) return "tech";
+        return null;
+      },
     }),
     {
       name: 'auth-storage',

@@ -1,17 +1,17 @@
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 
 from sqlalchemy import text
+from app.core.authorization import require_hub_permissions
 from app.core.database import get_db, get_local_db
 from app.core.session_manager import session_manager
 from app.core.rate_limit import limiter
 from app.services.charger_service import ChargerService
+from app.services.charger_settings_store import read_global_schedule, write_global_schedule
 from app.services.charger_commands import (
     update_charger_schedule_glpi, update_charger_offline_glpi,
     assign_charger_to_ticket, remove_charger_from_ticket,
@@ -23,7 +23,9 @@ from app.schemas.charger_schemas import (
     GlobalScheduleResponse, GlobalScheduleUpdate,
     OfflineResponse, OfflineUpdate,
     ChargerCreate, ChargerUpdate,
-    MultipleAssignment, BatchActionUpdate
+    MultipleAssignment, BatchActionUpdate,
+    ChargerScheduleReadResponse, ChargerOfflineReadResponse,
+    RankingResponse, TicketDetailResponse,
 )
 
 # TODO: Idealmente centralizar em 'app.core.dependencies'
@@ -49,32 +51,6 @@ from app.core.auth_guard import verify_session
 router = APIRouter(prefix="/api/v1/{context}/chargers", tags=["Chargers"], dependencies=[Depends(verify_session)])
 logger = logging.getLogger(__name__)
 
-# ── Global Schedule persistence (JSON local) ─────────────
-_SETTINGS_FILE = Path(__file__).resolve().parent.parent.parent / "data" / "charger_settings.json"
-_DEFAULT_SCHEDULE = {"business_start": "08:00", "business_end": "18:00", "work_on_weekends": False}
-
-def _read_global_schedule() -> dict:
-    """Lê o schedule global do arquivo JSON. Fallback para defaults se não existir ou for inválido."""
-    if not _SETTINGS_FILE.exists():
-        return _DEFAULT_SCHEDULE.copy()
-        
-    try:
-        content = _SETTINGS_FILE.read_text(encoding="utf-8")
-        if not content.strip():
-            return _DEFAULT_SCHEDULE.copy()
-        return json.loads(content)
-    except Exception as e:
-        logger.warning("Falha ao processar charger_settings.json (usando defaults): %s", e)
-        return _DEFAULT_SCHEDULE.copy()
-
-def _write_global_schedule(data: dict) -> None:
-    """Persiste o schedule global em arquivo JSON."""
-    try:
-        _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _SETTINGS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    except Exception as e:
-        logger.error("Erro crítico ao gravar charger_settings.json: %s", e)
-
 service = ChargerService()
 
 @router.get("/kanban", response_model=KanbanResponse, operation_id="getChargerKanban")
@@ -82,6 +58,14 @@ service = ChargerService()
 async def get_kanban(
     request: Request,
     context: str,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     db: AsyncSession = Depends(get_db)
 ):
     """Retorna os dados completos do Kanban de Carregadores."""
@@ -94,8 +78,19 @@ async def get_kanban(
         logger.error(f"Erro ao buscar Kanban de Carregadores: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{charger_id}/schedule", operation_id="getChargerSchedule")
-async def get_schedule(charger_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/{charger_id}/schedule", response_model=ChargerScheduleReadResponse, operation_id="getChargerSchedule")
+async def get_schedule(
+    charger_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
+    db: AsyncSession = Depends(get_db),
+):
     """Busca o horário de expediente nativo do carregador do MySQL."""
     sql = text("""
         SELECT inciodoexpedientefield, fimdoexpedientefield
@@ -114,6 +109,14 @@ async def get_schedule(charger_id: int, db: AsyncSession = Depends(get_db)):
 async def update_schedule(
     charger_id: int, 
     payload: ScheduleUpdate, 
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -126,36 +129,68 @@ async def update_schedule(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/global-schedule", response_model=GlobalScheduleResponse, operation_id="getGlobalSchedule")
-async def get_global_schedule():
-    """Busca o horário de expediente global persistido em data/charger_settings.json."""
-    data = _read_global_schedule()
+async def get_global_schedule(
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
+    local_db: AsyncSession = Depends(get_local_db),
+):
+    """Busca o horário de expediente global persistido no SQLite local de domínio."""
+    data = await read_global_schedule(local_db)
     return GlobalScheduleResponse(
         id=1,
-        business_start=data.get("business_start", "08:00"),
-        business_end=data.get("business_end", "18:00"),
-        work_on_weekends=data.get("work_on_weekends", False),
-        updated_at=datetime.utcnow()
+        business_start=str(data["business_start"]),
+        business_end=str(data["business_end"]),
+        work_on_weekends=bool(data["work_on_weekends"]),
+        updated_at=data["updated_at"],
     )
 
 @router.put("/global-schedule", response_model=GlobalScheduleResponse, operation_id="updateGlobalSchedule")
-async def update_global_schedule(data: GlobalScheduleUpdate):
-    """Atualiza o horário de expediente global e persiste em data/charger_settings.json."""
-    payload = {
-        "business_start": data.business_start,
-        "business_end": data.business_end,
-        "work_on_weekends": data.work_on_weekends
-    }
-    _write_global_schedule(payload)
-    return GlobalScheduleResponse(
-        id=1,
+async def update_global_schedule(
+    data: GlobalScheduleUpdate,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
+    local_db: AsyncSession = Depends(get_local_db),
+):
+    """Atualiza o horário de expediente global no SQLite local de domínio."""
+    payload = await write_global_schedule(
+        local_db,
         business_start=data.business_start,
         business_end=data.business_end,
         work_on_weekends=data.work_on_weekends,
-        updated_at=datetime.utcnow()
+    )
+    return GlobalScheduleResponse(
+        id=1,
+        business_start=str(payload["business_start"]),
+        business_end=str(payload["business_end"]),
+        work_on_weekends=bool(payload["work_on_weekends"]),
+        updated_at=payload["updated_at"],
     )
 
-@router.get("/{charger_id}/offline", operation_id="getChargerOffline")
-async def get_offline(charger_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/{charger_id}/offline", response_model=ChargerOfflineReadResponse, operation_id="getChargerOffline")
+async def get_offline(
+    charger_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
+    db: AsyncSession = Depends(get_db),
+):
     """Busca o status offline nativo do carregador."""
     sql = text("""
         SELECT statusofflinefield, motivodainatividadefield, expectativaderetornofield
@@ -177,6 +212,14 @@ async def get_offline(charger_id: int, db: AsyncSession = Depends(get_db)):
 async def update_offline(
     charger_id: int, 
     payload: OfflineUpdate, 
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -196,6 +239,14 @@ async def update_offline(
 async def assign_charger(
     charger_id: int,
     ticket_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -211,6 +262,14 @@ async def assign_charger(
 async def assign_multiple(
     ticket_id: int,
     payload: MultipleAssignment,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -229,6 +288,14 @@ async def assign_multiple(
 async def unassign_charger(
     charger_id: int,
     ticket_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -243,6 +310,14 @@ async def unassign_charger(
 @router.post("", operation_id="createCharger")
 async def create_new_charger(
     payload: ChargerCreate,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session)
 ):
     """Cria um novo carregador (Asset) no GLPI."""
@@ -257,6 +332,14 @@ async def create_new_charger(
 async def edit_charger(
     charger_id: int,
     payload: ChargerUpdate,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session)
 ):
     """Edita (Renomeia / Realoca) um carregador existente."""
@@ -270,6 +353,14 @@ async def edit_charger(
 @router.delete("/{charger_id}", operation_id="deleteCharger")
 async def remove_charger(
     charger_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session)
 ):
     """Envia o carregador ativo para a lixeira (Soft Delete) no GLPI."""
@@ -283,6 +374,14 @@ async def remove_charger(
 @router.post("/{charger_id}/reactivate", operation_id="reactivateCharger")
 async def restore_charger(
     charger_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session)
 ):
     """Restaura o carregador da lixeira (is_deleted=0) no GLPI."""
@@ -296,6 +395,14 @@ async def restore_charger(
 @router.post("/batch-action", operation_id="batchUpdateChargers")
 async def batch_update(
     payload: BatchActionUpdate,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     glpi_client: GLPIClient = Depends(get_user_glpi_session),
     db: AsyncSession = Depends(get_db)
 ):
@@ -332,12 +439,20 @@ async def batch_update(
 # DETALHES DO TICKET (MODAL)
 # ═══════════════════════════════════════════
 
-@router.get("/tickets/{ticket_id}/detail", operation_id="getTicketDetail")
+@router.get("/tickets/{ticket_id}/detail", response_model=TicketDetailResponse, operation_id="getTicketDetail")
 @limiter.limit("30/minute")
 async def get_ticket_detail(
     request: Request,
     context: str,
     ticket_id: int,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     db: AsyncSession = Depends(get_db)
 ):
     """Retorna detalhes completos de um ticket para o modal de detalhes."""
@@ -361,13 +476,21 @@ async def get_ticket_detail(
 
 metrics_router = APIRouter(prefix="/api/v1/{context}/metrics", tags=["Charger Metrics"])
 
-@metrics_router.get("/chargers", operation_id="getChargersMetrics")
+@metrics_router.get("/chargers", response_model=RankingResponse, operation_id="getChargersMetrics")
 @limiter.limit("30/minute")
 async def get_chargers_metrics(
     request: Request,
     context: str,
-    start_date: str = None,
-    end_date: str = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     db: AsyncSession = Depends(get_db)
 ):
     """Retorna dados agregados de carregadores com métricas de ranking."""
@@ -385,6 +508,14 @@ async def get_chargers_metrics(
 async def get_kanban_metrics(
     request: Request,
     context: str,
+    _identity: dict = Depends(
+        require_hub_permissions(
+            "tecnico",
+            "gestor",
+            require_app_access="carregadores",
+            require_active_hub_role=True,
+        )
+    ),
     db: AsyncSession = Depends(get_db)
 ):
     """Alias do kanban endpoint sob /metrics/ (legado compat)."""

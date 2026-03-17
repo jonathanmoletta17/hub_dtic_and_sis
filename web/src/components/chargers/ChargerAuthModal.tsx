@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Lock, Loader2, User } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { apiLogin } from "@/lib/api/glpiService";
 
 interface ChargerAuthModalProps {
   context: string;
@@ -24,25 +25,8 @@ export default function ChargerAuthModal({ context }: ChargerAuthModalProps) {
     setLoading(true);
     setError(null);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:8080` : "http://glpi-backend:8080");
-
     try {
-      const response = await fetch(`${API_BASE}/api/v1/${context}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.detail || "Erro na autenticação. Verifique suas credenciais.");
-      }
-
-      const data = await response.json();
-      
-      // O endpoint "/auth/login" retorna a interface AuthMeResponse incluindo session_token
+      const data = await apiLogin(context, { username, password });
       setActiveContext(context, data);
 
     } catch (err: unknown) {

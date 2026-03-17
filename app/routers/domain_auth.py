@@ -2,11 +2,14 @@
 Router: Auth — Identidade e Roles (Universal)
 Router final refatorado (Thin Router). Lógica em auth_service.py.
 """
-from fastapi import APIRouter, HTTPException, Request, Header
+import hashlib
+
+from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from app.core.cache import identity_cache
 from app.core.rate_limit import limiter
 from app.core.session_manager import session_manager
 from app.core.context_registry import registry
+from app.core.auth_guard import verify_session
 from pydantic import BaseModel
 from typing import List
 
@@ -21,15 +24,17 @@ router = APIRouter(prefix="/api/v1/{context}/auth", tags=["Auth"])
 
 @router.get("/me", response_model=AuthMeResponse, operation_id="getMyIdentity")
 @limiter.limit("200/minute")
-async def get_my_identity(request: Request, context: str):
+async def get_my_identity(request: Request, context: str, auth_data: dict = Depends(verify_session)):
     """
     [Universal] Recupera a identidade logada e retorna os dados brutos da sessão GLPI.
     """
-    cache_key = f"auth_me_{context}"
+    session_token = auth_data["session_token"]
+    token_hash = hashlib.sha256(session_token.encode("utf-8")).hexdigest()[:16]
+    cache_key = f"auth_me_{context}_{token_hash}"
     
     session_data = await identity_cache.get_or_set(
         cache_key, 
-        lambda: auth_service.fetch_session_identity(context)
+        lambda: auth_service.fetch_session_identity(context, session_token=session_token)
     )
     
     try:

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import { X, Plus, User, MapPin } from 'lucide-react';
-import { getLocations } from '@/lib/api/glpiService';
+import { fetchLocationOptions } from '@/lib/api/lookupService';
 
 interface CreateChargerModalProps {
   isOpen: boolean;
@@ -18,9 +18,9 @@ export default function CreateChargerModal({ isOpen, onClose, onCreate, loading,
   const [locationId, setLocationId] = useState<number | ''>('');
   const { data, isLoading } = useSWR(
     isOpen ? ['locations', context] : null,
-    () => getLocations(context)
+    () => fetchLocationOptions(context)
   );
-  const locations = data?.locations ?? [];
+  const locations = data ?? [];
   const fetchingLocations = isLoading;
 
   if (!isOpen) return null;
@@ -77,6 +77,7 @@ export default function CreateChargerModal({ isOpen, onClose, onCreate, loading,
               <select 
                 value={locationId === '' && locations.length > 0 ? locations[0].id : locationId}
                 onChange={(e) => setLocationId(parseInt(e.target.value, 10))}
+                onFocus={() => { if (locationId === '' && locations.length > 0) setLocationId(locations[0].id); }}
                 className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-blue-500/50 transition-all appearance-none font-medium cursor-pointer"
                 disabled={loading || fetchingLocations}
               >
@@ -110,7 +111,7 @@ export default function CreateChargerModal({ isOpen, onClose, onCreate, loading,
             <button 
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-              disabled={loading || !name.trim() || locationId === '' || fetchingLocations}
+              disabled={loading || !name.trim() || (locationId === '' && locations.length === 0) || fetchingLocations}
             >
               {loading ? 'Criando...' : 'Confirmar'}
             </button>

@@ -107,4 +107,34 @@ describe('context-registry', () => {
     expect(dashboard).toBeDefined();
     expect(dashboard!.route).toBe('/sis/dashboard');
   });
+
+  test('analytics DTIC requer somente dtic-metrics', () => {
+    const withKpi = resolveMenuItems('dtic', ['tecnico'], ['dtic-kpi']);
+    const withMetrics = resolveMenuItems('dtic', ['tecnico'], ['dtic-metrics']);
+    const withOtherTag = resolveMenuItems('dtic', ['tecnico'], ['dtic-infra']);
+
+    expect(withKpi.map((item) => item.id)).not.toContain('analytics');
+    expect(withMetrics.map((item) => item.id)).toContain('analytics');
+    expect(withOtherTag.map((item) => item.id)).not.toContain('analytics');
+  });
+
+  test('analytics SIS requer sis-dashboard', () => {
+    const allowed = resolveMenuItems('sis', ['tecnico'], ['sis-dashboard']);
+    const blocked = resolveMenuItems('sis', ['tecnico'], ['carregadores']);
+
+    expect(allowed.map((item) => item.id)).toContain('analytics');
+    expect(blocked.map((item) => item.id)).not.toContain('analytics');
+  });
+
+  test('analytics SIS subcontextos requer sis-dashboard', () => {
+    const allowedManutencao = resolveMenuItems('sis-manutencao', ['tecnico-manutencao'], ['sis-dashboard']);
+    const blockedManutencao = resolveMenuItems('sis-manutencao', ['tecnico-manutencao'], ['carregadores']);
+    const allowedMemoria = resolveMenuItems('sis-memoria', ['tecnico-conservacao'], ['sis-dashboard']);
+    const blockedMemoria = resolveMenuItems('sis-memoria', ['tecnico-conservacao'], ['carregadores']);
+
+    expect(allowedManutencao.map((item) => item.id)).toContain('analytics');
+    expect(blockedManutencao.map((item) => item.id)).not.toContain('analytics');
+    expect(allowedMemoria.map((item) => item.id)).toContain('analytics');
+    expect(blockedMemoria.map((item) => item.id)).not.toContain('analytics');
+  });
 });

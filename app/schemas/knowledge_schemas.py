@@ -6,6 +6,8 @@ Modelos Pydantic para a Base de Conhecimento do GLPI.
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from app.core.datetime_contract import AwareDateTime
+
 
 class KBCategory(BaseModel):
     """Categoria da Base de Conhecimento."""
@@ -23,8 +25,8 @@ class KBArticleSummary(BaseModel):
     category: Optional[str] = None
     category_id: Optional[int] = None
     author: Optional[str] = None
-    date_creation: Optional[str] = None
-    date_mod: Optional[str] = None
+    date_creation: Optional[AwareDateTime] = None
+    date_mod: Optional[AwareDateTime] = None
     is_faq: bool = False
     view_count: int = 0
 

@@ -19,6 +19,7 @@ from typing import Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from app.core.datetime_contract import serialize_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -167,17 +168,17 @@ async def search_tickets(
     for r in rows:
         tickets.append({
             "id": r[0],
-            "title": r[1] or "Sem título",
+            "title": _clean_html(r[1] or "Sem título"),
             "content": _clean_html(r[2] or ""),
             "statusId": r[3],
             "status": STATUS_MAP.get(r[3], f"Status {r[3]}"),
             "urgencyId": r[4],
             "urgency": URGENCY_MAP.get(r[4], f"Urgência {r[4]}"),
             "priority": r[5],
-            "dateCreated": str(r[6]) if r[6] else "",
-            "dateModified": str(r[7]) if r[7] else "",
-            "solveDate": str(r[8]) if r[8] else None,
-            "closeDate": str(r[9]) if r[9] else None,
+            "dateCreated": serialize_datetime(r[6]) or "",
+            "dateModified": serialize_datetime(r[7]) or "",
+            "solveDate": serialize_datetime(r[8]),
+            "closeDate": serialize_datetime(r[9]),
             "requester": r[10],
             "technician": r[11],
             "category": r[12],

@@ -21,6 +21,7 @@ const formatMinutes = (totalMinutes: number): string => {
 };
 
 export default function HorizontalRanking({ chargers, settings, onChargerClick }: Props) {
+  const scheduleLabel = `${settings.businessStart ?? "08:00"} - ${settings.businessEnd ?? "18:00"}`;
   const topChargers = chargers
     .filter((c) => !c.is_deleted)
     .sort((a, b) => {
@@ -38,7 +39,7 @@ export default function HorizontalRanking({ chargers, settings, onChargerClick }
         <div>
           <h3 className="text-white font-bold text-sm">Ranking de Carregadores</h3>
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-            Performance & Produtividade
+            Performance & Produtividade • {scheduleLabel}
           </p>
         </div>
       </div>

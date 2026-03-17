@@ -2,11 +2,17 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Monitor, Wrench, Loader2, ArrowLeft, AlertTriangle, ShieldCheck, ChevronRight, Network, Landmark } from "lucide-react";
 import { useAuthStore, AuthMeResponse } from "@/store/useAuthStore";
 import { GlassCard } from "@/components/ui/glass-card";
 import { CONTEXT_MANIFESTS } from "@/lib/context-registry";
-import { API_BASE } from "@/lib/api/httpClient";
+import { apiLogin } from "@/lib/api/glpiService";
+
+function writeSessionCookie(sessionToken?: string) {
+  if (!sessionToken) return;
+  document.cookie = `sessionToken=${sessionToken}; path=/; max-age=86400; samesite=strict`;
+}
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   "Network": <Network size={28} />,
@@ -57,6 +63,10 @@ export default function WorkspaceSelectorPage() {
         }
       };
 
+      if (typeof document !== 'undefined' && identity.session_token) {
+        writeSessionCookie(identity.session_token);
+      }
+
       setActiveContext(workspaceId, activeIdentity);
       const targetContext = primaryRole.context_override || workspaceId;
       router.push(`/${targetContext}/${primaryRole.route}`);
@@ -75,27 +85,23 @@ export default function WorkspaceSelectorPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/${workspaceId}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password,
-        }),
+      const identity = await apiLogin(workspaceId, {
+        username: credentials.username,
+        password: credentials.password,
       });
-      
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ detail: "Erro desconhecido" }));
-        throw new Error(errData.detail || `HTTP ${res.status}`);
+
+      // Atualizar cookie com token do contexto selecionado
+      if (identity.session_token) {
+        writeSessionCookie(identity.session_token);
       }
 
-      const identity: AuthMeResponse = await res.json();
       cacheContextSession(workspaceId, identity);
       redirectByPriority(identity);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha de rede ao se conectar ao servidor do GLPI.";
       console.error("Erro na autenticação real:", err);
-      setError(err.message || "Falha de rede ao se conectar ao servidor do GLPI.");
+      setError(message);
       setLoadingContext(null);
     }
   };
@@ -122,11 +128,13 @@ export default function WorkspaceSelectorPage() {
 
       {/* Header Branding */}
       <div className="flex flex-col items-center gap-6 mb-10 text-center max-w-3xl relative z-10 animate-in fade-in slide-in-from-top-8 duration-1000">
-        <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center p-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] bg-white/5 rounded-3xl backdrop-blur-xl border border-white/10">
-          <img 
+        <div className="w-24 h-24 sm:w-28 sm:h-28 relative flex items-center justify-center p-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] bg-white/5 rounded-3xl backdrop-blur-xl border border-white/10">
+          <Image 
             src="/assets/branding/brasao_rs.svg" 
             alt="Brasão RS" 
-            className="w-full h-full object-contain"
+            fill
+            className="object-contain p-2"
+            priority
           />
         </div>
 
@@ -160,7 +168,7 @@ export default function WorkspaceSelectorPage() {
 
       {/* Context Selection Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl relative z-10 animate-in fade-in zoom-in-95 duration-1000 delay-300">
-        {workspaces.map((ws, index) => (
+        {workspaces.map((ws) => (
           <button
             key={ws.id}
             onClick={() => handleWorkspaceSelection(ws.id)}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Ticket,
   Mail,
@@ -22,7 +22,6 @@ const contextData: Record<string, { color: string; accentClass: string }> = {
 
 export default function UserProfilePage() {
   const params = useParams();
-  const router = useRouter();
   const context = params.context as string;
   const current = contextData[context] || contextData["dtic"];
 

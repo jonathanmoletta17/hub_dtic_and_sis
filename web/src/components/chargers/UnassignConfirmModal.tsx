@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { X } from "lucide-react";
 
 interface UnassignConfirmModalProps {
   chargerName: string;

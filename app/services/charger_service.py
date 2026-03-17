@@ -1,7 +1,8 @@
 import json
+import re
+import html as html_module
 import logging
 from datetime import datetime, time, timedelta, timezone
-from zoneinfo import ZoneInfo
 from typing import List, Optional, Dict, Any
 
 from sqlalchemy import text
@@ -14,6 +15,18 @@ from app.schemas.charger_schemas import (
 )
 from app.core.utils.time_utils import calculate_business_minutes, format_elapsed_time
 from app.core.utils.cache_utils import ttl_cache
+from app.core.datetime_contract import ensure_aware_datetime, now_in_app_timezone
+
+
+def _clean_html(raw: str) -> str:
+    """Remove tags HTML e decodifica entidades."""
+    if not raw:
+        return ""
+    clean = html_module.unescape(raw)
+    clean = re.sub(r"<[^>]*>", "", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    return clean[:500]
+
 from app.services.charger_queries import (
     CHARGER_ITIL_CATEGORIES, SQL_CHARGER_META, SQL_AVAILABLE_CHARGERS, SQL_LAST_RESOLVED_TICKET,
     SQL_ALLOCATED_CHARGERS, SQL_PENDING_DEMANDS, SQL_RANKING_LOGS, SQL_ALL_ACTIVE_CHARGERS,
@@ -21,15 +34,14 @@ from app.services.charger_queries import (
 )
 
 logger = logging.getLogger(__name__)
-_TZ = ZoneInfo("America/Sao_Paulo")
 
-def _now_local() -> datetime:
-    return datetime.now(tz=_TZ)
 
-def _ensure_tz(dt: Optional[datetime]) -> Optional[datetime]:
-    if dt is None: return None
-    if dt.tzinfo is None: return dt.replace(tzinfo=_TZ)
-    return dt
+def _elapsed_minutes_since(start_dt: Optional[datetime], end_dt: datetime) -> int:
+    normalized_start = ensure_aware_datetime(start_dt)
+    normalized_end = ensure_aware_datetime(end_dt)
+    if normalized_start is None or normalized_end is None:
+        return 0
+    return max(int((normalized_end - normalized_start).total_seconds() / 60), 0)
 
 class ChargerService:
     @ttl_cache(ttl_seconds=10, ignore_args=[0, 2, 3])  # Ignora self, glpi_db, local_db
@@ -40,7 +52,7 @@ class ChargerService:
         local_db: AsyncSession
     ) -> KanbanResponse:
         """Gera o estado completo do Kanban de Carregadores."""
-        now = _now_local()
+        now = now_in_app_timezone()
         default_b_start = "08:00"
         default_b_end = "18:00"
         default_weekends = False
@@ -64,8 +76,8 @@ class ChargerService:
                 if last_t:
                     last_ticket_obj = KanbanLastTicket(
                         id=last_t.id,
-                        title=last_t.title,
-                        solvedate=last_t.solvedate.isoformat() if last_t.solvedate else None,
+                        title=_clean_html(last_t.title),
+                        solvedate=ensure_aware_datetime(last_t.solvedate),
                         location=last_t.location or None
                     )
 
@@ -96,7 +108,7 @@ class ChargerService:
             
             service_mins = 0
             if charger_assigned_date:
-                assigned_dt = _ensure_tz(charger_assigned_date)
+                assigned_dt = ensure_aware_datetime(charger_assigned_date)
                 service_mins = calculate_business_minutes(
                     assigned_dt, now, ch_b_start, ch_b_end, default_weekends
                 )
@@ -104,13 +116,13 @@ class ChargerService:
             if tid not in ticket_groups:
                 ticket_groups[tid] = {
                     "ticket_id": tid,
-                    "title": r.ticket_name,
-                    "date": r.ticket_date.isoformat() if r.ticket_date else None,
+                    "title": _clean_html(r.ticket_name),
+                    "date": ensure_aware_datetime(r.ticket_date),
                     "status": r.ticket_status,
                     "category": r.category_name or None,
                     "location": r.location or None,
                     "requester_name": r.requester_name,
-                    "_ticket_date_obj": r.ticket_date,
+                    "_ticket_date_obj": ensure_aware_datetime(r.ticket_date),
                     "time_elapsed": "0h 0m",
                     "chargers": []
                 }
@@ -119,7 +131,7 @@ class ChargerService:
                 ChargerInTicket(
                     id=r.charger_id,
                     name=r.charger_name,
-                    assigned_date=charger_assigned_date.isoformat() if charger_assigned_date else None,
+                    assigned_date=ensure_aware_datetime(charger_assigned_date),
                     service_time_minutes=service_mins,
                     schedule=ScheduleBase(
                         business_start=ch_b_start,
@@ -132,8 +144,7 @@ class ChargerService:
         for grp in ticket_groups.values():
             ticket_date = grp.pop("_ticket_date_obj", None)
             if ticket_date:
-                wall_mins = int((now - ticket_date).total_seconds() / 60)
-                grp["time_elapsed"] = format_elapsed_time(max(wall_mins, 0))
+                grp["time_elapsed"] = format_elapsed_time(_elapsed_minutes_since(ticket_date, now))
 
         allocated: List[KanbanAllocatedResource] = [
             KanbanAllocatedResource(**v) for v in ticket_groups.values()
@@ -148,13 +159,14 @@ class ChargerService:
         for r in demand_rows:
             if r.id in seen_tickets: continue
             seen_tickets.add(r.id)
-            wall_mins = int((now - r.date_creation).total_seconds() / 60)
+            demand_date = ensure_aware_datetime(r.date_creation)
+            wall_mins = _elapsed_minutes_since(demand_date, now)
             demands.append(KanbanDemand(
                 id=r.id,
-                name=r.name,
+                name=_clean_html(r.name),
                 status=r.status,
                 priority=r.priority,
-                date_creation=r.date_creation,
+                date_creation=demand_date,
                 location=r.location or None,
                 category=r.category,
                 requester_name=r.requester_name,
@@ -177,7 +189,7 @@ class ChargerService:
         end_date: Optional[str] = None
     ) -> RankingResponse:
         """Calcula o ranking de performance dos carregadores."""
-        now = _now_local()
+        now = now_in_app_timezone()
         if not start_date:
             start_date = (now - timedelta(days=30)).strftime("%Y-%m-%d")
         if not end_date:
@@ -209,13 +221,13 @@ class ChargerService:
             ch_stats[cid]["resolved_count"] += 1
             
             # Determina o fim da atividade para last_activity e cálculo de tempo
-            end_activity = _ensure_tz(r.solvedate) if r.solvedate else now
+            end_activity = ensure_aware_datetime(r.solvedate) if r.solvedate else now
             
             if ch_stats[cid]["last_activity"] is None or end_activity > ch_stats[cid]["last_activity"]:
                 ch_stats[cid]["last_activity"] = end_activity
 
             if r.assigned_at:
-                assigned_dt = _ensure_tz(r.assigned_at)
+                assigned_dt = ensure_aware_datetime(r.assigned_at)
                 active_mins = calculate_business_minutes(
                     assigned_dt, end_activity, r.b_start, r.b_end, False
                 )
@@ -250,7 +262,7 @@ class ChargerService:
         glpi_db: AsyncSession
     ) -> TicketDetailResponse:
         """Busca detalhes completos de um ticket para o modal."""
-        now = _now_local()
+        now = now_in_app_timezone()
 
         res_ticket = await glpi_db.execute(SQL_TICKET_BASIC_DETAILS, {"tid": ticket_id})
         ticket_row = res_ticket.fetchone()
@@ -264,11 +276,11 @@ class ChargerService:
             a_date = cr.assigned_date or ticket_row.date
             service_mins = 0
             if a_date:
-                assigned_dt = _ensure_tz(a_date)
+                assigned_dt = ensure_aware_datetime(a_date)
                 service_mins = calculate_business_minutes(assigned_dt, now, cr.b_start, cr.b_end, False)
             chargers_list.append(ChargerInTicket(
                 id=cr.id, name=cr.name,
-                assigned_date=a_date.isoformat() if a_date else None,
+                assigned_date=ensure_aware_datetime(a_date),
                 service_time_minutes=service_mins,
                 schedule=ScheduleBase(business_start=cr.b_start, business_end=cr.b_end)
             ))
@@ -279,8 +291,8 @@ class ChargerService:
             last_ticket = None
             if r.last_ticket_id:
                 last_ticket = LastTicketBrief(
-                    id=r.last_ticket_id, title=r.last_ticket_name or "",
-                    solvedate=r.last_ticket_solvedate.isoformat() if r.last_ticket_solvedate else None,
+                    id=r.last_ticket_id, title=_clean_html(r.last_ticket_name or ""),
+                    solvedate=ensure_aware_datetime(r.last_ticket_solvedate),
                     location=r.last_ticket_location or None
                 )
             available_list.append(AvailableChargerBrief(
@@ -290,8 +302,8 @@ class ChargerService:
             ))
 
         return TicketDetailResponse(
-            id=ticket_row.id, name=ticket_row.name, content=ticket_row.content,
-            date=ticket_row.date.isoformat() if ticket_row.date else None,
+            id=ticket_row.id, name=_clean_html(ticket_row.name), content=_clean_html(ticket_row.content),
+            date=ensure_aware_datetime(ticket_row.date),
             status=ticket_row.status, priority=ticket_row.priority,
             location=ticket_row.location or None, category=ticket_row.category or None,
             requester_name=ticket_row.requester_name, chargers=chargers_list,

@@ -17,6 +17,11 @@ import type {
   KanbanAvailableResource,
   KanbanAllocatedResource,
 } from "../../types/charger";
+import {
+  formatElapsedSince,
+  formatIsoTime,
+  toDateOrNull,
+} from "../../lib/datetime/iso";
 import { formatLocation, formatCategoryName, decodeHtmlEntities } from "../../lib/utils/formatters";
 
 interface Props {
@@ -29,6 +34,25 @@ interface Props {
 }
 
 export function ChargerKanban({ demands, available, allocated, onDemandClick, onUnassignCharger, onAllocatedClick }: Props) {
+  const formatIdleTime = (value: string | null | undefined) => {
+    const elapsed = formatElapsedSince(value);
+    return elapsed ? `Ocioso ha: ${elapsed}` : "Pronto para nova atribuicao";
+  };
+
+  const formatDemandCreatedAt = (value: string | null | undefined) => {
+    const time = formatIsoTime(value);
+    const date = toDateOrNull(value)?.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+
+    if (!time || !date) {
+      return "";
+    }
+
+    return `Criado as ${time} (${date})`;
+  };
+
   const sorted = [...available].sort((a, b) => {
     const isOffA = a.is_offline;
     const isOffB = b.is_offline;
@@ -36,8 +60,8 @@ export function ChargerKanban({ demands, available, allocated, onDemandClick, on
     if (!isOffA && isOffB) return -1;
     
     // Se ambos online: ordenar por tempo ocioso (solvedate mais antigo primeiro)
-    const dateA = a.lastTicket?.solvedate ? new Date(a.lastTicket.solvedate).getTime() : 0;
-    const dateB = b.lastTicket?.solvedate ? new Date(b.lastTicket.solvedate).getTime() : 0;
+    const dateA = toDateOrNull(a.lastTicket?.solvedate)?.getTime() ?? 0;
+    const dateB = toDateOrNull(b.lastTicket?.solvedate)?.getTime() ?? 0;
     
     if (dateA !== dateB) return dateA - dateB;
     
@@ -132,10 +156,7 @@ export function ChargerKanban({ demands, available, allocated, onDemandClick, on
                                       <span className="flex items-center gap-1 bg-emerald-500/10 text-[10px] text-emerald-400 font-black tracking-widest uppercase px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-sm ml-2 shrink-0">
                                         <Clock size={10} className="text-emerald-500" />
                                         {(() => {
-                                          const mins = Math.floor((Date.now() - new Date(res.lastTicket.solvedate).getTime()) / 60000);
-                                          const h = Math.floor(mins / 60);
-                                          const m = mins % 60;
-                                          return `Ocioso há: ${h}h ${m}m`;
+                                          return formatIdleTime(res.lastTicket.solvedate);
                                         })()}
                                       </span>
                                     </div>
@@ -345,7 +366,7 @@ export function ChargerKanban({ demands, available, allocated, onDemandClick, on
                       <div className="flex items-center gap-1">
                         {d.date_creation && (
                           <span className="text-[10px] text-slate-500 font-medium">
-                            Criado às {new Date(d.date_creation).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} ({new Date(d.date_creation).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })})
+                            {formatDemandCreatedAt(d.date_creation)}
                           </span>
                         )}
                       </div>

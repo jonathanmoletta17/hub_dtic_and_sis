@@ -2,6 +2,8 @@
  * Tipos compartilhados para dados do GLPI.
  */
 
+import type { IsoDateTimeString } from "@/lib/datetime/iso";
+
 // Status GLPI → labels legíveis
 export const TICKET_STATUS_MAP: Record<number, string> = {
   1: "Novo",
@@ -30,28 +32,28 @@ export interface TicketSummary {
   statusId: number;
   urgency: string;
   urgencyId: number;
-  dateCreated: string;
-  dateModified: string;
+  dateCreated: IsoDateTimeString;
+  dateModified: IsoDateTimeString;
+  solveDate?: IsoDateTimeString;
+  closeDate?: IsoDateTimeString;
   requester?: string;
   technician?: string;
   groupName?: string;
+  entityName?: string;
   entity_name?: string;
   slaTime?: string;
 }
 
 export interface TicketDetail extends TicketSummary {
   location?: string;
-  entityName?: string;
   priority: number;
   type: number; // 1=Incident, 2=Request
-  closeDate?: string;
-  solveDate?: string;
 }
 
 export interface FollowUp {
   id: number;
   content: string;
-  dateCreated: string;
+  dateCreated: IsoDateTimeString;
   userName: string;
   isPrivate: boolean;
   isTech: boolean;

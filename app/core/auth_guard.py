@@ -76,6 +76,7 @@ async def verify_session(
     token = (
         x_session_token
         or session_token
+        or request.cookies.get("sessionToken")
         or request.cookies.get("hub-session-token")
     )
 
@@ -93,8 +94,10 @@ async def verify_session(
 
     # 2. Validar contra GLPI real
     context = _extract_context(request)
+    client: Optional[GLPIClient] = None
     try:
-        instance = settings.get_glpi_instance(context)
+        base_context = context.split("-")[0]
+        instance = settings.get_glpi_instance(base_context)
         client = GLPIClient.from_session_token(instance, token)
         session_data = await client.get_full_session()
 
@@ -111,9 +114,21 @@ async def verify_session(
             detail="Token de sessão inválido ou expirado. Faça login novamente."
         )
     except (httpx.ConnectError, httpx.TimeoutException, asyncio.TimeoutError) as e:
-        # GLPI indisponível (Erro de Rede/Timeout) — degradação graciosa
-        _log.warning("GLPI indisponível para validação devide a %s (degradação graciosa): %s", type(e).__name__, str(e))
-        return {"session_token": token, "validated": True, "source": "fallback"}
+        # GLPI indisponível (Erro de Rede/Timeout) — degradação graciosa sob opt-in explícito
+        _log.warning("GLPI indisponível para validação devido a %s: %s", type(e).__name__, str(e))
+        if settings.auth_fail_open_on_glpi_unavailable:
+            _log.warning(
+                "AUTH_FAIL_OPEN_ON_GLPI_UNAVAILABLE=true: aceitando sessão por presença de token. "
+                "Este modo reduz a segurança da aplicação."
+            )
+            return {"session_token": token, "validated": True, "source": "fallback"}
+        raise HTTPException(
+            status_code=503,
+            detail="Serviço de autenticação GLPI indisponível. Tente novamente em instantes.",
+        )
+    finally:
+        if client is not None:
+            await client._http.aclose()
 
 
 async def verify_session_optional(
@@ -128,6 +143,7 @@ async def verify_session_optional(
     token = (
         x_session_token
         or session_token
+        or request.cookies.get("sessionToken")
         or request.cookies.get("hub-session-token")
     )
 

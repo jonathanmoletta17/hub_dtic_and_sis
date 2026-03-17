@@ -1,20 +1,19 @@
 import React from "react";
+
+import { formatIsoDateTime } from "@/lib/datetime/iso";
+import type { TicketTimelineEntry } from "@/lib/api/models/ticket-detail";
 import { TimelineItem } from "./TimelineItem";
-import type { TimelineEntry } from "./useTicketDetail";
 
 // Tipos do próprio ticket para a mensagem original (topo)
 import type { TicketDetail } from "@/lib/api/types";
 
-function getInitials(name: any): string {
+function getInitials(name?: string | null): string {
   if (!name) return "?";
   return String(name).split(/[\s.]+/).map((n: string) => n[0]).filter(Boolean).join("").toUpperCase().slice(0, 2);
 }
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return "—";
-  try {
-    return new Date(dateStr).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch { return dateStr; }
+  return formatIsoDateTime(dateStr) || "—";
 }
 
 export function TicketTimeline({
@@ -27,7 +26,7 @@ export function TicketTimeline({
   isTechOrManager,
 }: {
   ticket: TicketDetail;
-  timeline: TimelineEntry[];
+  timeline: TicketTimelineEntry[];
   requesterName: string;
   currentUserId: number;
   technicianUserId: number | null;
@@ -90,7 +89,6 @@ export function TicketTimeline({
             <TimelineItem
               key={`${entry.type}-${entry.id}`}
               entry={entry}
-              requesterName={requesterName}
               currentUserId={currentUserId}
               technicianUserId={technicianUserId}
             />

@@ -1,6 +1,8 @@
-from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+from app.core.datetime_contract import AwareDateTime, now_in_app_timezone
 
 # Regex para validação rigorosa de formato HH:MM (00:00 - 23:59)
 HH_MM_REGEX = r"^([01]\d|2[0-3]):[0-5]\d$"
@@ -13,22 +15,21 @@ class ScheduleBase(BaseModel):
 class ScheduleUpdate(ScheduleBase):
     pass
 
+class ChargerScheduleReadResponse(ScheduleBase):
+    model_config = ConfigDict(from_attributes=True)
+
 class ScheduleResponse(ScheduleBase):
     charger_id: int
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    updated_at: AwareDateTime
+    model_config = ConfigDict(from_attributes=True)
 
 class GlobalScheduleUpdate(ScheduleBase):
     pass
 
 class GlobalScheduleResponse(ScheduleBase):
     id: int
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    updated_at: AwareDateTime
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Status Offline ---
 
@@ -40,13 +41,14 @@ class OfflineBase(BaseModel):
 class OfflineUpdate(OfflineBase):
     pass
 
+class ChargerOfflineReadResponse(OfflineBase):
+    model_config = ConfigDict(from_attributes=True)
+
 class OfflineResponse(OfflineBase):
     charger_id: int
-    offline_since: Optional[datetime] = None
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    offline_since: Optional[AwareDateTime] = None
+    updated_at: AwareDateTime
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Kanban ---
 
@@ -55,7 +57,7 @@ class KanbanDemand(BaseModel):
     name: str                           # Nome do ticket
     status: int
     priority: int
-    date_creation: datetime
+    date_creation: AwareDateTime
     location: Optional[str] = None
     category: Optional[str] = None
     requester_name: Optional[str] = None
@@ -64,7 +66,7 @@ class KanbanDemand(BaseModel):
 class KanbanLastTicket(BaseModel):
     id: int
     title: str
-    solvedate: Optional[str] = None
+    solvedate: Optional[AwareDateTime] = None
     location: Optional[str] = None
 
 class KanbanAvailableResource(BaseModel):
@@ -81,14 +83,14 @@ class KanbanAvailableResource(BaseModel):
 class ChargerInTicket(BaseModel):
     id: int
     name: str
-    assigned_date: Optional[str] = None
+    assigned_date: Optional[AwareDateTime] = None
     service_time_minutes: int = 0
     schedule: Optional[ScheduleBase] = None
 
 class KanbanAllocatedResource(BaseModel):
     ticket_id: int
     title: str
-    date: Optional[str] = None          # Data de abertura do ticket
+    date: Optional[AwareDateTime] = None          # Data de abertura do ticket
     status: int = 1                     # Status GLPI (1-4 para ativos)
     category: Optional[str] = None
     location: Optional[str] = None
@@ -101,7 +103,7 @@ class KanbanResponse(BaseModel):
     demands: List[KanbanDemand]
     availableResources: List[KanbanAvailableResource]
     allocatedResources: List[KanbanAllocatedResource]
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: AwareDateTime = Field(default_factory=now_in_app_timezone)
 # --- Ranking ---
 
 class RankingItem(BaseModel):
@@ -110,12 +112,12 @@ class RankingItem(BaseModel):
     completed_tickets: int
     average_wait_time: str
     total_service_minutes: int = 0
-    last_activity: Optional[datetime] = None
+    last_activity: Optional[AwareDateTime] = None
 
 class RankingResponse(BaseModel):
     context: str
     ranking: List[RankingItem]
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: AwareDateTime = Field(default_factory=now_in_app_timezone)
 
 # --- CRUD de Carregadores ---
 class ChargerCreate(BaseModel):
@@ -141,7 +143,7 @@ class BatchActionUpdate(BaseModel):
 class LastTicketBrief(BaseModel):
     id: int = 0
     title: str = ""
-    solvedate: Optional[str] = None
+    solvedate: Optional[AwareDateTime] = None
     location: Optional[str] = None
 
 class AvailableChargerBrief(BaseModel):
@@ -154,7 +156,7 @@ class TicketDetailResponse(BaseModel):
     id: int
     name: str
     content: Optional[str] = None       # Descrição HTML do ticket
-    date: Optional[str] = None          # Data de abertura
+    date: Optional[AwareDateTime] = None          # Data de abertura
     status: int = 1
     priority: int = 3
     location: Optional[str] = None

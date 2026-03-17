@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.services.search_service import search_tickets
 from app.core.auth_guard import verify_session
+from app.schemas.search import SearchResponse
 
 # NOTA: Auth guard não aplicado aqui — frontend faz requests sem session token
 router = APIRouter(prefix="/api/v1/{context}", tags=["Search"], dependencies=[Depends(verify_session)])
@@ -28,7 +29,7 @@ def _validate_context(context: str) -> str:
     return ctx
 
 
-@router.get("/tickets/search")
+@router.get("/tickets/search", response_model=SearchResponse)
 async def search(
     context: str,
     q: str = Query(..., min_length=1, description="Texto de busca (ID, título, conteúdo)"),

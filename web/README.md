@@ -20,6 +20,37 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Smoke Test
+
+The canonical end-to-end smoke test runs against the local edge proxy on `http://hub.local:8080`.
+
+```bash
+npm run smoke:hub:install
+SMOKE_USERNAME=seu.usuario SMOKE_PASSWORD='sua-senha' npm run smoke:hub
+```
+
+For this repository mounted from WSL on Windows, use the wrapper below from PowerShell so the browser runner executes from a local Windows temp directory instead of a UNC path:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ..\scripts\run_hub_smoke_windows.ps1 `
+  -Username seu.usuario `
+  -Password 'sua-senha'
+```
+
+Optional variables:
+
+- `SMOKE_BASE_URL` to override the target host when needed
+
+The suite validates:
+
+- login through the real UI
+- `/selector` reload without losing cross-context access
+- navigation to `dtic/dashboard`, `dtic/search`, `dtic/knowledge`, `sis/dashboard` and `sis/gestao-carregadores`
+- same-origin API calls under `/api/v1/*`
+- abertura de chamado real via FormCreator em `sis/new-ticket`
+- workflow real de ticket via UI dedicada (`assume`, `followup`, `pending`, `resume`)
+- carregamento real dos lookups normalizados de técnicos e localizações
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -88,6 +88,27 @@ class Settings(BaseSettings):
     # App
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     app_port: int = Field(default=8080, alias="APP_PORT")
+    app_timezone: str = Field(default="America/Sao_Paulo", alias="APP_TIMEZONE")
+    allow_insecure_service_fallback_login: bool = Field(
+        default=False,
+        alias="ALLOW_INSECURE_SERVICE_FALLBACK_LOGIN",
+    )
+    auth_fail_open_on_glpi_unavailable: bool = Field(
+        default=False,
+        alias="AUTH_FAIL_OPEN_ON_GLPI_UNAVAILABLE",
+    )
+    cors_origins_raw: str = Field(
+        default="http://localhost:3000,http://hub.local:8080,http://hub.local:3000,http://api.hub.local:8080,http://carregadores.local:8080,http://carregadores.local:3000,http://api.carregadores.local:8080",
+        alias="CORS_ORIGINS",
+    )
+    local_state_db_path: Path = Field(
+        default=BASE_DIR / "data" / "local_state.db",
+        alias="LOCAL_STATE_DB_PATH",
+    )
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins_raw.split(",") if origin.strip()]
 
     def get_glpi_instance(self, context: str) -> GLPIInstance:
         """Retorna a instância GLPI para o contexto (dtic ou sis)."""

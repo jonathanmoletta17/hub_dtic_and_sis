@@ -6,62 +6,32 @@
  * Escrita: CRUD de artigos (requer Session-Token do técnico)
  */
 
-import { request } from './httpClient';
+import { apiDelete, apiGet, apiPost, apiPut, buildApiPath, sessionHeaders } from './client';
+import type { KBArticleResponseDto, KBCategoryDto, KBListResponseDto } from './contracts/knowledge';
+import {
+  mapKBArticleResponseDto,
+  mapKBCategoryDto,
+  mapKBListResponseDto,
+} from './mappers/knowledge';
+import type {
+  KBArticleDetail,
+  KBArticlePayload,
+  KBCategory,
+  KBListResult,
+} from './models/knowledge';
 
-// ─── Types ───
-
-export interface KBCategory {
-  id: number;
-  name: string;
-  completename: string;
-  level: number;
-  article_count: number;
-}
-
-export interface KBArticleSummary {
-  id: number;
-  name: string;
-  category: string | null;
-  category_id: number | null;
-  author: string | null;
-  date_creation: string | null;
-  date_mod: string | null;
-  is_faq: boolean;
-  view_count: number;
-}
-
-export interface KBArticleDetail extends KBArticleSummary {
-  answer: string;
-}
-
-export interface KBArticlePayload {
-  name: string;
-  answer: string;
-  knowbaseitemcategories_id?: number | null;
-  is_faq?: number;
-}
-
-// ─── Helpers ───
-
-function authHeaders(sessionToken: string): Record<string, string> {
-  return {
-    "Content-Type": "application/json",
-    "Session-Token": sessionToken,
-  };
-}
+export type { KBArticleDetail, KBArticlePayload, KBArticleSummary, KBCategory, KBListResult } from "./models/knowledge";
 
 // ─── Leitura (pública) ───
 
 export async function fetchKBCategories(params?: {
   is_faq?: boolean;
 }): Promise<KBCategory[]> {
-  const qs = new URLSearchParams();
-  if (params?.is_faq !== undefined) qs.set("is_faq", String(params.is_faq));
-  const query = qs.toString();
-  const data = await request<{ categories: KBCategory[] }>(
-    `/api/v1/dtic/knowledge/categories${query ? `?${query}` : ""}`
+  const data = await apiGet<{ categories: KBCategoryDto[] }>(
+    buildApiPath("dtic", "knowledge/categories"),
+    params?.is_faq !== undefined ? { is_faq: params.is_faq } : undefined,
   );
-  return data.categories;
+  return data.categories.map(mapKBCategoryDto);
 }
 
 export async function fetchKBArticles(params?: {
@@ -69,24 +39,22 @@ export async function fetchKBArticles(params?: {
   category_id?: number;
   is_faq?: boolean;
   limit?: number;
-}): Promise<{ total: number; articles: KBArticleSummary[] }> {
-  const qs = new URLSearchParams();
-  if (params?.q) qs.set("q", params.q);
-  if (params?.category_id) qs.set("category_id", String(params.category_id));
-  if (params?.is_faq !== undefined) qs.set("is_faq", String(params.is_faq));
-  if (params?.limit) qs.set("limit", String(params.limit));
-
-  const query = qs.toString();
-  return request<{ total: number; articles: KBArticleSummary[] }>(
-    `/api/v1/dtic/knowledge/articles${query ? `?${query}` : ""}`
+}): Promise<KBListResult> {
+  const data = await apiGet<KBListResponseDto>(
+    buildApiPath("dtic", "knowledge/articles"),
+    {
+      q: params?.q,
+      category_id: params?.category_id,
+      is_faq: params?.is_faq,
+      limit: params?.limit,
+    },
   );
+  return mapKBListResponseDto(data);
 }
 
 export async function fetchKBArticle(id: number): Promise<KBArticleDetail> {
-  const data = await request<{ article: KBArticleDetail }>(
-    `/api/v1/dtic/knowledge/articles/${id}`
-  );
-  return data.article;
+  const data = await apiGet<KBArticleResponseDto>(buildApiPath("dtic", `knowledge/articles/${id}`));
+  return mapKBArticleResponseDto(data);
 }
 
 // ─── Escrita (requer Session-Token) ───
@@ -95,10 +63,8 @@ export async function createKBArticle(
   sessionToken: string,
   payload: KBArticlePayload
 ): Promise<{ success: boolean; data: unknown; message: string }> {
-  return request("/api/v1/dtic/knowledge/articles", {
-    method: "POST",
-    headers: authHeaders(sessionToken),
-    body: JSON.stringify(payload),
+  return apiPost(buildApiPath("dtic", "knowledge/articles"), payload, {
+    headers: sessionHeaders(sessionToken),
   });
 }
 
@@ -107,10 +73,8 @@ export async function updateKBArticle(
   id: number,
   payload: Partial<KBArticlePayload>
 ): Promise<{ success: boolean; data: unknown; message: string }> {
-  return request(`/api/v1/dtic/knowledge/articles/${id}`, {
-    method: "PUT",
-    headers: authHeaders(sessionToken),
-    body: JSON.stringify(payload),
+  return apiPut(buildApiPath("dtic", `knowledge/articles/${id}`), payload, {
+    headers: sessionHeaders(sessionToken),
   });
 }
 
@@ -118,8 +82,7 @@ export async function deleteKBArticle(
   sessionToken: string,
   id: number
 ): Promise<{ success: boolean; data: unknown; message: string }> {
-  return request(`/api/v1/dtic/knowledge/articles/${id}`, {
-    method: "DELETE",
-    headers: authHeaders(sessionToken),
+  return apiDelete(buildApiPath("dtic", `knowledge/articles/${id}`), {
+    headers: sessionHeaders(sessionToken),
   });
 }

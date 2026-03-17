@@ -7,7 +7,7 @@ Zero presunção de fluxo de negócio.
 import re
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from app.core.session_manager import session_manager

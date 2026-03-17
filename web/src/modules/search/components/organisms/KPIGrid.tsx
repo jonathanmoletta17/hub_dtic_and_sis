@@ -3,8 +3,7 @@ import {
   Inbox, 
   PlayCircle, 
   PauseCircle, 
-  CheckCircle2, 
-  Layers
+  CheckCircle2
 } from 'lucide-react';
 import { KPICard } from '../molecules/KPICard';
 import type { TicketStats } from '@/lib/api/types';
@@ -22,7 +21,15 @@ export const KPIGrid: React.FC<KPIGridProps> = ({
   onStatusChange,
   isLoading
 }) => {
-  const items = [
+  type KPICardVariant = React.ComponentProps<typeof KPICard>['variant'];
+
+  const items: Array<{
+    id: number;
+    label: string;
+    count: number;
+    icon: React.ComponentProps<typeof KPICard>['icon'];
+    variant: KPICardVariant;
+  }> = [
     { id: 1, label: 'Novos', count: stats?.new || 0, icon: Inbox, variant: 'success' },
     { id: 2, label: 'Em Atendimento', count: stats?.inProgress || 0, icon: PlayCircle, variant: 'info' },
     { id: 4, label: 'Pendentes', count: stats?.pending || 0, icon: PauseCircle, variant: 'warning' },
@@ -47,7 +54,7 @@ export const KPIGrid: React.FC<KPIGridProps> = ({
           label={item.label}
           count={item.count}
           icon={item.icon}
-          variant={item.variant as any}
+          variant={item.variant}
           selected={selectedStatusId === item.id}
           onClick={() => onStatusChange(selectedStatusId === item.id ? null : item.id)}
         />

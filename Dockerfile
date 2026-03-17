@@ -1,12 +1,19 @@
 FROM python:3.12-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-COPY pyproject.toml .
-RUN pip install --no-cache-dir .
+RUN useradd --create-home --uid 10001 appuser
 
+COPY pyproject.toml .
 COPY app/ ./app/
-COPY .env .
+COPY data/ ./data/
+RUN pip install --no-cache-dir . \
+    && chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8080
 

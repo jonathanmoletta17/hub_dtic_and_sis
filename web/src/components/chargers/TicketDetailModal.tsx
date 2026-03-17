@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { TicketDetailResponse } from "../../types/charger";
 import { getTicketDetail, assignMultipleChargersToTicket, unassignChargerFromTicket } from "../../lib/api/chargerService";
+import { formatElapsedSince, formatIsoDateTime } from "../../lib/datetime/iso";
 import { formatCategoryName } from "../../lib/utils/formatters";
 
 interface TicketDetailModalProps {
@@ -42,6 +43,9 @@ const stripHtml = (html: string): string => {
     .trim();
 };
 
+const formatIdleTime = (value: string | null | undefined): string =>
+  formatElapsedSince(value) ?? "Pronto para operacao";
+
 const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   ticketId,
   context,
@@ -57,7 +61,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     setLoading(true);
     try {
       const res = await getTicketDetail(context, ticketId);
-      setData(res as TicketDetailResponse);
+      setData(res);
     } catch (error) {
       console.error("Error fetching ticket detail:", error);
     } finally {
@@ -76,7 +80,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         onMutate();
         fetchDetail();
       }, 500);
-    } catch (_err) {
+    } catch {
       alert("Erro ao desvincular carregador.");
     }
   };
@@ -98,8 +102,9 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         alert("Falha ao atribuir carregadores. Verifique os logs do sistema.");
         setAssigning(false);
       }
-    } catch (err: any) {
-      alert(`Erro: ${err?.message || "Erro ao atribuir carregadores."}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao atribuir carregadores.";
+      alert(`Erro: ${message}`);
       setAssigning(false);
     }
   };
@@ -213,7 +218,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                       <div>
                         <span className="text-[10px] uppercase text-slate-600 font-bold block">Abertura</span>
                         <span className="text-sm text-slate-200">
-                          {new Date(data.date).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                          {formatIsoDateTime(data.date)}
                         </span>
                       </div>
                     </div>
@@ -256,11 +261,8 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                             <span className="text-sm text-slate-200 font-medium">{ch.name}</span>
                             <span className="text-[10px] text-emerald-500 font-bold block mt-0.5">
                               {ch.lastTicket?.solvedate
-                                ? `Ocioso há: ${(() => {
-                                    const mins = Math.floor((Date.now() - new Date(ch.lastTicket.solvedate).getTime()) / 60000);
-                                    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-                                  })()}`
-                                : 'Pronto para operação'}
+                                ? `Ocioso ha: ${formatIdleTime(ch.lastTicket.solvedate)}`
+                                : 'Pronto para operacao'}
                             </span>
                           </div>
                         </label>

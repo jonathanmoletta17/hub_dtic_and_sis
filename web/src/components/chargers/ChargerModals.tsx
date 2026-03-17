@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Save, AlertCircle, Clock, Zap } from "lucide-react";
+import { X, Save, Clock, Zap } from "lucide-react";
 import type { OperationSettings, ChargerOfflineStatus } from "../../types/charger";
 
 interface ModalProps {

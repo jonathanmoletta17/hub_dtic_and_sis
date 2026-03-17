@@ -1,14 +1,17 @@
 """
-Schemas: Search Response
-Modelos Pydantic para o endpoint de busca de tickets.
+Schemas: Search and Ticket Read Responses
+Modelos Pydantic para endpoints de listagem/busca de tickets.
 """
 
-from pydantic import BaseModel, Field
 from typing import Optional
 
+from pydantic import BaseModel, Field
 
-class TicketSearchItem(BaseModel):
-    """Ticket individual retornado pela busca."""
+from app.core.datetime_contract import AwareDateTime
+
+
+class _TicketReadItemBase(BaseModel):
+    """Campos compartilhados entre listagem e busca de tickets."""
 
     id: int
     title: str
@@ -18,18 +21,37 @@ class TicketSearchItem(BaseModel):
     urgency_id: int = Field(alias="urgencyId")
     urgency: str
     priority: int
-    date_created: str = Field(alias="dateCreated")
-    date_modified: Optional[str] = Field(None, alias="dateModified")
-    solve_date: Optional[str] = Field(None, alias="solveDate")
-    close_date: Optional[str] = Field(None, alias="closeDate")
-    entity: Optional[str] = None
+    date_created: AwareDateTime = Field(alias="dateCreated")
+    date_modified: AwareDateTime = Field(alias="dateModified")
+    solve_date: Optional[AwareDateTime] = Field(None, alias="solveDate")
+    close_date: Optional[AwareDateTime] = Field(None, alias="closeDate")
     category: str = "Sem categoria"
     requester: str = "N/A"
     technician: str = "N/A"
-    group: Optional[str] = None
-    relevance: float = 0.0
 
     model_config = {"populate_by_name": True}
+
+
+class TicketListItem(_TicketReadItemBase):
+    """Ticket individual retornado por /db/tickets."""
+
+
+class TicketListResponse(BaseModel):
+    """Resposta padronizada do endpoint /db/tickets."""
+
+    total: int
+    limit: int
+    offset: int
+    context: str
+    data: list[TicketListItem]
+
+
+class TicketSearchItem(_TicketReadItemBase):
+    """Ticket individual retornado pela busca."""
+
+    entity: Optional[str] = None
+    group: Optional[str] = None
+    relevance: float = 0.0
 
 
 class SearchResponse(BaseModel):

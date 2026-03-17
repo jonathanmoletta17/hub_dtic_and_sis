@@ -59,10 +59,17 @@ async def resolve_app_access(client, user_id: int) -> List[str]:
         _log.warning(f"Erro ao extrair app_access para user {user_id}: {e}")
         return []
 
-async def fetch_session_identity(context: str) -> dict:
+async def fetch_session_identity(context: str, session_token: Optional[str] = None) -> dict:
     """Helper que puxa os dados mastigados de sessão (Cacheável via roteador)."""
+    ephemeral_client: Optional[GLPIClient] = None
     try:
-        client = await session_manager.get_client(context)
+        if session_token:
+            base_context = registry.get_base_context(context)
+            instance = settings.get_glpi_instance(base_context)
+            ephemeral_client = GLPIClient.from_session_token(instance, session_token)
+            client = ephemeral_client
+        else:
+            client = await session_manager.get_client(context)
         session_data = await client.get_full_session()
         
         session_info = session_data.get("session", {})
@@ -74,8 +81,13 @@ async def fetch_session_identity(context: str) -> dict:
             "session": session_info,
             "app_access": app_access
         }
+    except GLPIClientError as e:
+        raise HTTPException(status_code=e.status_code or 502, detail=f"Erro na API Auth GLPI: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Erro na API Auth GLPI: {str(e)}")
+    finally:
+        if ephemeral_client:
+            await ephemeral_client._http.aclose()
 
 
 def resolve_hub_roles(
@@ -317,17 +329,28 @@ async def perform_login(context: str, body) -> LoginResponse:
     except GLPIClientError as e:
         if e.status_code and e.status_code in [401, 403]:
             _log.warning(
-                "Basic Auth rejeitado pelo GLPI para '%s' (HTTP %s). Tentando fallback via user_token...",
+                "Basic Auth rejeitado pelo GLPI para '%s' (HTTP %s).",
                 body.username, e.status_code
             )
-            # ── Tentativa 2: Fallback via user_token de serviço ──
-            try:
-                return await fallback_login(context, body.username)
-            except HTTPException:
-                raise
-            except Exception as fb_err:
-                _log.error("Fallback de login falhou: %s", fb_err)
-                raise HTTPException(status_code=401, detail="Credenciais inválidas ou acesso negado pelo GLPI.")
+            if settings.allow_insecure_service_fallback_login:
+                _log.warning(
+                    "Fallback via user_token de serviço está habilitado por configuração explícita. "
+                    "Este modo reduz a segurança do login."
+                )
+                # ── Tentativa 2: Fallback via user_token de serviço ──
+                try:
+                    return await fallback_login(context, body.username)
+                except HTTPException:
+                    raise
+                except Exception as fb_err:
+                    _log.error("Fallback de login falhou: %s", fb_err)
+                    raise HTTPException(status_code=401, detail="Credenciais inválidas ou acesso negado pelo GLPI.")
+            _log.warning(
+                "Fallback via user_token bloqueado por padrão para '%s'. "
+                "Defina ALLOW_INSECURE_SERVICE_FALLBACK_LOGIN=true apenas se aceitar o risco.",
+                body.username,
+            )
+            raise HTTPException(status_code=401, detail="Credenciais inválidas ou acesso negado pelo GLPI.")
         raise HTTPException(status_code=502, detail=f"Erro na API GLPI: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno de autenticação: {str(e)}")

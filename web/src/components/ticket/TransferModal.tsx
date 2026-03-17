@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, UserPlus } from "lucide-react";
-import { getTechnicians } from "@/lib/api/glpiService";
+import { fetchTechnicianOptions } from "@/lib/api/lookupService";
 
 export function TransferModal({
   context,
@@ -21,30 +21,35 @@ export function TransferModal({
   const [selectedTech, setSelectedTech] = useState<number | "">("");
   const [loadingTechs, setLoadingTechs] = useState(false);
 
+  const loadTechnicians = useCallback(async () => {
+    setLoadingTechs(true);
+    try {
+      setTechnicians(await fetchTechnicianOptions(context));
+    } catch (err) {
+      console.error("Erro ao puxar tecnicos para transf", err);
+    } finally {
+      setLoadingTechs(false);
+    }
+  }, [context]);
+
+  const handleClose = () => {
+    setSelectedTech("");
+    onClose();
+  };
+
   useEffect(() => {
     if (show && technicians.length === 0) {
-      setLoadingTechs(true);
-      getTechnicians(context)
-        .then((res) => {
-          if (res && res.technicians) {
-            setTechnicians(res.technicians);
-          }
-        })
-        .catch((err) => console.error("Erro ao puxar tecnicos para transf", err))
-        .finally(() => setLoadingTechs(false));
+      void loadTechnicians();
     }
-    if (!show) {
-      setSelectedTech("");
-    }
-  }, [show, context, technicians.length]);
+  }, [show, technicians.length, loadTechnicians]);
 
   if (!show) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        onClick={handleClose}
+      >
       <div
         className="bg-surface-1 border border-white/[0.08] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -60,7 +65,7 @@ export function TransferModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={actionLoading === "transfer"}
             className="p-2 text-text-3/40 hover:text-text-2 hover:bg-white/[0.04] rounded-lg transition-colors disabled:opacity-30"
           >
@@ -95,7 +100,7 @@ export function TransferModal({
 
         <div className="px-6 py-4 border-t border-white/[0.06] bg-surface-2/30 flex justify-end gap-3">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={actionLoading === "transfer"}
             className="px-5 py-2.5 rounded-xl text-[13px] font-medium text-text-3/80 hover:text-text-2 hover:bg-white/[0.04] transition-colors disabled:opacity-30"
           >

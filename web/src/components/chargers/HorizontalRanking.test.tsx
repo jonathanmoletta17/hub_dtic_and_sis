@@ -2,14 +2,15 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HorizontalRanking from './HorizontalRanking';
 import { describe, it, expect } from 'vitest';
+import type { Charger, OperationSettings } from '@/types/charger';
 
 describe('HorizontalRanking Component', () => {
-  const mockChargers = [
+  const mockChargers: Charger[] = [
     { id: 1, name: 'Charger A', is_deleted: false, totalTicketsInPeriod: 10, totalServiceMinutes: 120 },
     { id: 2, name: 'Charger B', is_deleted: false, totalTicketsInPeriod: 5, totalServiceMinutes: 60 },
   ];
 
-  const mockSettings = {
+  const mockSettings: OperationSettings = {
     businessStart: '08:00',
     businessEnd: '18:00',
     workOnWeekends: false,
@@ -17,14 +18,14 @@ describe('HorizontalRanking Component', () => {
 
   it('renders the component without crashing', () => {
     const { getByText } = render(
-      <HorizontalRanking chargers={mockChargers as any} settings={mockSettings} />
+      <HorizontalRanking chargers={mockChargers} settings={mockSettings} />
     );
     expect(getByText('Ranking de Carregadores')).toBeInTheDocument();
   });
 
   it('handles onWheel event without throwing passive event listener error', () => {
     const { container } = render(
-      <HorizontalRanking chargers={mockChargers as any} settings={mockSettings} />
+      <HorizontalRanking chargers={mockChargers} settings={mockSettings} />
     );
 
     // Encontra o container do scroll (div flex gap-4)

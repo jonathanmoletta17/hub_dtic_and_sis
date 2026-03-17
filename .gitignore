@@ -56,7 +56,9 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+output/
+*.Zone.Identifier
+data/*.db
 
 # Sensitive files (auto-detected)
 .env
-

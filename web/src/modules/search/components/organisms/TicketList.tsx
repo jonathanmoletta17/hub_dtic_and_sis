@@ -1,6 +1,6 @@
 import React from 'react';
 import { TicketSearchResultCard } from '../molecules/TicketSearchResultCard';
-import { LayoutGrid, ListFilter, SortAsc, SortDesc } from 'lucide-react';
+import { LayoutGrid, ListFilter, SortDesc } from 'lucide-react';
 import type { TicketSummary } from '@/lib/api/types';
 
 interface TicketListProps {

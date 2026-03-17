@@ -6,7 +6,7 @@ import { useTicketsSearch } from '../hooks/useTicketsSearch';
 import { SearchInput } from './atoms/SearchInput';
 import { KPIGrid } from './organisms/KPIGrid';
 import { TicketList } from './organisms/TicketList';
-import { AuroraMesh } from '@/components/ui/aurora-mesh';
+import Image from "next/image";
 
 interface SearchPageProps {
   context: string;
@@ -23,7 +23,6 @@ export function SearchPage({ context, department }: SearchPageProps) {
     totalCount,
     stats,
     filters,
-    pagination,
   } = useTicketsSearch({
     context,
     department,
@@ -31,7 +30,6 @@ export function SearchPage({ context, department }: SearchPageProps) {
   });
 
   const themeClass = department === 'conservacao' ? 'theme-memoria' : (department === 'manutencao' || context === 'sis' ? 'theme-manutencao' : 'theme-dtic');
-  const accentBorder = themeClass === 'theme-memoria' ? 'border-accent-violet/40 border-t-accent-violet' : (themeClass === 'theme-manutencao' ? 'border-accent-orange/40 border-t-accent-orange' : 'border-accent-blue/40 border-t-accent-blue');
 
   return (
     <div className={`h-screen overflow-y-auto custom-scrollbar relative flex flex-col ${themeClass}`}>
@@ -43,11 +41,12 @@ export function SearchPage({ context, department }: SearchPageProps) {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <div className="flex justify-center mb-8">
-             <div className="w-24 h-24 mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] glow-premium">
-                <img 
+             <div className="w-24 h-24 relative mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] glow-premium">
+              <Image 
                   src="/assets/branding/brasao_rs.svg" 
                   alt="Brasão Oficial RS" 
-                  className="w-full h-full object-contain"
+                  fill
+                  className="object-contain"
                 />
              </div>
           </div>

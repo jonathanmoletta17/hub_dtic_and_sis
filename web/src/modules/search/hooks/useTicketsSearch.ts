@@ -1,7 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { fetchStats, fetchTickets, searchTicketsDirect } from '@/lib/api/ticketService';
+import { compareIsoDateDesc } from '@/lib/datetime/iso';
 import type { TicketSummary, TicketStats } from '@/lib/api/types';
-import { calculateRelevanceScore, normalizeText } from '../utils/searchUtils';
+import { calculateRelevanceScore } from '../utils/searchUtils';
+
+const SEARCH_SCOPE_STATUSES = [1, 2, 3, 4, 5] as const;
+const DB_LIST_LIMIT = 500;
+const DB_SEARCH_LIMIT = 200;
+
+function resolveStatusFilter(statusId: number | null): number[] {
+  if (!statusId) return [...SEARCH_SCOPE_STATUSES];
+  if (statusId === 2) return [2, 3]; // "Em Atendimento" = atribuído + planejado
+  return [statusId];
+}
 
 export interface UseTicketsSearchProps {
   context: string;
@@ -39,14 +50,22 @@ export function useTicketsSearch({
     return () => clearTimeout(timer);
   }, [searchInput, debounceMs]);
 
-  // Carregamento inicial de Stats e Tickets (Lista base)
+  // Carregamento de base (Stats + Tickets) no mesmo universo dos cards
   useEffect(() => {
+    if (debouncedSearchTerm.length >= 2) return;
+
+    const statusFilter = resolveStatusFilter(selectedStatusId);
+
     async function loadBaseData() {
       setLoading(true);
       try {
         const [statsData, ticketsData] = await Promise.all([
           fetchStats(context, null, department),
-          fetchTickets(context, { department, limit: 100 })
+          fetchTickets(context, {
+            department,
+            status: statusFilter,
+            limit: DB_LIST_LIMIT,
+          })
         ]);
         setStats(statsData);
         setTickets(ticketsData.tickets);
@@ -57,46 +76,41 @@ export function useTicketsSearch({
         setLoading(false);
       }
     }
-    loadBaseData();
-  }, [context, department]);
+    void loadBaseData();
+  }, [context, department, selectedStatusId, debouncedSearchTerm]);
 
-  // Busca remota quando o termo de busca muda (Direto no Banco)
+  // Busca remota quando o termo muda (direto no banco) com o mesmo filtro de status ativo
   useEffect(() => {
+    const statusFilter = resolveStatusFilter(selectedStatusId);
+
     if (debouncedSearchTerm.length >= 2) {
       setSearching(true);
-      searchTicketsDirect(context, debouncedSearchTerm, { department })
+      searchTicketsDirect(context, debouncedSearchTerm, {
+        department,
+        status: statusFilter,
+        limit: DB_SEARCH_LIMIT,
+      })
         .then(data => {
           setTickets(data.tickets);
           setTotalCount(data.total);
         })
         .catch(err => console.error("Remote search failed:", err))
         .finally(() => setSearching(false));
-    } else if (debouncedSearchTerm.length === 0) {
-      // Volta para a lista base se limpar a busca
-      fetchTickets(context, { department, limit: 100 }).then(data => {
-        setTickets(data.tickets);
-        setTotalCount(data.total);
-      });
     }
-  }, [debouncedSearchTerm, context, department]);
+  }, [debouncedSearchTerm, context, department, selectedStatusId]);
 
   // Processamento local (Filtros e Ordenação)
   const processedTickets = useMemo(() => {
     let result = [...tickets];
 
-    // 1. Filtro de Status
-    if (selectedStatusId) {
-      result = result.filter(t => t.statusId === selectedStatusId);
-    }
-
-    // 2. Filtro de Categoria
+    // 1. Filtro de Categoria
     if (selectedCategory) {
       result = result.filter(t => t.category === selectedCategory);
     }
 
-    // 3. Ordenação
+    // 2. Ordenação
     if (sortBy === 'date') {
-      result.sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime());
+      result.sort((a, b) => compareIsoDateDesc(a.dateCreated, b.dateCreated));
     } else {
       // Relevância manual baseada no termo de busca (caso queira complementar o banco)
       result.sort((a, b) => {
@@ -119,7 +133,7 @@ export function useTicketsSearch({
     }
 
     return result;
-  }, [tickets, selectedStatusId, selectedCategory, sortBy, debouncedSearchTerm]);
+  }, [tickets, selectedCategory, sortBy, debouncedSearchTerm]);
 
   // Paginação
   const totalPages = Math.ceil(processedTickets.length / itemsPerPage);

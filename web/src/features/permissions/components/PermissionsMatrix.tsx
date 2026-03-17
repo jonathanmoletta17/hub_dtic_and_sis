@@ -4,9 +4,17 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
     Search, Shield, Users, AlertCircle, RefreshCw,
     Eye, ChevronRight, CheckCircle2, AlertTriangle,
-    XCircle, Loader2, User, Package, Settings, X, PlusCircle, MinusCircle
+    XCircle, Loader2, Package, Settings, X
 } from 'lucide-react';
-import { fetchUsersDiagnostics, assignModuleToUser, revokeModuleFromUser, AdminUser } from '@/lib/api/adminService';
+import {
+    fetchUsersDiagnostics,
+    assignModuleToUser,
+    revokeModuleFromUser,
+    fetchModuleCatalog,
+    AdminUser,
+    ModuleCatalogItem,
+} from '@/lib/api/adminService';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface MatrixProps {
     context: string;
@@ -32,24 +40,40 @@ const MODULE_LABELS: Record<string, string> = {
     'sis-dashboard': 'Dashboard SIS',
 };
 
-// ─── Module IDs database for Write actions ───
-const AVAILABLE_MODULES: Record<string, { id: number; tag: string; label: string }[]> = {
-  dtic: [
-    { id: 109, tag: 'busca', label: 'Smart Search' },
-    { id: 110, tag: 'permissoes', label: 'Gestão de Acessos' }
-  ],
-  sis: [
-    { id: 102, tag: 'busca', label: 'Smart Search' },
-    { id: 104, tag: 'carregadores', label: 'Carregadores' }
-  ]
-};
-
 // ─── Diagnostic logic ───
 
 interface DiagnosticAlert {
     type: 'warning' | 'error' | 'info';
     message: string;
     user?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
+}
+
+function normalizeContextRoot(context: string | null | undefined): string {
+    if (!context) return '';
+    if (context.startsWith('sis')) return 'sis';
+    if (context.startsWith('dtic')) return 'dtic';
+    return context;
+}
+
+function normalizeAccessValues(values: string[] | undefined): string[] {
+    if (!values || values.length === 0) return [];
+    return Array.from(new Set(values.map((value) => value.trim().toLowerCase()).filter(Boolean))).sort();
+}
+
+function sameAccessValues(left: string[] | undefined, right: string[] | undefined): boolean {
+    const normalizedLeft = normalizeAccessValues(left);
+    const normalizedRight = normalizeAccessValues(right);
+    if (normalizedLeft.length !== normalizedRight.length) return false;
+    return normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+interface ActionFeedback {
+    type: 'success' | 'error';
+    message: string;
 }
 
 function computeDiagnostics(users: AdminUser[], targetContext: string): DiagnosticAlert[] {
@@ -130,34 +154,24 @@ function UserAvatar({ user, className = '' }: { user: AdminUser, className?: str
 }
 
 // ─── Componentes de Lookup Expandido ───
+interface PendingModuleAction {
+    mod: ModuleCatalogItem;
+    hasAccess: boolean;
+}
 
-function ModuleChip({ mod, hasAccess, user, routingContext, targetContext, onRefresh }: { mod: typeof AVAILABLE_MODULES[string][0]; hasAccess: boolean; user: AdminUser; routingContext: string; targetContext: string; onRefresh: () => void; }) {
-    const [isProcessing, setIsProcessing] = useState(false);
+interface LocalSuggestion {
+    id: string;
+    kind: 'module' | 'profile';
+    label: string;
+    subtitle?: string;
+    queryValue: string;
+}
 
-    const handleToggle = async () => {
-        const action = hasAccess ? 'Remover' : 'Dar';
-        const confirmMsg = `${action} acesso ao módulo '${mod.label}' para ${user.realname || user.username}?`;
-        if (!window.confirm(confirmMsg)) return;
-
-        setIsProcessing(true);
-        try {
-            if (hasAccess) {
-                await revokeModuleFromUser(routingContext, user.id, mod.id, targetContext);
-            } else {
-                await assignModuleToUser(routingContext, user.id, mod.id, targetContext);
-            }
-            onRefresh();
-        } catch (err: any) {
-            alert(err.message || 'Erro ao modificar acesso.');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
+function ModuleChip({ mod, hasAccess, disabled, onToggle }: { mod: ModuleCatalogItem; hasAccess: boolean; disabled: boolean; onToggle: (mod: ModuleCatalogItem, hasAccess: boolean) => void; }) {
     return (
         <button
-            onClick={handleToggle}
-            disabled={isProcessing}
+            onClick={() => onToggle(mod, hasAccess)}
+            disabled={disabled}
             title={hasAccess ? 'Clique para revogar' : 'Clique para atribuir'}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all focus:outline-none ${
                 hasAccess
@@ -165,35 +179,169 @@ function ModuleChip({ mod, hasAccess, user, routingContext, targetContext, onRef
                     : 'bg-white/[0.04] text-text-3/60 border border-white/[0.06] hover:bg-white/[0.08] hover:text-text-2'
             } disabled:opacity-50`}
         >
-            {isProcessing ? <Loader2 size={13} className="animate-spin" /> : hasAccess ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+            {hasAccess ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
             {mod.label}
         </button>
     );
 }
 
-function UserCard({ user, routingContext, targetContext, onClose, onRefresh }: { user: AdminUser; routingContext: string; targetContext: string; onClose: () => void; onRefresh: () => void; }) {
+function AccessConfirmModal({
+    pendingAction,
+    userDisplayName,
+    loading,
+    onCancel,
+    onConfirm,
+}: {
+    pendingAction: PendingModuleAction | null;
+    userDisplayName: string;
+    loading: boolean;
+    onCancel: () => void;
+    onConfirm: () => void;
+}) {
+    if (!pendingAction) return null;
+
+    const actionLabel = pendingAction.hasAccess ? 'Revogar' : 'Conceder';
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-surface-2 border border-white/[0.08] rounded-2xl shadow-2xl">
+                <div className="px-5 py-4 border-b border-white/[0.06]">
+                    <h4 className="text-text-1 text-[15px] font-semibold">Confirmar alteração de acesso</h4>
+                    <p className="text-text-3/60 text-[12px] mt-1">
+                        {actionLabel} módulo <strong>{pendingAction.mod.label}</strong> para <strong>{userDisplayName}</strong>?
+                    </p>
+                </div>
+                <div className="flex justify-end gap-2 px-5 py-4">
+                    <button
+                        onClick={onCancel}
+                        disabled={loading}
+                        className="px-3.5 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-2 text-[12px] font-medium hover:bg-white/[0.08] transition-colors disabled:opacity-60"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={loading}
+                        className="px-3.5 py-2 rounded-lg bg-accent-blue/20 border border-accent-blue/40 text-accent-blue text-[12px] font-semibold hover:bg-accent-blue/30 transition-colors disabled:opacity-60 inline-flex items-center gap-1.5"
+                    >
+                        {loading ? <Loader2 size={13} className="animate-spin" /> : null}
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function UserCard({
+    user,
+    routingContext,
+    targetContext,
+    availableModules,
+    onClose,
+    onRefresh,
+}: {
+    user: AdminUser;
+    routingContext: string;
+    targetContext: string;
+    availableModules: ModuleCatalogItem[];
+    onClose: () => void;
+    onRefresh: () => Promise<void>;
+}) {
     const contextKey = targetContext.startsWith('sis') ? 'sis' : 'dtic';
-    const availableModules = AVAILABLE_MODULES[contextKey] || [];
     const displayName = user.realname ? `${user.firstname} ${user.realname}`.trim() : user.username;
     const highestRole = user.roles[user.roles.length - 1] || 'solicitante';
     const alerts = computeDiagnostics([user], targetContext);
-
+    const localSearchRef = useRef<HTMLDivElement>(null);
     const [fixingId, setFixingId] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pendingAction, setPendingAction] = useState<PendingModuleAction | null>(null);
+    const [feedback, setFeedback] = useState<ActionFeedback | null>(null);
+    const [moduleSearchQuery, setModuleSearchQuery] = useState('');
+    const [showLocalSuggestions, setShowLocalSuggestions] = useState(false);
+    const permissaoModule = useMemo(
+        () => availableModules.find((mod) => mod.tag === 'permissoes') || null,
+        [availableModules],
+    );
 
-    const handleQuickFix = async (alert: DiagnosticAlert) => {
-        const permMod = availableModules.find(m => m.tag === 'permissoes');
-        if (!permMod) return;
-        
-        setFixingId(permMod.id);
+    useClickOutside(localSearchRef, () => setShowLocalSuggestions(false));
+
+    const normalizedModuleSearch = moduleSearchQuery.trim().toLowerCase();
+    const filteredModules = useMemo(() => {
+        if (!normalizedModuleSearch) return availableModules;
+        return availableModules.filter((mod) => {
+            const searchable = `${mod.label} ${mod.tag} ${mod.group_name}`.toLowerCase();
+            return searchable.includes(normalizedModuleSearch);
+        });
+    }, [availableModules, normalizedModuleSearch]);
+
+    const localSuggestions = useMemo<LocalSuggestion[]>(() => {
+        if (normalizedModuleSearch.length < 2) return [];
+
+        const moduleMatches = availableModules
+            .filter((mod) => `${mod.label} ${mod.tag} ${mod.group_name}`.toLowerCase().includes(normalizedModuleSearch))
+            .slice(0, 5)
+            .map((mod) => ({
+                id: `module-${mod.group_id}`,
+                kind: 'module' as const,
+                label: mod.label,
+                subtitle: `Hub-App-${mod.tag}`,
+                queryValue: mod.label,
+            }));
+
+        const profileMatches = user.profiles
+            .filter((profile) => profile.toLowerCase().includes(normalizedModuleSearch))
+            .slice(0, 3)
+            .map((profile) => ({
+                id: `profile-${profile}`,
+                kind: 'profile' as const,
+                label: profile,
+                subtitle: 'Perfil GLPI',
+                queryValue: profile,
+            }));
+
+        return [...moduleMatches, ...profileMatches].slice(0, 6);
+    }, [availableModules, normalizedModuleSearch, user.profiles]);
+
+    const executeModuleAction = useCallback(async (action: PendingModuleAction) => {
+        setIsSubmitting(true);
+        setFeedback(null);
         try {
-            await assignModuleToUser(routingContext, user.id, permMod.id, targetContext);
-            onRefresh();
-        } catch (err: any) {
-            window.alert(err.message || "Erro no quick fix.");
+            if (action.hasAccess) {
+                await revokeModuleFromUser(routingContext, user.id, action.mod.group_id, targetContext);
+            } else {
+                await assignModuleToUser(routingContext, user.id, action.mod.group_id, targetContext);
+            }
+            await onRefresh();
+            setFeedback({
+                type: 'success',
+                message: action.hasAccess
+                    ? `Acesso ao módulo ${action.mod.label} revogado.`
+                    : `Acesso ao módulo ${action.mod.label} concedido.`,
+            });
+        } catch (err) {
+            setFeedback({ type: 'error', message: getErrorMessage(err, 'Erro ao modificar acesso.') });
+        } finally {
+            setIsSubmitting(false);
+            setPendingAction(null);
+        }
+    }, [onRefresh, routingContext, targetContext, user.id]);
+
+    const handleQuickFix = useCallback(async () => {
+        const permMod = permissaoModule;
+        if (!permMod) return;
+        if (user.app_access.includes(permMod.tag)) return;
+
+        setFixingId(permMod.group_id);
+        try {
+            await assignModuleToUser(routingContext, user.id, permMod.group_id, targetContext);
+            await onRefresh();
+            setFeedback({ type: 'success', message: 'Correção aplicada: Hub-App-permissoes atribuída.' });
+        } catch (err) {
+            setFeedback({ type: 'error', message: getErrorMessage(err, 'Erro no quick fix.') });
         } finally {
             setFixingId(null);
         }
-    };
+    }, [onRefresh, permissaoModule, routingContext, targetContext, user.app_access, user.id]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -204,75 +352,142 @@ function UserCard({ user, routingContext, targetContext, onClose, onRefresh }: {
     }, [onClose]);
 
     return (
-        <div className="flex flex-col w-full h-full animate-in fade-in slide-in-from-top-4 duration-200 relative">
-            <button onClick={onClose} className="absolute top-6 right-6 p-2 text-text-3/40 hover:text-text-1 hover:bg-white/[0.06] rounded-xl bg-surface-2 border border-white/[0.04] z-10 transition-colors">
-                <X size={20} />
-            </button>
-            
-            {/* Extended Header */}
-            <div className="px-8 py-8 border-b border-white/[0.04] flex items-center gap-6">
-                 <UserAvatar user={user} className="w-20 h-20 text-2xl rounded-2xl border border-white/[0.06] shadow-xl" />
-                 <div>
-                    <h2 className="text-2xl font-bold text-text-1 tracking-tight">{displayName}</h2>
-                    <p className="text-text-3/60 font-mono text-[13px] mt-1">{user.username}</p>
-                    <div className="flex items-center gap-3 mt-4">
-                        <RoleBadge role={highestRole} />
-                        <span className="text-text-3/40 text-[12px]">{user.profiles.join(', ') || 'Sem perfil GLPI'}</span>
-                    </div>
-                 </div>
-            </div>
-
-            <div className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
-                <section>
-                    <h3 className="text-text-3/50 text-[11px] font-bold tracking-widest uppercase mb-3 px-1 flex items-center gap-2">
-                        <Package size={14} /> Módulos ({contextKey.toUpperCase()})
-                    </h3>
-                    <div className="flex flex-wrap gap-2.5">
-                        {availableModules.map(mod => {
-                            const hasAccess = user.app_access.includes(mod.tag);
-                            return <ModuleChip key={mod.id} mod={mod} hasAccess={hasAccess} user={user} routingContext={routingContext} targetContext={targetContext} onRefresh={onRefresh} />;
-                        })}
-                    </div>
-                </section>
-
-                <section>
-                    <h3 className="text-text-3/50 text-[11px] font-bold tracking-widest uppercase mb-3 px-1 flex items-center gap-2">
-                        <AlertCircle size={14} /> Diagnóstico Local
-                    </h3>
-                    {alerts.length > 0 ? (
-                        <div className="space-y-3">
-                            {alerts.map((alert, i) => (
-                                <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-start gap-3">
-                                        <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
-                                        <p className="text-amber-400/90 text-[13px]">{alert.message}</p>
-                                    </div>
-                                    {alert.message.includes('Hub-App-permissoes') && (
-                                        <button 
-                                            onClick={() => handleQuickFix(alert)}
-                                            disabled={fixingId !== null}
-                                            className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-[12px] font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 whitespace-nowrap"
-                                        >
-                                            {fixingId ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
-                                            Corrigir agora
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
+        <>
+            <div className="flex flex-col w-full h-full animate-in fade-in slide-in-from-top-4 duration-200 relative">
+                <button onClick={onClose} className="absolute top-6 right-6 p-2 text-text-3/40 hover:text-text-1 hover:bg-white/[0.06] rounded-xl bg-surface-2 border border-white/[0.04] z-10 transition-colors">
+                    <X size={20} />
+                </button>
+                
+                {/* Extended Header */}
+                <div className="px-8 py-8 border-b border-white/[0.04] flex items-start gap-6">
+                    <UserAvatar user={user} className="w-20 h-20 text-2xl rounded-2xl border border-white/[0.06] shadow-xl" />
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-2xl font-bold text-text-1 tracking-tight">{displayName}</h2>
+                        <p className="text-text-3/60 font-mono text-[13px] mt-1">{user.username}</p>
+                        <div className="flex flex-wrap items-center gap-3 mt-4">
+                            <RoleBadge role={highestRole} />
+                            <span className="text-text-3/40 text-[12px]">{user.profiles.join(', ') || 'Sem perfil GLPI'}</span>
                         </div>
-                    ) : (
-                        <div className="flex items-center gap-2 text-emerald-400 text-[13px] bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-xl font-medium">
-                            <CheckCircle2 size={16} /> Configuração completa e alinhada.
+                        <div className="relative mt-4 max-w-xl" ref={localSearchRef}>
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-3/30" size={15} />
+                            <input
+                                type="text"
+                                value={moduleSearchQuery}
+                                onChange={(event) => {
+                                    setModuleSearchQuery(event.target.value);
+                                    setShowLocalSuggestions(true);
+                                }}
+                                onFocus={() => setShowLocalSuggestions(true)}
+                                placeholder="Filtrar módulos/perfis deste usuário..."
+                                className="w-full bg-surface-2 border border-white/[0.06] rounded-xl py-2.5 pl-10 pr-4 text-[13px] outline-none focus:border-white/[0.12] transition-all text-text-2 placeholder:text-text-3/40"
+                            />
+                            {showLocalSuggestions && localSuggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1b1e25] shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/[0.08] rounded-xl overflow-hidden py-1 z-50">
+                                    {localSuggestions.map((suggestion) => (
+                                        <button
+                                            key={suggestion.id}
+                                            onClick={() => {
+                                                setModuleSearchQuery(suggestion.queryValue);
+                                                setShowLocalSuggestions(false);
+                                            }}
+                                            className="w-full text-left px-4 py-2.5 border-b border-white/[0.03] hover:bg-white/[0.05] transition-colors last:border-0"
+                                        >
+                                            <p className="text-text-1 text-[13px] font-medium truncate">{suggestion.label}</p>
+                                            <p className="text-text-3/40 text-[11px] truncate">{suggestion.subtitle}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
+                    {feedback && (
+                        <div className={`rounded-xl px-4 py-3 text-[13px] border ${
+                            feedback.type === 'success'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                : 'bg-red-500/10 border-red-500/20 text-red-400'
+                        }`}>
+                            {feedback.message}
                         </div>
                     )}
-                </section>
+
+                    <section>
+                        <h3 className="text-text-3/50 text-[11px] font-bold tracking-widest uppercase mb-3 px-1 flex items-center gap-2">
+                            <Package size={14} /> Módulos ({contextKey.toUpperCase()})
+                        </h3>
+                        {filteredModules.length === 0 ? (
+                            <div className="text-text-3/40 text-[12px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2">
+                                Nenhum módulo encontrado para o filtro atual.
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-2.5">
+                                {filteredModules.map((mod) => {
+                                    const hasAccess = user.app_access.includes(mod.tag);
+                                    return (
+                                        <ModuleChip
+                                            key={mod.group_id}
+                                            mod={mod}
+                                            hasAccess={hasAccess}
+                                            disabled={isSubmitting}
+                                            onToggle={(selectedMod, selectedHasAccess) => setPendingAction({ mod: selectedMod, hasAccess: selectedHasAccess })}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+
+                    <section>
+                        <h3 className="text-text-3/50 text-[11px] font-bold tracking-widest uppercase mb-3 px-1 flex items-center gap-2">
+                            <AlertCircle size={14} /> Diagnóstico Local
+                        </h3>
+                        {alerts.length > 0 ? (
+                            <div className="space-y-3">
+                                {alerts.map((alert, i) => (
+                                    <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
+                                            <p className="text-amber-400/90 text-[13px]">{alert.message}</p>
+                                        </div>
+                                        {alert.message.includes('Hub-App-permissoes') && permissaoModule && (
+                                            <button 
+                                                onClick={() => handleQuickFix()}
+                                                disabled={fixingId !== null || isSubmitting}
+                                                className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-[12px] font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 whitespace-nowrap disabled:opacity-60"
+                                            >
+                                                {fixingId ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
+                                                Corrigir agora
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-emerald-400 text-[13px] bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-xl font-medium">
+                                <CheckCircle2 size={16} /> Configuração completa e alinhada.
+                            </div>
+                        )}
+                    </section>
+                </div>
             </div>
-        </div>
+            <AccessConfirmModal
+                pendingAction={pendingAction}
+                userDisplayName={displayName}
+                loading={isSubmitting}
+                onCancel={() => setPendingAction(null)}
+                onConfirm={() => {
+                    if (!pendingAction) return;
+                    void executeModuleAction(pendingAction);
+                }}
+            />
+        </>
     );
 }
 
 // ─── Hooks Customizados ───
-function useClickOutside(ref: React.RefObject<any>, handler: () => void) {
+function useClickOutside<T extends HTMLElement>(ref: React.RefObject<T | null>, handler: () => void) {
     useEffect(() => {
         const listener = (e: MouseEvent | TouchEvent) => {
             if (!ref.current || ref.current.contains(e.target as Node)) return;
@@ -289,7 +504,7 @@ function useClickOutside(ref: React.RefObject<any>, handler: () => void) {
 
 // ─── Tab: Usuários ───
 
-function TabUsuarios({ users, searchQuery, targetContext, onRefresh, onSelectUser }: { users: AdminUser[]; searchQuery: string; targetContext: string; onRefresh: () => void; onSelectUser: (user: AdminUser) => void }) {
+function TabUsuarios({ users, searchQuery, targetContext, onSelectUser }: { users: AdminUser[]; searchQuery: string; targetContext: string; onSelectUser: (user: AdminUser) => void }) {
     const [activeFilter, setActiveFilter] = useState<'todos' | 'gestores' | 'tecnicos' | 'com_modulos' | 'com_alertas'>('todos');
 
     const filtered = useMemo(() => {
@@ -406,7 +621,7 @@ function TabUsuarios({ users, searchQuery, targetContext, onRefresh, onSelectUse
                                                         </span>
                                                     ))}
                                                     {extraModules > 0 && (
-                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-white/[0.05] text-text-3/60 border border-white/[0.06]" title={user.app_access.slice(2).map(a => MODULE_LABELS[a]).join(', ')}>
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-white/[0.05] text-text-3/60 border border-white/[0.06]" title={user.app_access.slice(2).map(a => MODULE_LABELS[a] || a).join(', ')}>
                                                             +{extraModules}
                                                         </span>
                                                     )}
@@ -500,9 +715,7 @@ function TabModulos({ users }: { users: AdminUser[] }) {
 
 // ─── Tab: Roles ───
 
-function TabRoles({ users, targetContext, onSelectUser }: { users: AdminUser[]; targetContext: string; onSelectUser: (user: AdminUser) => void }) {
-    const contextKey = targetContext.startsWith('sis') ? 'sis' : 'dtic';
-    const availableModules = AVAILABLE_MODULES[contextKey] || [];
+function TabRoles({ users, targetContext, availableModules, onSelectUser }: { users: AdminUser[]; targetContext: string; availableModules: ModuleCatalogItem[]; onSelectUser: (user: AdminUser) => void }) {
 
     const roleGroups = useMemo(() => {
         const map: Record<string, AdminUser[]> = {};
@@ -572,7 +785,7 @@ function TabRoles({ users, targetContext, onSelectUser }: { users: AdminUser[]; 
                                                         const hasAccess = u.app_access.includes(mod.tag);
                                                         return (
                                                             <div 
-                                                                key={mod.id} 
+                                                                key={mod.group_id} 
                                                                 title={mod.label}
                                                                 className={`w-2 h-2 rounded-full border ${
                                                                     hasAccess 
@@ -654,6 +867,7 @@ const TABS: { id: TabId; label: string; icon: React.ComponentType<{ size?: numbe
 
 export function PermissionsMatrix({ context }: MatrixProps) {
     const [users, setUsers] = useState<AdminUser[]>([]);
+    const [moduleCatalog, setModuleCatalog] = useState<ModuleCatalogItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -661,36 +875,56 @@ export function PermissionsMatrix({ context }: MatrixProps) {
     const [viewingContext, setViewingContext] = useState<string>(context.startsWith('sis') ? 'sis' : 'dtic');
     
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const searchRef = useRef<HTMLDivElement>(null);
+    const activeContext = useAuthStore((state) => state.activeContext);
+    const currentUserRole = useAuthStore((state) => state.currentUserRole);
+    const setActiveContext = useAuthStore((state) => state.setActiveContext);
+    const cacheContextSession = useAuthStore((state) => state.cacheContextSession);
 
-    useClickOutside(searchRef, () => setShowSuggestions(false));
-
-    const suggestions = useMemo(() => {
-        if (searchQuery.length < 2) return [];
-        const q = searchQuery.toLowerCase();
-        return users.filter(u => 
-            u.username.toLowerCase().includes(q) ||
-            u.realname?.toLowerCase().includes(q) ||
-            u.firstname?.toLowerCase().includes(q)
-        ).slice(0, 5);
-    }, [users, searchQuery]);
-
-    const loadUsers = useCallback(async () => {
+    const loadUsers = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
         try {
-            const data = await fetchUsersDiagnostics(context, viewingContext);
-            setUsers(data);
-            setSelectedUser(prev => prev ? data.find(u => u.id === prev.id) || null : null);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar dados de permissões.');
+            const [usersData, modulesData] = await Promise.all([
+                fetchUsersDiagnostics(context, viewingContext),
+                fetchModuleCatalog(context, viewingContext),
+            ]);
+            setUsers(usersData);
+            setModuleCatalog(modulesData);
+            setSelectedUser(prev => prev ? usersData.find(u => u.id === prev.id) || null : null);
+        } catch (err) {
+            setError(getErrorMessage(err, 'Erro ao carregar dados de permissões.'));
         } finally {
             setLoading(false);
         }
     }, [context, viewingContext]);
 
     useEffect(() => { loadUsers(); }, [loadUsers]);
+
+    useEffect(() => {
+        if (!currentUserRole || !activeContext) return;
+        if (normalizeContextRoot(activeContext) !== normalizeContextRoot(viewingContext)) return;
+
+        const currentUserInList = users.find((user) => user.id === currentUserRole.user_id);
+        if (!currentUserInList) return;
+
+        const nextAppAccess = normalizeAccessValues(currentUserInList.app_access);
+        if (sameAccessValues(currentUserRole.app_access || [], nextAppAccess)) return;
+
+        const updatedIdentity = {
+            ...currentUserRole,
+            app_access: nextAppAccess,
+        };
+
+        setActiveContext(activeContext, updatedIdentity);
+        cacheContextSession(activeContext, updatedIdentity);
+    }, [
+        activeContext,
+        cacheContextSession,
+        currentUserRole,
+        setActiveContext,
+        users,
+        viewingContext,
+    ]);
 
     const stats = useMemo(() => {
         const totalUsers = users.length;
@@ -755,42 +989,15 @@ export function PermissionsMatrix({ context }: MatrixProps) {
 
             {/* Search + Tabs */}
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center relative z-20">
-                <div className="relative flex-1 max-w-md" ref={searchRef}>
+                <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-3/30" size={16} />
                     <input
                         type="text"
                         placeholder="Buscar usuário (ex: alexandre)..."
                         className="w-full bg-surface-2 border border-white/[0.06] rounded-xl py-2.5 pl-10 pr-4 text-[13px] outline-none focus:border-white/[0.12] transition-all text-text-2 placeholder:text-text-3/40"
                         value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setShowSuggestions(true);
-                        }}
-                        onFocus={() => setShowSuggestions(true)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    
-                    {showSuggestions && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1b1e25] shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/[0.08] rounded-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 z-50">
-                            {suggestions.map(u => (
-                                <button
-                                    key={u.id}
-                                    onClick={() => {
-                                        setSelectedUser(u);
-                                        setShowSuggestions(false);
-                                        setSearchQuery('');
-                                    }}
-                                    className="w-full text-left flex items-center gap-3 px-4 py-2.5 border-b border-white/[0.03] hover:bg-white/[0.05] transition-colors last:border-0"
-                                >
-                                    <UserAvatar user={u} />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-text-1 text-[13px] font-medium truncate">{u.realname ? `${u.firstname} ${u.realname}`.trim() : u.username}</p>
-                                        <p className="text-text-3/40 text-[11px] truncate">{u.username}</p>
-                                    </div>
-                                    <RoleBadge role={u.roles[u.roles.length -1] || 'solicitante'} />
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
                 <div className="flex bg-surface-2 border border-white/[0.06] rounded-xl p-1 gap-0.5">
                     {TABS.map(tab => {
@@ -839,14 +1046,15 @@ export function PermissionsMatrix({ context }: MatrixProps) {
                         user={selectedUser} 
                         routingContext={context} 
                         targetContext={viewingContext} 
+                        availableModules={moduleCatalog}
                         onClose={() => setSelectedUser(null)} 
                         onRefresh={loadUsers} 
                     />
                 ) : (
                     <>
-                        {activeTab === 'usuarios' && <TabUsuarios users={users} searchQuery={searchQuery} targetContext={viewingContext} onRefresh={loadUsers} onSelectUser={setSelectedUser} />}
+                        {activeTab === 'usuarios' && <TabUsuarios users={users} searchQuery={searchQuery} targetContext={viewingContext} onSelectUser={setSelectedUser} />}
                         {activeTab === 'modulos' && <TabModulos users={users} />}
-                        {activeTab === 'roles' && <TabRoles users={users} targetContext={viewingContext} onSelectUser={setSelectedUser} />}
+                        {activeTab === 'roles' && <TabRoles users={users} targetContext={viewingContext} availableModules={moduleCatalog} onSelectUser={setSelectedUser} />}
                         {activeTab === 'diagnostico' && <TabDiagnostico users={users} targetContext={viewingContext} />}
                     </>
                 )}

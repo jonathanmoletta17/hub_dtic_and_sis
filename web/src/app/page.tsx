@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { User, Lock, ArrowRight, ShieldCheck, Cpu, Shovel } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -8,14 +9,26 @@ import { PremiumInput } from "@/components/ui/premium-input";
 import { PremiumButton } from "@/components/ui/premium-button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { apiLogin, GlpiApiError } from "@/lib/api/glpiService";
+import { bootstrapContextSessions } from "@/lib/auth/contextSessionBootstrap";
+
+function writeSessionCookie(sessionToken?: string) {
+  if (!sessionToken) return;
+  document.cookie = `sessionToken=${sessionToken}; path=/; max-age=86400; samesite=strict`;
+}
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, cacheContextSession } = useAuthStore();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const persistSessions = (sessions: Record<string, Awaited<ReturnType<typeof apiLogin>>>) => {
+    for (const [context, identity] of Object.entries(sessions)) {
+      cacheContextSession(context, identity);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,17 +39,23 @@ export default function LoginPage() {
 
     try {
       // Tenta validar primeiro no contexto primário (DTIC)
-      await apiLogin("dtic", { username, password });
+      const response = await apiLogin("dtic", { username, password });
+      const sessions = await bootstrapContextSessions(username, password, "dtic", response);
       login(username, password);
+      persistSessions(sessions);
+      writeSessionCookie(response.session_token);
       router.push("/selector");
-    } catch (errDtic: any) {
+    } catch (errDtic: unknown) {
       if (errDtic instanceof GlpiApiError && errDtic.status === 401) {
         // Fallback: Tenta validar no SIS caso seja um usuário exclusivo de SIS
         try {
-          await apiLogin("sis", { username, password });
+          const response = await apiLogin("sis", { username, password });
+          const sessions = await bootstrapContextSessions(username, password, "sis", response);
           login(username, password);
+          persistSessions(sessions);
+          writeSessionCookie(response.session_token);
           router.push("/selector");
-        } catch (errSis: any) {
+        } catch {
           setErrorMsg("Credenciais inválidas ou sem permissão de acesso.");
         }
       } else {
@@ -61,10 +80,12 @@ export default function LoginPage() {
         <div className="relative group">
           <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mb-2 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] relative z-20">
-            <img
+            <Image
               src="/assets/branding/brasao_rs.svg"
               alt="Brasão Oficial do Rio Grande do Sul"
-              className="w-full h-full object-contain"
+              fill
+              className="object-contain"
+              priority
             />
           </div>
         </div>
@@ -157,7 +178,7 @@ export default function LoginPage() {
       {/* Modern Footer Branding */}
       <footer className="mt-8 flex flex-col items-center gap-3 opacity-40 animate-in fade-in duration-1000 delay-700">
         <div className="flex items-center gap-6 grayscale hover:grayscale-0 transition-all duration-500 cursor-default">
-          <img src="/assets/branding/brasao_rs.svg" alt="RS" className="h-6" />
+          <Image src="/assets/branding/brasao_rs.svg" alt="RS" width={24} height={24} className="h-6 w-auto" />
           <div className="h-4 w-[1px] bg-white/20" />
           <span className="font-mono text-[10px] tracking-[0.3em] font-bold">DTIC & SIS CONVERGENCE</span>
         </div>
@@ -173,4 +194,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

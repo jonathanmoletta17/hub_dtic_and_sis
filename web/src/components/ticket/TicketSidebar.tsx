@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 
+import { formatIsoDateTime } from "@/lib/datetime/iso";
 import { TicketActions } from "./TicketActions";
 import type { TicketDetail } from "@/lib/api/types";
 
@@ -27,32 +28,53 @@ const statusColors: Record<string, string> = {
 };
 
 const priorityLabels: Record<number, string> = {
-  1: "Muito Baixa", 2: "Baixa", 3: "Média", 4: "Alta", 5: "Muito Alta",
+  1: "Muito Baixa",
+  2: "Baixa",
+  3: "Media",
+  4: "Alta",
+  5: "Muito Alta",
 };
-const typeLabels: Record<number, string> = { 1: "Incidente", 2: "Requisição" };
+
+const typeLabels: Record<number, string> = {
+  1: "Incidente",
+  2: "Requisicao",
+};
 
 function decodeHtmlEntities(str: string): string {
   if (!str) return "";
   return str
     .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(Number(c)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
 }
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return "—";
-  try {
-    return new Date(dateStr).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch { return dateStr; }
+  return formatIsoDateTime(dateStr) || "-";
 }
 
-function MetaItem({ icon, label, value, valueClass }: { icon: React.ReactNode; label: string; value: string; valueClass?: string }) {
+function MetaItem({
+  icon,
+  label,
+  value,
+  valueClass,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
   return (
     <div className="flex items-start gap-3">
       <div className="text-text-3/40 mt-0.5">{icon}</div>
       <div>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-3/40 block mb-0.5">{label}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-3/40 block mb-0.5">
+          {label}
+        </span>
         <span className={`text-[14px] text-text-2 ${valueClass || ""}`}>{value}</span>
       </div>
     </div>
@@ -73,6 +95,8 @@ export function TicketSidebar({
   onReturnToQueue,
   onResume,
   onReopenTicket,
+  onApproveSolution,
+  onRejectSolution,
   onShowTransferModal,
 }: {
   ticket: TicketDetail;
@@ -80,15 +104,17 @@ export function TicketSidebar({
   technicianName: string;
   groupName: string;
   isTechOrManager: boolean;
-    canActOnTicket: boolean;
+  canActOnTicket: boolean;
   actionLoading: string | null;
   onAssumeTicket: () => void;
   onShowSolutionModal: () => void;
   onSetPending: () => void;
   onReturnToQueue: () => void;
   onResume: () => void;
-    onReopenTicket: () => void;
-    onShowTransferModal: () => void;
+  onReopenTicket: () => void;
+  onApproveSolution: () => void;
+  onRejectSolution: () => void;
+  onShowTransferModal: () => void;
 }) {
   const router = useRouter();
 
@@ -97,12 +123,20 @@ export function TicketSidebar({
   return (
     <aside className="w-[340px] border-r border-white/[0.06] bg-surface-1/80 backdrop-blur-sm flex flex-col shrink-0">
       <div className="px-5 py-4 border-b border-white/[0.06]">
-        <button onClick={() => router.back()} className="flex items-center gap-1.5 text-text-3/60 hover:text-text-2 transition-colors text-[13px] mb-3 group">
-          <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> Voltar
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-text-3/60 hover:text-text-2 transition-colors text-[13px] mb-3 group"
+        >
+          <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />{" "}
+          Voltar
         </button>
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-mono text-text-3/60">#GLPI-{ticket.id}</span>
-          <span className={`text-[11px] font-semibold uppercase tracking-wider ${statusColors[ticket.status] || "text-text-3"}`}>{ticket.status}</span>
+          <span
+            className={`text-[11px] font-semibold uppercase tracking-wider ${statusColors[ticket.status] || "text-text-3"}`}
+          >
+            {ticket.status}
+          </span>
         </div>
       </div>
 
@@ -116,15 +150,32 @@ export function TicketSidebar({
 
       <div className="flex-grow px-5 py-4 space-y-4 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
         {requesterName && <MetaItem icon={<User size={14} />} label="Solicitante" value={requesterName} />}
-        {technicianName && <MetaItem icon={<Wrench size={14} />} label="Técnico" value={technicianName} />}
-        {groupName && <MetaItem icon={<Users size={14} />} label="Grupo Atribuído" value={decodeHtmlEntities(groupName)} />}
-        <MetaItem icon={<Shield size={14} />} label="Prioridade" value={priorityLabels[ticket.priority] || `Nível ${ticket.priority}`} valueClass={ticket.priority >= 5 ? "text-red-400/80" : ticket.priority >= 4 ? "text-amber-400/70" : undefined} />
-        <MetaItem icon={<AlertTriangle size={14} />} label="Urgência" value={ticket.urgency} />
+        {technicianName && <MetaItem icon={<Wrench size={14} />} label="Tecnico" value={technicianName} />}
+        {groupName && (
+          <MetaItem icon={<Users size={14} />} label="Grupo Atribuido" value={decodeHtmlEntities(groupName)} />
+        )}
+        <MetaItem
+          icon={<Shield size={14} />}
+          label="Prioridade"
+          value={priorityLabels[ticket.priority] || `Nivel ${ticket.priority}`}
+          valueClass={
+            ticket.priority >= 5
+              ? "text-red-400/80"
+              : ticket.priority >= 4
+                ? "text-amber-400/70"
+                : undefined
+          }
+        />
+        <MetaItem icon={<AlertTriangle size={14} />} label="Urgencia" value={ticket.urgency} />
         <MetaItem icon={<Tag size={14} />} label="Categoria" value={decodeHtmlEntities(ticket.category)} />
-        {ticket.location && <MetaItem icon={<MapPin size={14} />} label="Localização" value={decodeHtmlEntities(ticket.location)} />}
+        {ticket.location && (
+          <MetaItem icon={<MapPin size={14} />} label="Localizacao" value={decodeHtmlEntities(ticket.location)} />
+        )}
         <MetaItem icon={<Calendar size={14} />} label="Criado em" value={formatDate(ticket.dateCreated)} />
-        <MetaItem icon={<Clock size={14} />} label="Última Atualização" value={formatDate(ticket.dateModified)} />
-        {ticket.solveDate && <MetaItem icon={<FileText size={14} />} label="Solucionado em" value={formatDate(ticket.solveDate)} />}
+        <MetaItem icon={<Clock size={14} />} label="Ultima Atualizacao" value={formatDate(ticket.dateModified)} />
+        {ticket.solveDate && (
+          <MetaItem icon={<FileText size={14} />} label="Solucionado em" value={formatDate(ticket.solveDate)} />
+        )}
       </div>
 
       {isTechOrManager ? (
@@ -143,14 +194,21 @@ export function TicketSidebar({
       ) : ticket.statusId === 5 ? (
         <div className="px-5 py-4 border-t border-white/[0.06] space-y-2 shrink-0">
           <p className="text-[12px] text-emerald-400/60 text-center pb-2">
-            ✓ Ticket solucionado. Se o problema persistir, você pode reabrir.
+            Ticket solucionado. Valide a solucao para fechar ou recuse para reabrir.
           </p>
           <button
-            onClick={onReopenTicket}
-            disabled={actionLoading === "reopen"}
+            onClick={() => onApproveSolution()}
+            disabled={actionLoading === "approve-solution"}
+            className="w-full py-2.5 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-2 bg-emerald-500/80 hover:bg-emerald-500 text-white disabled:opacity-40"
+          >
+            Aprovar Solucao e Fechar
+          </button>
+          <button
+            onClick={() => onRejectSolution()}
+            disabled={actionLoading === "reject-solution"}
             className="w-full py-2.5 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-2 bg-white/[0.04] text-text-3/60 hover:text-text-2 hover:bg-white/[0.08] disabled:opacity-40"
           >
-            Reabrir Chamado
+            Recusar Solucao
           </button>
         </div>
       ) : null}

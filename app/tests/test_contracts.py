@@ -39,6 +39,17 @@ def _get_dict_from_func(filepath: str, func_name: str, var_name: str) -> dict:
     raise ValueError(f"'{var_name}' não em {func_name}()")
 
 
+def _get_module_level_dict(filepath: str, var_name: str) -> dict:
+    source = (BASE / filepath).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == var_name:
+                    return ast.literal_eval(node.value)
+    raise ValueError(f"'{var_name}' não encontrada em {filepath}")
+
+
 def _get_yaml_roles(filepath: str) -> set:
     content = (BASE / filepath).read_text(encoding="utf-8")
     return set(re.findall(r'role:\s*([\w-]+)', content))
@@ -94,21 +105,28 @@ class TestRoles:
 # ═══ Grupos Hub-App ═══
 
 class TestHubAppGroups:
-    DTIC = {109, 110, 112, 113, 114}
-    SIS = {102, 104, 105}
-
     @pytest.fixture(autouse=True)
     def _load(self):
-        self.allowed = _get_dict_from_func("app/routers/admin.py", "validate_hub_app_group", "allowed_groups")
+        self.source = (BASE / "app/routers/admin.py").read_text(encoding="utf-8")
+        self.module_item_fields = _get_fields("app/routers/admin.py", "ModuleCatalogItemResponse")
+        self.label_overrides = _get_module_level_dict("app/routers/admin.py", "MODULE_LABEL_OVERRIDES")
 
-    def test_dtic(self):
-        assert not (self.DTIC - set(self.allowed.get("dtic", [])))
+    @pytest.mark.parametrize("campo", ["group_id", "tag", "group_name", "label"])
+    def test_module_catalog_item_response(self, campo):
+        assert campo in self.module_item_fields, f"CONTRATO QUEBRADO: '{campo}' removido de ModuleCatalogItemResponse"
 
-    def test_sis(self):
-        assert not (self.SIS - set(self.allowed.get("sis", [])))
+    def test_catalogo_dinamico_substitui_whitelist_estatica(self):
+        assert "def _build_module_catalog" in self.source
+        assert "startswith(\"hub-app-\")" in self.source
+        assert "validate_hub_app_group" not in self.source
+        assert "allowed_groups" not in self.source
 
-    def test_rejeita_invalido(self):
-        assert 999 not in self.allowed.get("dtic", [])
+    def test_endpoint_module_catalog_exposto(self):
+        assert '@router.get("/module-catalog"' in self.source
+
+    @pytest.mark.parametrize("tag", ["dtic-metrics", "dtic-kpi", "dtic-infra", "sis-dashboard"])
+    def test_tags_estrategicas_rotuladas(self, tag):
+        assert tag in self.label_overrides, f"CONTRATO QUEBRADO: tag '{tag}' sem label explícito"
 
 
 # ═══ AdminUserResponse ═══

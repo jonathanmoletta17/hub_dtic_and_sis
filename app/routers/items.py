@@ -5,7 +5,7 @@ Endpoints genéricos para qualquer ItemType do GLPI.
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.core.session_manager import session_manager

@@ -112,6 +112,9 @@ export function UserProfileMenu() {
 
   function handleLogout() {
     setIsOpen(false);
+    if (typeof document !== 'undefined') {
+      document.cookie = 'sessionToken=; path=/; max-age=0; samesite=strict';
+    }
     logout();
     router.push("/");
   }

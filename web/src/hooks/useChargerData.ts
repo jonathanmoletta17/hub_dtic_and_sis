@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import useSWR, { useSWRConfig } from "swr";
+import useSWR from "swr";
 import type {
   KanbanData,
   Charger,
@@ -50,7 +50,6 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
   // SWR 2: Chargers com métricas (para ranking)
   const {
     data: rawChargers,
-    error: chargersError,
     mutate: mutateChargers,
   } = useSWR(
     !pause && context === "sis"
@@ -60,12 +59,16 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     { refreshInterval: 30000, keepPreviousData: true }
   );
 
-  const kanbanData: KanbanData = rawKanban || {
-    demands: [],
-    availableResources: [],
-    allocatedResources: [],
-  };
-  const chargers: Charger[] = rawChargers || [];
+  const kanbanData = useMemo<KanbanData>(
+    () =>
+      rawKanban ?? {
+        demands: [],
+        availableResources: [],
+        allocatedResources: [],
+      },
+    [rawKanban]
+  );
+  const chargers = useMemo<Charger[]>(() => rawChargers ?? [], [rawChargers]);
 
   // Stats derivados (exatamente como o legado)
   const stats = useMemo<OperationDashboardStats>(
@@ -111,7 +114,13 @@ export function useOperationSettings(context: string | undefined, pause: boolean
   );
 
   const settings: OperationSettings = useMemo(() => {
-    if (!data) return { business_start: "08:00", business_end: "18:00", work_on_weekends: false } as OperationSettings;
+    if (!data) {
+      return {
+        businessStart: "08:00",
+        businessEnd: "18:00",
+        workOnWeekends: false,
+      };
+    }
     return data;
   }, [data]);
 

@@ -33,7 +33,7 @@ export default function DashboardPage() {
     subtitle: manifest.dashboardSubtitle,
     accentClass: manifest.accentClass.split(' ')[2], // text-accent-blue
   };
-  const { currentUserRole, setActiveView } = useAuthStore();
+  const { currentUserRole } = useAuthStore();
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
@@ -51,8 +51,6 @@ export default function DashboardPage() {
     hubRoles[0];
 
   useEffect(() => {
-    setActiveView('tech');
-
     // PROTEÇÃO DA ROTA: Solicitante não acessa Dashboard
     if (activeHubRole?.role === "solicitante") {
       router.replace(`/${context}/user`);
@@ -84,8 +82,9 @@ export default function DashboardPage() {
         ]);
         const ticketList = [...openResult.tickets, ...solvedResult.tickets];
         setTickets(ticketList);
-      } catch (err: any) {
-        setError(err.message || "Erro ao carregar chamados");
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Erro ao carregar chamados";
+        setError(message);
         setTickets([]);
         setStats(null);
       } finally {
@@ -94,7 +93,7 @@ export default function DashboardPage() {
     }
 
     loadData();
-  }, [context, activeHubRole?.role, activeHubRole?.group_id]);
+  }, [context, activeHubRole?.role, activeHubRole?.group_id, router]);
 
 
 

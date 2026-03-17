@@ -1,6 +1,6 @@
 import logging
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth_guard import verify_session
 from app.services.auth_service import resolve_hub_roles
@@ -28,14 +28,178 @@ class AdminUserResponse(BaseModel):
     roles: List[str]
 
 
-def validate_hub_app_group(context: str, group_id: int) -> bool:
-    """Valida se o group_id pertence a um grupo Hub-App no contexto atual."""
-    # Extraído do componente PermissionsMatrix.tsx do frontend para manter a fidelidade perfeita do contrato
-    allowed_groups = {
-        "dtic": [109, 110, 112, 113, 114],  # Hub-App-busca (109), Hub-App-permissoes (110)
-        "sis": [102, 104, 105]              # Hub-App-busca (102), Hub-App-carregadores (104)
-    }
-    return group_id in allowed_groups.get(context, [])
+class ModuleCatalogItemResponse(BaseModel):
+    group_id: int
+    tag: str
+    group_name: str
+    label: str
+
+
+ROLE_ORDER = {
+    "solicitante": 0,
+    "tecnico": 1,
+    "tecnico-manutencao": 2,
+    "tecnico-conservacao": 3,
+    "gestor": 4,
+}
+
+MODULE_LABEL_OVERRIDES = {
+    "busca": "Smart Search",
+    "permissoes": "Gestão de Acessos",
+    "carregadores": "Carregadores",
+    "dtic-infra": "Infraestrutura DTIC",
+    "dtic-kpi": "KPIs DTIC",
+    "dtic-metrics": "Métricas DTIC",
+    "sis-dashboard": "Dashboard SIS",
+}
+
+
+def _unique_sorted(values: List[str]) -> List[str]:
+    cleaned = [str(item).strip() for item in values if str(item).strip()]
+    return sorted(set(cleaned), key=lambda item: item.lower())
+
+
+def _unique_roles(values: List[str]) -> List[str]:
+    unique = {str(item).strip().lower() for item in values if str(item).strip()}
+    return sorted(unique, key=lambda role: (ROLE_ORDER.get(role, 99), role))
+
+
+def _derive_module_label(tag: str, group_name: str) -> str:
+    if tag in MODULE_LABEL_OVERRIDES:
+        return MODULE_LABEL_OVERRIDES[tag]
+
+    name = group_name.strip()
+    if name.lower().startswith("hub-app-"):
+        name = name[8:]
+    if not name:
+        name = tag
+
+    tokens = [token for token in name.replace("_", "-").split("-") if token]
+    if not tokens:
+        return tag
+
+    formatted = []
+    for token in tokens:
+        upper_token = token.upper()
+        if len(token) <= 4:
+            formatted.append(upper_token)
+        else:
+            formatted.append(token.capitalize())
+    return " ".join(formatted)
+
+
+def _build_module_catalog(groups_data: List[dict]) -> List[ModuleCatalogItemResponse]:
+    dedup: Dict[int, ModuleCatalogItemResponse] = {}
+    for group in groups_data:
+        group_id = group.get("id")
+        group_name = str(group.get("name") or "").strip()
+        if not isinstance(group_id, int):
+            continue
+        if not group_name.lower().startswith("hub-app-"):
+            continue
+
+        tag = group_name[8:].strip().lower()
+        if not tag:
+            continue
+
+        dedup[group_id] = ModuleCatalogItemResponse(
+            group_id=group_id,
+            tag=tag,
+            group_name=group_name,
+            label=_derive_module_label(tag, group_name),
+        )
+
+    return sorted(
+        dedup.values(),
+        key=lambda item: (item.label.lower(), item.tag, item.group_id),
+    )
+
+
+def _extract_binding_id(result: Any) -> int | None:
+    raw_id: Any = None
+    if isinstance(result, dict):
+        raw_id = result.get("id")
+    elif isinstance(result, list) and result and isinstance(result[0], dict):
+        raw_id = result[0].get("id")
+
+    if raw_id is None:
+        return None
+
+    try:
+        return int(raw_id)
+    except (TypeError, ValueError):
+        return None
+
+
+def _is_duplicate_membership_error(error: GLPIClientError) -> bool:
+    payload = f"{error} {error.detail}".lower()
+    duplicate_markers = ("duplicate", "already exists", "já existe", "error_glpi_add")
+    return any(marker in payload for marker in duplicate_markers)
+
+
+def _raise_glpi_http_error(error: GLPIClientError, fallback_detail: str) -> None:
+    status_code = error.status_code if isinstance(error.status_code, int) and 400 <= error.status_code < 600 else 502
+    detail = str(error.detail).strip() if error.detail is not None else ""
+    raise HTTPException(status_code=status_code, detail=detail or fallback_detail)
+
+
+async def _fetch_module_catalog(client: GLPIClient) -> List[ModuleCatalogItemResponse]:
+    groups_data = await _fetch_all_paginated(client, "Group", max_limit=5000)
+    return _build_module_catalog(groups_data)
+
+
+def _merge_admin_users(users: List[AdminUserResponse]) -> List[AdminUserResponse]:
+    merged: Dict[int, dict] = {}
+    for user in users:
+        existing = merged.get(user.id)
+        if existing is None:
+            merged[user.id] = {
+                "id": user.id,
+                "username": user.username or "",
+                "realname": user.realname or "",
+                "firstname": user.firstname or "",
+                "profiles": list(user.profiles),
+                "groups": list(user.groups),
+                "app_access": list(user.app_access),
+                "roles": list(user.roles),
+            }
+            continue
+
+        if not existing["username"] and user.username:
+            existing["username"] = user.username
+        if not existing["realname"] and user.realname:
+            existing["realname"] = user.realname
+        if not existing["firstname"] and user.firstname:
+            existing["firstname"] = user.firstname
+
+        existing["profiles"].extend(user.profiles)
+        existing["groups"].extend(user.groups)
+        existing["app_access"].extend(user.app_access)
+        existing["roles"].extend(user.roles)
+
+    normalized = []
+    for item in merged.values():
+        normalized.append(
+            AdminUserResponse(
+                id=item["id"],
+                username=item["username"],
+                realname=item["realname"],
+                firstname=item["firstname"],
+                profiles=_unique_sorted(item["profiles"]),
+                groups=_unique_sorted(item["groups"]),
+                app_access=_unique_sorted(item["app_access"]),
+                roles=_unique_roles(item["roles"]),
+            )
+        )
+
+    normalized.sort(
+        key=lambda user: (
+            f"{user.firstname} {user.realname}".strip().lower() or user.username.lower(),
+            user.username.lower(),
+            user.id,
+        )
+    )
+    return normalized
 
 async def _fetch_all_paginated(client: GLPIClient, itemtype: str, max_limit: int = 5000, **params) -> List[dict]:
     """Helper para contornar limites padrão de paginação do GLPI (como o default 30 itens/página)."""
@@ -199,12 +363,28 @@ async def list_users(
                 app_access=app_access,
                 roles=roles
             ))
-            
-        return result
+
+        return _merge_admin_users(result)
         
     except Exception as e:
         logger.error(f"Erro em list_users: {e}")
         raise HTTPException(status_code=500, detail="Erro interno ao acessar API GLPI.")
+    finally:
+        await client._http.aclose()
+
+
+@router.get("/module-catalog", response_model=List[ModuleCatalogItemResponse])
+async def list_module_catalog(
+    context: str,
+    target_context: Optional[str] = None,
+    admin_deps: tuple = Depends(_require_gestor_cross_context),
+):
+    client, _admin_id = admin_deps
+    try:
+        return await _fetch_module_catalog(client)
+    except Exception as e:
+        logger.error(f"Erro em list_module_catalog: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno ao montar catálogo de módulos.")
     finally:
         await client._http.aclose()
 
@@ -229,22 +409,62 @@ async def assign_user_to_group(
     client, admin_id = admin_deps
     target = target_context or context
     
-    if not validate_hub_app_group(target, payload.group_id):
-        await client._http.aclose()
-        raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
-        
     try:
+        catalog = await _fetch_module_catalog(client)
+        allowed_group_ids = {item.group_id for item in catalog}
+        if payload.group_id not in allowed_group_ids:
+            raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
+        
         # Impedir criacao duplicada caso API já conste (retornando exactly already_exists=true se pre-existe)
         user_groups = await client.get_sub_items("User", user_id, "Group_User")
         if any(g.get("groups_id") == payload.group_id for g in user_groups):
             return {"success": True, "binding_id": None, "message": "Usuário já possui este acesso", "already_exists": True}
-            
-        result = await client.add_user_to_group(user_id, payload.group_id)
+        try:
+            result = await client.add_user_to_group(user_id, payload.group_id)
+        except GLPIClientError as glpi_error:
+            if glpi_error.status_code in (400, 409) and _is_duplicate_membership_error(glpi_error):
+                logger.info(
+                    "[ADMIN] %s (via %s) tentou atribuir grupo %s duplicado ao usuário %s (target: %s)",
+                    admin_id,
+                    context,
+                    payload.group_id,
+                    user_id,
+                    target,
+                )
+                return {
+                    "success": True,
+                    "binding_id": None,
+                    "message": "Usuário já possui este acesso",
+                    "already_exists": True,
+                }
+            raise
+
+        binding_id = _extract_binding_id(result)
         logger.info(f"[ADMIN] {admin_id} (via {context}) atribuiu grupo {payload.group_id} ao usuário {user_id} (target: {target})")
         
-        return {"success": True, "binding_id": result.get("id"), "message": "Acesso concedido", "already_exists": False}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return {"success": True, "binding_id": binding_id, "message": "Acesso concedido", "already_exists": False}
+    except HTTPException:
+        raise
+    except GLPIClientError as error:
+        logger.warning(
+            "Erro GLPI ao atribuir grupo em admin.assign_user_to_group: context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            context,
+            target,
+            user_id,
+            payload.group_id,
+            error.status_code,
+            error.detail,
+        )
+        _raise_glpi_http_error(error, "Falha ao conceder acesso no GLPI.")
+    except Exception:
+        logger.exception(
+            "Erro inesperado em assign_user_to_group: context=%s target=%s user_id=%s group_id=%s",
+            context,
+            target,
+            user_id,
+            payload.group_id,
+        )
+        raise HTTPException(status_code=500, detail="Erro interno ao conceder acesso.")
     finally:
         await client._http.aclose()
 
@@ -260,11 +480,12 @@ async def remove_user_from_group(
     client, admin_id = admin_deps
     target = target_context or context
     
-    if not validate_hub_app_group(target, group_id):
-        await client._http.aclose()
-        raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
-        
     try:
+        catalog = await _fetch_module_catalog(client)
+        allowed_group_ids = {item.group_id for item in catalog}
+        if group_id not in allowed_group_ids:
+            raise HTTPException(status_code=400, detail="ID de grupo não permitido para este contexto.")
+
         success = await client.remove_user_from_group(user_id, group_id)
         if success:
             logger.info(f"[ADMIN] {admin_id} (via {context}) revogou grupo {group_id} do usuário {user_id} (target: {target})")
@@ -273,7 +494,25 @@ async def remove_user_from_group(
             raise HTTPException(status_code=404, detail="Usuário não possui este acesso.")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except GLPIClientError as error:
+        logger.warning(
+            "Erro GLPI ao revogar grupo em admin.remove_user_from_group: context=%s target=%s user_id=%s group_id=%s status=%s detail=%s",
+            context,
+            target,
+            user_id,
+            group_id,
+            error.status_code,
+            error.detail,
+        )
+        _raise_glpi_http_error(error, "Falha ao revogar acesso no GLPI.")
+    except Exception:
+        logger.exception(
+            "Erro inesperado em remove_user_from_group: context=%s target=%s user_id=%s group_id=%s",
+            context,
+            target,
+            user_id,
+            group_id,
+        )
+        raise HTTPException(status_code=500, detail="Erro interno ao revogar acesso.")
     finally:
         await client._http.aclose()

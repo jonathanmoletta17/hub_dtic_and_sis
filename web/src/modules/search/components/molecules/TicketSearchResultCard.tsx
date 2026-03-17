@@ -13,6 +13,7 @@ import {
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '../atoms/Badge';
 import { PremiumButton } from '@/components/ui/premium-button';
+import { formatIsoDateTime } from '@/lib/datetime/iso';
 import type { TicketSummary } from '@/lib/api/types';
 
 interface TicketSearchResultCardProps {
@@ -27,17 +28,8 @@ export const TicketSearchResultCard: React.FC<TicketSearchResultCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Formatação de data simples
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '--/--/----';
-    const date = new Date(dateStr);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateStr: string | null | undefined) =>
+    formatIsoDateTime(dateStr) || '--/--/----';
 
   const glpiUrl = context === 'dtic' 
     ? `http://cau.ppiratini.intra.rs.gov.br/glpi/front/ticket.form.php?id=${ticket.id}`
@@ -72,7 +64,7 @@ export const TicketSearchResultCard: React.FC<TicketSearchResultCardProps> = ({
 
         {/* Metadata Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <MetaItem icon={Building2} label="Entidade" value={ticket.entity_name || "Central de Atendimentos"} />
+          <MetaItem icon={Building2} label="Entidade" value={ticket.entityName || ticket.entity_name || "Central de Atendimentos"} />
           <MetaItem icon={Tag} label="Categoria" value={ticket.category} />
           <MetaItem icon={User} label="Requerente" value={ticket.requester} />
           <MetaItem icon={UserCog} label="Técnico" value={ticket.technician || "Aguardando"} />
