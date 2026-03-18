@@ -21,7 +21,7 @@ async function switchRole(page: Page, roleLabel: RegExp): Promise<void> {
 async function switchContextFromMenu(page: Page): Promise<void> {
   await openUserProfileMenu(page);
   await Promise.all([
-    page.waitForURL(/\/selector$/),
+    page.waitForURL(/\/selector$/, { waitUntil: "domcontentloaded" }),
     page.getByRole("button", { name: /Trocar Contexto/i }).click(),
   ]);
 }
@@ -38,7 +38,7 @@ test.describe("Hub role-based behavior", () => {
 
     // DTIC: solicitante
     await Promise.all([
-      page.waitForURL(/\/dtic\/user$/),
+      page.waitForURL(/\/dtic\/user$/, { waitUntil: "domcontentloaded" }),
       switchRole(page, /Central do Solicitante/i),
     ]);
     await expect(page.getByRole("button", { name: /Dashboard/i })).toHaveCount(0);
@@ -46,7 +46,7 @@ test.describe("Hub role-based behavior", () => {
 
     // DTIC: tecnico
     await Promise.all([
-      page.waitForURL(/\/dtic\/dashboard$/),
+      page.waitForURL(/\/dtic\/dashboard$/, { waitUntil: "domcontentloaded" }),
       switchRole(page, /Console do Técnico/i),
     ]);
     await expect(page.getByRole("button", { name: /Dashboard/i })).toHaveCount(1);
@@ -55,7 +55,7 @@ test.describe("Hub role-based behavior", () => {
 
     // DTIC: gestor
     await Promise.all([
-      page.waitForURL(/\/dtic\/dashboard$/),
+      page.waitForURL(/\/dtic\/dashboard$/, { waitUntil: "domcontentloaded" }),
       switchRole(page, /Super-Admin/i),
     ]);
     await expect(page.getByRole("button", { name: /Gestão de Acessos/i })).toHaveCount(1);
@@ -67,7 +67,7 @@ test.describe("Hub role-based behavior", () => {
           response.status() < 400
         );
       }),
-      page.waitForURL(/\/dtic\/permissoes$/),
+      page.waitForURL(/\/dtic\/permissoes$/, { waitUntil: "domcontentloaded" }),
       page.getByRole("button", { name: /Gestão de Acessos/i }).click(),
     ]);
     await expect(page).toHaveURL(/\/dtic\/permissoes$/);
@@ -78,20 +78,20 @@ test.describe("Hub role-based behavior", () => {
     await expect(page).toHaveURL(/\/sis\/dashboard$/);
 
     await Promise.all([
-      page.waitForURL(/\/sis-manutencao\/dashboard$/),
+      page.waitForURL(/\/sis-manutencao\/dashboard$/, { waitUntil: "domcontentloaded" }),
       switchRole(page, /Manutenção e Conservação/i),
     ]);
     await expect(page.getByRole("button", { name: /Carregadores/i })).toHaveCount(0);
 
     // SIS: gestor
     await Promise.all([
-      page.waitForURL(/\/sis\/dashboard$/),
+      page.waitForURL(/\/sis\/dashboard$/, { waitUntil: "domcontentloaded" }),
       switchRole(page, /Super-Admin/i),
     ]);
     await expect(page.getByRole("button", { name: /Carregadores/i })).toHaveCount(1);
 
     await Promise.all([
-      page.waitForURL(/\/sis\/gestao-carregadores$/),
+      page.waitForURL(/\/sis\/gestao-carregadores$/, { waitUntil: "domcontentloaded" }),
       page.getByRole("button", { name: /Carregadores/i }).click(),
     ]);
     await expect(page.getByRole("button", { name: /Gerenciar/i })).toBeVisible();

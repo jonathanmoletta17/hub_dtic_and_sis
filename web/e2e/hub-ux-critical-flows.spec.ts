@@ -154,7 +154,7 @@ async function selectServiceForWizard(page: Page): Promise<void> {
 }
 
 async function createTicketThroughWizard(page: Page, seed: TicketSeed): Promise<void> {
-  await page.goto("/sis/new-ticket", { waitUntil: "networkidle" });
+  await page.goto("/sis/new-ticket", { waitUntil: "domcontentloaded" });
   await expect(page.getByText(/Novo Chamado — SIS/i)).toBeVisible();
   await expect(page.locator(".service-card").first()).toBeVisible();
 
@@ -210,7 +210,7 @@ async function openCreatedTicketFromDashboard(page: Page, subject: string): Prom
       return Number(match[1]);
     }
 
-    await page.reload({ waitUntil: "networkidle" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForTimeout(750);
   }
 
@@ -269,7 +269,7 @@ test.describe("Hub UX-critical flows", () => {
     await loginThroughGateway(page);
     await selectWorkspace(page, "sis");
 
-    await page.goto("/sis/gestao-carregadores", { waitUntil: "networkidle" });
+    await page.goto("/sis/gestao-carregadores", { waitUntil: "domcontentloaded" });
 
     await page.getByRole("button", { name: /Gerenciar/i }).click();
     await expectApiResponse(page, "/api/v1/sis/lookups/locations", async () => {

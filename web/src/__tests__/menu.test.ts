@@ -38,4 +38,14 @@ describe('Menu Resolution and Ordering', () => {
     const hasDashboard = itemsSolicitante.some(item => item.id === 'dashboard');
     expect(hasDashboard).toBe(false);
   });
+
+  it('should expose inventory only for DTIC users with inventario app access', () => {
+    const withoutAccess = resolveMenuItems('dtic', ['tecnico'], ['busca']);
+    const withAccess = resolveMenuItems('dtic', ['tecnico'], ['inventario']);
+    const sisItems = resolveMenuItems('sis', ['tecnico'], ['inventario']);
+
+    expect(withoutAccess.some(item => item.id === 'inventory')).toBe(false);
+    expect(withAccess.some(item => item.id === 'inventory')).toBe(true);
+    expect(sisItems.some(item => item.id === 'inventory')).toBe(false);
+  });
 });

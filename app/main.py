@@ -20,7 +20,7 @@ from app.routers import (
     domain_auth, domain_formcreator,
     lookups, events,
     db_read, orchestrator, chargers,
-    knowledge, admin, ticket_workflow, analytics
+    knowledge, admin, ticket_workflow, analytics, inventory
 )
 from app.core.database import local_engine
 # Logging
@@ -106,6 +106,7 @@ app.include_router(ticket_workflow.router)     # /tickets/{ticket_id}/detail + a
 
 # Knowledge Base (leitura direta no banco — somente DTIC)
 app.include_router(knowledge.router)           # /knowledge/articles, /knowledge/categories
+app.include_router(inventory.router)           # /inventory/* (DTIC-only, read via DB / write via API)
 
 # CRUD Genérico (catch-all — SEMPRE POR ÚLTIMO)
 app.include_router(items.router)               # /{itemtype} (catch-all)
@@ -127,6 +128,7 @@ async def root():
             "db_kpis": "/api/v1/{context}/db/kpis",
             "db_qa": "/api/v1/{context}/db/qa",
             "analytics_summary": "/api/v1/{context}/analytics/summary",
+            "inventory_summary": "/api/v1/{context}/inventory/summary",
             "orchestrate": "/api/v1/{context}/orchestrate",
             "lookups": "/api/v1/{context}/lookups/{type}",
             "events_sse": "/api/v1/{context}/events/stream",

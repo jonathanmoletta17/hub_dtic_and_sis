@@ -21,7 +21,7 @@ contexts:
     db_context: dtic
     color: "#3B82F6"
     theme: theme-dtic
-    features: [dashboard, search, knowledge, new-ticket, permissoes]
+    features: [dashboard, search, knowledge, inventory, new-ticket, permissoes]
     profile_map:
       4: { role: gestor, label: "Super-Admin", route: dashboard }
       9: { role: solicitante, label: "Central do Solicitante", route: user }

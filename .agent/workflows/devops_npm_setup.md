@@ -2,6 +2,8 @@
 description: Como instalar e configurar o Nginx Proxy Manager
 ---
 
+> Historical workflow: this is a generic NPM workflow and is not the canonical runtime for Tensor Aurora today. Validate the active stack before applying it.
+
 # Instalação e Configuração Nginx Proxy Manager (NPM) Automática
 
 Use este workflow para configurar um proxy reverso para os projetos na rede do laboratório ou desenvolvedor sem utilizar HTTPS público, baseando-se em nomes falsos `.local` com arquivo Hosts.

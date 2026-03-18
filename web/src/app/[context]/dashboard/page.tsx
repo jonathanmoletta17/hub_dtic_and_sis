@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Clock, CheckCircle2, AlertCircle,
@@ -14,6 +14,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { fetchStats, fetchTickets } from "@/lib/api/ticketService";
 import type { TicketSummary, TicketStats } from "@/lib/api/types";
 import { getContextManifest } from "@/lib/context-registry";
+import { useLiveDataRefresh } from "@/hooks/useLiveDataRefresh";
+import { POLL_INTERVALS } from "@/lib/realtime/polling";
 
 // Mapeamento contexto → group_id para filtro de tickets
 const contextGroupMap: Record<string, number | null> = {
@@ -38,7 +40,9 @@ export default function DashboardPage() {
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasLoadedOnceRef = useRef(false);
 
   // Determinar o hubRole ativo de forma rigorosa
   // Prioridade: 0) Papel explícito escolhido, 1) context_override bate com URL (SIS sub-papéis), 2) profile_id, 3) fallback
@@ -50,50 +54,63 @@ export default function DashboardPage() {
     hubRoles.find(r => r.profile_id === activeProfile?.id) ||
     hubRoles[0];
 
+  const loadData = useCallback(async () => {
+    const isInitialLoad = !hasLoadedOnceRef.current;
+    if (isInitialLoad) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+    setError(null);
+
+    try {
+      const groupId = activeHubRole?.group_id || contextGroupMap[context];
+
+      const realStats = await fetchStats(context, groupId);
+      setStats(realStats);
+
+      const [openResult, solvedResult] = await Promise.all([
+        fetchTickets(context, {
+          groupId,
+          status: [1, 2, 3, 4],
+        }),
+        fetchTickets(context, {
+          groupId,
+          status: [5],
+          limit: 200,
+        }),
+      ]);
+      setTickets([...openResult.tickets, ...solvedResult.tickets]);
+      hasLoadedOnceRef.current = true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao carregar chamados";
+      setError(message);
+      if (!hasLoadedOnceRef.current) {
+        setTickets([]);
+        setStats(null);
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [activeHubRole?.group_id, context]);
+
   useEffect(() => {
-    // PROTEÇÃO DA ROTA: Solicitante não acessa Dashboard
     if (activeHubRole?.role === "solicitante") {
       router.replace(`/${context}/user`);
       return;
     }
+    hasLoadedOnceRef.current = false;
+    void loadData();
+  }, [context, activeHubRole?.role, activeHubRole?.group_id, loadData, router]);
 
-    async function loadData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const groupId = activeHubRole?.group_id || contextGroupMap[context];
-
-        // CQRS: Stats reais via SQL (não mais contagem de 50 tickets)
-        const realStats = await fetchStats(context, groupId);
-        setStats(realStats);
-
-        // CQRS: Tickets para o Kanban (com JOINs reais)
-        // Busca abertos sem LIMIT (poucos) + resolvidos recentes com LIMIT
-        const [openResult, solvedResult] = await Promise.all([
-          fetchTickets(context, {
-            groupId,
-            status: [1, 2, 3, 4], // Abertos: sem limit
-          }),
-          fetchTickets(context, {
-            groupId,
-            status: [5], // Solucionados: últimos recentes
-            limit: 200,
-          }),
-        ]);
-        const ticketList = [...openResult.tickets, ...solvedResult.tickets];
-        setTickets(ticketList);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Erro ao carregar chamados";
-        setError(message);
-        setTickets([]);
-        setStats(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, [context, activeHubRole?.role, activeHubRole?.group_id, router]);
+  useLiveDataRefresh({
+    context,
+    domains: ["tickets", "dashboard", "analytics", "chargers"],
+    onRefresh: loadData,
+    enabled: activeHubRole?.role !== "solicitante",
+    pollIntervalMs: POLL_INTERVALS.dashboard,
+  });
 
 
 
@@ -123,6 +140,12 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
+            {refreshing && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-text-3/50">
+                <Loader2 size={12} className="animate-spin" />
+                Atualizando
+              </span>
+            )}
             <div className="relative group hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3/40 group-focus-within:text-text-2 transition-colors" size={14} />
                 <input

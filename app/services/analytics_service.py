@@ -252,14 +252,17 @@ async def get_trends(db: AsyncSession, scope: AnalyticsScope) -> list[dict]:
     return [series[key] for key in sorted(series.keys())]
 
 
-async def get_ranking(db: AsyncSession, scope: AnalyticsScope, limit: int) -> list[dict]:
+async def get_ranking(db: AsyncSession, scope: AnalyticsScope, limit: int | None) -> list[dict]:
     join_sql, where_sql, group_params = _group_scope_sql(scope.group_ids)
     params: dict[str, object] = {
         "date_from": scope.date_from.date().isoformat(),
         "date_to": scope.date_to.date().isoformat(),
-        "lim": limit,
         **group_params,
     }
+    limit_sql = ""
+    if limit is not None:
+        params["lim"] = limit
+        limit_sql = "LIMIT :lim"
 
     query = text(
         f"""
@@ -277,13 +280,15 @@ async def get_ranking(db: AsyncSession, scope: AnalyticsScope, limit: int) -> li
         {join_sql}
         WHERE t.is_deleted = 0
           AND t.entities_id != 0
+          AND u.is_deleted = 0
+          AND u.is_active = 1
           AND t.status IN (5, 6)
           AND t.solvedate IS NOT NULL
           AND DATE(t.solvedate) BETWEEN :date_from AND :date_to
           {where_sql}
         GROUP BY u.id, technician_name
         ORDER BY resolved_count DESC, technician_name ASC
-        LIMIT :lim
+        {limit_sql}
         """
     )
 

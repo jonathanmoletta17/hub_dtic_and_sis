@@ -103,7 +103,7 @@ def test_summary_defaults_to_last_30_days(monkeypatch: pytest.MonkeyPatch, clien
     assert captured_scope["scope"].group_ids == []
 
 
-def test_ranking_default_limit_and_max_validation(monkeypatch: pytest.MonkeyPatch, client: TestClient):
+def test_ranking_accepts_unbounded_and_explicit_limit(monkeypatch: pytest.MonkeyPatch, client: TestClient):
     captured = {}
 
     async def fake_get_ranking(_db, _scope, limit):
@@ -114,13 +114,14 @@ def test_ranking_default_limit_and_max_validation(monkeypatch: pytest.MonkeyPatc
 
     default_response = client.get("/api/v1/dtic/analytics/ranking", headers={"Session-Token": "test-token"})
     assert default_response.status_code == 200
-    assert captured["limit"] == 10
+    assert captured["limit"] is None
 
-    invalid_limit_response = client.get(
+    explicit_limit_response = client.get(
         "/api/v1/dtic/analytics/ranking?limit=80",
         headers={"Session-Token": "test-token"},
     )
-    assert invalid_limit_response.status_code == 422
+    assert explicit_limit_response.status_code == 200
+    assert captured["limit"] == 80
 
 
 def test_permission_denies_invalid_role(client: TestClient):

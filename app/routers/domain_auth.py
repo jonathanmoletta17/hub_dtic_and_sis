@@ -161,6 +161,7 @@ async def diagnose_access(request: Request, context: str, username: str):
         app_access = await auth_service.resolve_app_access(context, client, glpi_id)
         feature_to_app = {
             "search": "busca",
+            "inventory": "inventario",
             "chargers": "carregadores",
             "permissoes": "permissoes",
         }

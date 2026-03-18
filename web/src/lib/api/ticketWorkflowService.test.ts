@@ -5,12 +5,17 @@ import { asIsoDateTimeString } from "@/lib/datetime/iso";
 const ticketWorkflowMocks = vi.hoisted(() => ({
   apiGetMock: vi.fn(),
   apiPostMock: vi.fn(),
+  publishLiveDataEventMock: vi.fn(),
 }));
 
 vi.mock("./client", () => ({
   apiGet: ticketWorkflowMocks.apiGetMock,
   apiPost: ticketWorkflowMocks.apiPostMock,
   buildApiPath: (context: string, resource: string) => `/api/v1/${context}/${resource}`,
+}));
+
+vi.mock("@/lib/realtime/liveDataBus", () => ({
+  publishLiveDataEvent: ticketWorkflowMocks.publishLiveDataEventMock,
 }));
 
 import {
@@ -29,6 +34,7 @@ describe("ticketWorkflowService", () => {
   beforeEach(() => {
     ticketWorkflowMocks.apiGetMock.mockReset();
     ticketWorkflowMocks.apiPostMock.mockReset();
+    ticketWorkflowMocks.publishLiveDataEventMock.mockReset();
   });
 
   it("returns normalized workflow detail data", async () => {
@@ -149,6 +155,15 @@ describe("ticketWorkflowService", () => {
       8,
       "/api/v1/dtic/tickets/55/solution-approval/reject",
       {},
+    );
+
+    expect(ticketWorkflowMocks.publishLiveDataEventMock).toHaveBeenCalledTimes(8);
+    expect(ticketWorkflowMocks.publishLiveDataEventMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        context: "dtic",
+        ticketId: 55,
+        source: "mutation",
+      }),
     );
   });
 });

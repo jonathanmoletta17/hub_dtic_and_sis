@@ -1,5 +1,7 @@
 # Evidências — B1 Infra & Deploy — 2026-03-12
 
+> Historical note: this evidence file reflects an earlier deployment shape and still mentions NPM as the entry proxy. For the current runtime and network contract, use [network-availability-consolidated-diagnosis.md](/home/jonathan-moletta/projects/tensor-aurora/docs/network-availability-consolidated-diagnosis.md).
+
 ## Status Geral
 [x] APROVADO — todos os itens obrigatórios confirmados
 

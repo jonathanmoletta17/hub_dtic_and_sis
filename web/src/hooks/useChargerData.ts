@@ -18,6 +18,9 @@ import {
   fetchChargers,
   fetchGlobalSchedule,
 } from "../lib/api/chargerService";
+import { resolveRootContext } from "@/lib/api/client";
+import { useLiveDataRefresh } from "@/hooks/useLiveDataRefresh";
+import { POLL_INTERVALS } from "@/lib/realtime/polling";
 
 export interface UseOperationDataResult {
   kanbanData: KanbanData;
@@ -31,6 +34,9 @@ export interface UseOperationDataResult {
 }
 
 export function useChargerData(context: string | undefined, pause: boolean = false): UseOperationDataResult {
+  const rootContext = resolveRootContext(context || "");
+  const isSisContext = rootContext === "sis";
+
   // Período padrão: mês atual
   const now = new Date();
   const defaultStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
@@ -43,9 +49,9 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     error: kanbanError,
     mutate: mutateKanban,
   } = useSWR(
-    !pause && context === "sis" ? `chargers-kanban-${context}` : null,
+    !pause && isSisContext ? `chargers-kanban-${context}` : null,
     () => fetchKanbanData(context!),
-    { refreshInterval: 15000, keepPreviousData: true }
+    { keepPreviousData: true }
   );
 
   // SWR 2: Chargers com métricas (para ranking)
@@ -54,11 +60,11 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     error: chargersError,
     mutate: mutateChargers,
   } = useSWR(
-    !pause && context === "sis"
+    !pause && isSisContext
       ? `chargers-list-${context}-${rankingPeriod.startDate}-${rankingPeriod.endDate}`
       : null,
     () => fetchChargers(context!, rankingPeriod.startDate, rankingPeriod.endDate),
-    { refreshInterval: 30000, keepPreviousData: true }
+    { keepPreviousData: true }
   );
 
   const kanbanData = useMemo<KanbanData>(
@@ -98,6 +104,15 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
     mutateChargers();
   }, [mutateKanban, mutateChargers]);
 
+  useLiveDataRefresh({
+    context: context || "sis",
+    domains: ["chargers", "tickets", "dashboard", "analytics"],
+    onRefresh: refresh,
+    enabled: !pause && isSisContext,
+    pollIntervalMs: POLL_INTERVALS.chargers,
+    minRefreshGapMs: 900,
+  });
+
   return {
     kanbanData,
     chargers,
@@ -115,8 +130,11 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
  * Busca do backend e persiste via PUT.
  */
 export function useOperationSettings(context: string | undefined, pause: boolean = false) {
+  const rootContext = resolveRootContext(context || "");
+  const isSisContext = rootContext === "sis";
+
   const { data, mutate: mutateSettings } = useSWR(
-    !pause && context === "sis" ? `chargers-global-schedule-${context}` : null,
+    !pause && isSisContext ? `chargers-global-schedule-${context}` : null,
     () => fetchGlobalSchedule(context!),
     { revalidateOnFocus: true }
   );

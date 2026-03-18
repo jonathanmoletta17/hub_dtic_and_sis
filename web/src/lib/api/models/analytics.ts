@@ -63,7 +63,7 @@ export interface AnalyticsTrendsResult {
 export interface AnalyticsRankingResult {
   context: string;
   filters: AnalyticsFilters;
-  limit: number;
+  limit: number | null;
   data: AnalyticsRankingItem[];
 }
 

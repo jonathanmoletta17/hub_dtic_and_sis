@@ -80,6 +80,12 @@ def test_openapi_declares_explicit_read_response_models(client: TestClient):
     assert paths["/api/v1/{context}/tickets/{ticket_id}/detail"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/TicketWorkflowDetailResponse")
     assert paths["/api/v1/{context}/tickets/{ticket_id}/followups"]["post"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/TicketActionResponse")
     assert paths["/api/v1/{context}/knowledge/articles"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/KBListResponse")
+    assert paths["/api/v1/{context}/inventory/summary"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventorySummaryResponse")
+    assert paths["/api/v1/{context}/inventory/assets"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventoryAssetListResponse")
+    assert paths["/api/v1/{context}/inventory/assets/{itemtype}/{asset_id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventoryAssetDetailResponse")
+    assert paths["/api/v1/{context}/inventory/assets/{itemtype}"]["post"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventoryMutationResponse")
+    assert paths["/api/v1/{context}/inventory/assets/{itemtype}/{asset_id}"]["put"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventoryMutationResponse")
+    assert paths["/api/v1/{context}/inventory/assets/{itemtype}/{asset_id}"]["delete"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/InventoryMutationResponse")
     assert paths["/api/v1/{context}/chargers/{charger_id}/schedule"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/ChargerScheduleReadResponse")
     assert paths["/api/v1/{context}/chargers/{charger_id}/offline"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/ChargerOfflineReadResponse")
     assert paths["/api/v1/{context}/chargers/tickets/{ticket_id}/detail"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith("/TicketDetailResponse")
@@ -183,6 +189,40 @@ def test_knowledge_list_route_always_returns_categories_key(client: TestClient, 
     assert response.status_code == 200
     assert response.json()["categories"] == []
     assert response.json()["articles"][0]["date_creation"].endswith("-03:00")
+
+
+def test_knowledge_detail_route_includes_attachments_key(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    async def fake_get_kb_article(*args, **kwargs):
+        return {
+            "id": 9,
+            "name": "VPN",
+            "category": "Acesso",
+            "category_id": 1,
+            "author": "Autor",
+            "date_creation": "2026-03-15T10:30:00-03:00",
+            "date_mod": "2026-03-15T11:00:00-03:00",
+            "is_faq": False,
+            "view_count": 5,
+            "answer": "<p>Passo a passo</p>",
+            "attachments": [
+                {
+                    "id": 77,
+                    "filename": "manual.pdf",
+                    "mime_type": "application/pdf",
+                    "size": 2048,
+                    "date_upload": "2026-03-15T11:00:00-03:00",
+                }
+            ],
+        }
+
+    monkeypatch.setattr(knowledge, "get_kb_article", fake_get_kb_article)
+
+    response = client.get("/api/v1/dtic/knowledge/articles/9")
+
+    assert response.status_code == 200
+    attachment = response.json()["article"]["attachments"][0]
+    assert attachment["filename"] == "manual.pdf"
+    assert attachment["url"].endswith("/knowledge/articles/9/attachments/77/download")
 
 
 def test_charger_read_routes_validate_minimal_contracts(client: TestClient, monkeypatch: pytest.MonkeyPatch):

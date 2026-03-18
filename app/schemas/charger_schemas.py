@@ -36,7 +36,8 @@ class GlobalScheduleResponse(ScheduleBase):
 class OfflineBase(BaseModel):
     is_offline: bool = False
     reason: Optional[str] = None
-    expected_return: Optional[str] = Field(None, pattern=HH_MM_REGEX)
+    # GLPI pode retornar data, datetime ou horário dependendo da configuração do campo.
+    expected_return: Optional[str] = None
 
 class OfflineUpdate(OfflineBase):
     pass

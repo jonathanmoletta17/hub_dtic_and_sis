@@ -1,8 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { fetchStats, fetchTickets, searchTicketsDirect } from '@/lib/api/ticketService';
 import { compareIsoDateDesc } from '@/lib/datetime/iso';
 import type { TicketSummary, TicketStats } from '@/lib/api/types';
 import { calculateRelevanceScore } from '../utils/searchUtils';
+import { useLiveDataRefresh } from '@/hooks/useLiveDataRefresh';
+import { POLL_INTERVALS } from '@/lib/realtime/polling';
 
 const SEARCH_SCOPE_STATUSES = [1, 2, 3, 4, 5] as const;
 const DB_LIST_LIMIT = 500;
@@ -39,8 +41,10 @@ export function useTicketsSearch({
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searching, setSearching] = useState(false);
   const [updateNotice, setUpdateNotice] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
 
   // Debounce manual do termo de busca
   useEffect(() => {
@@ -50,34 +54,57 @@ export function useTicketsSearch({
     return () => clearTimeout(timer);
   }, [searchInput, debounceMs]);
 
+  const loadBaseData = useCallback(async () => {
+    const statusFilter = resolveStatusFilter(selectedStatusId);
+    const isInitialLoad = !hasLoadedOnceRef.current;
+    if (isInitialLoad) setLoading(true);
+    else setRefreshing(true);
+    setUpdateNotice(!isInitialLoad);
+
+    try {
+      const [statsData, ticketsData] = await Promise.all([
+        fetchStats(context, null, department),
+        fetchTickets(context, {
+          department,
+          status: statusFilter,
+          limit: DB_LIST_LIMIT,
+        })
+      ]);
+      setStats(statsData);
+      setTickets(ticketsData.tickets);
+      setTotalCount(ticketsData.total);
+      hasLoadedOnceRef.current = true;
+    } catch (error) {
+      console.error("Failed to load base data:", error);
+      if (!hasLoadedOnceRef.current) {
+        setStats(null);
+        setTickets([]);
+        setTotalCount(0);
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      setUpdateNotice(false);
+    }
+  }, [context, department, selectedStatusId]);
+
   // Carregamento de base (Stats + Tickets) no mesmo universo dos cards
   useEffect(() => {
     if (debouncedSearchTerm.length >= 2) return;
-
-    const statusFilter = resolveStatusFilter(selectedStatusId);
-
-    async function loadBaseData() {
-      setLoading(true);
-      try {
-        const [statsData, ticketsData] = await Promise.all([
-          fetchStats(context, null, department),
-          fetchTickets(context, {
-            department,
-            status: statusFilter,
-            limit: DB_LIST_LIMIT,
-          })
-        ]);
-        setStats(statsData);
-        setTickets(ticketsData.tickets);
-        setTotalCount(ticketsData.total);
-      } catch (error) {
-        console.error("Failed to load base data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
     void loadBaseData();
-  }, [context, department, selectedStatusId, debouncedSearchTerm]);
+  }, [debouncedSearchTerm, loadBaseData]);
+
+  useLiveDataRefresh({
+    context,
+    domains: ["tickets", "dashboard", "analytics", "search", "user"],
+    onRefresh: () => {
+      if (debouncedSearchTerm.length >= 2) return;
+      return loadBaseData();
+    },
+    pollIntervalMs: POLL_INTERVALS.search,
+    enabled: debouncedSearchTerm.length < 2,
+    minRefreshGapMs: 750,
+  });
 
   // Busca remota quando o termo muda (direto no banco) com o mesmo filtro de status ativo
   useEffect(() => {
@@ -149,6 +176,7 @@ export function useTicketsSearch({
     debouncedSearchTerm,
     searching,
     loading,
+    refreshing,
     
     // Dados
     tickets: paginatedTickets,

@@ -60,7 +60,7 @@ export function mapAnalyticsRankingResponseDto(dto: AnalyticsRankingResponseDto)
   return {
     context: dto.context,
     filters: mapFiltersDto(dto.filters),
-    limit: dto.limit ?? 10,
+    limit: dto.limit ?? null,
     data: (dto.data || []).map((item) => ({
       technicianId: item.technician_id,
       technicianName: item.technician_name,

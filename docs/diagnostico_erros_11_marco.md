@@ -1,5 +1,7 @@
 # Diagnóstico Técnico - 11 de Março (Tensor Aurora)
 
+> Historical note: this diagnosis captures a past incident and still references NPM-era topology. For the current runtime and network contract, use [network-availability-consolidated-diagnosis.md](/home/jonathan-moletta/projects/tensor-aurora/docs/network-availability-consolidated-diagnosis.md).
+
 Este documento sumariza a investigação referente às inconsistências encontradas no Antigravity e na infraestrutura web (Backend GLPI) após o restart da máquina.
 
 ## 1. Histórico de Chats do Antigravity

@@ -1,16 +1,18 @@
-"""
+﻿"""
 Schemas: Knowledge Base
-Modelos Pydantic para a Base de Conhecimento do GLPI.
+Pydantic models for GLPI Knowledge Base.
 """
 
-from pydantic import BaseModel, Field
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 from app.core.datetime_contract import AwareDateTime
 
 
 class KBCategory(BaseModel):
-    """Categoria da Base de Conhecimento."""
+    """Knowledge Base category."""
+
     id: int
     name: str
     completename: str = ""
@@ -19,7 +21,8 @@ class KBCategory(BaseModel):
 
 
 class KBArticleSummary(BaseModel):
-    """Resumo de artigo para listagem (card)."""
+    """Article summary used in list views."""
+
     id: int
     name: str
     category: Optional[str] = None
@@ -31,40 +34,56 @@ class KBArticleSummary(BaseModel):
     view_count: int = 0
 
 
+class KBArticleAttachment(BaseModel):
+    """Attachment metadata linked to an article."""
+
+    id: int
+    filename: str
+    mime_type: str = "application/octet-stream"
+    size: Optional[int] = None
+    date_upload: Optional[AwareDateTime] = None
+    url: str
+
+
 class KBArticleDetail(KBArticleSummary):
-    """Artigo completo com conteúdo HTML."""
+    """Full article payload including HTML content and attachments."""
+
     answer: str = ""
+    attachments: list[KBArticleAttachment] = []
 
 
 class KBListResponse(BaseModel):
-    """Resposta da listagem de artigos."""
+    """Knowledge Base list response."""
+
     total: int
     categories: list[KBCategory] = []
     articles: list[KBArticleSummary] = []
 
 
 class KBCategoriesResponse(BaseModel):
-    """Resposta apenas da listagem de categorias."""
+    """Categories-only response."""
+
     categories: list[KBCategory] = []
 
 
 class KBArticleResponse(BaseModel):
-    """Resposta do artigo individual."""
+    """Single article response wrapper."""
+
     article: KBArticleDetail
 
 
-# ─── Write Schemas (CRUD via GLPI REST API) ───
-
 class KBArticleCreate(BaseModel):
-    """Payload para criar um artigo da KB."""
-    name: str = Field(..., min_length=3, max_length=500, description="Assunto/título do artigo")
-    answer: str = Field(..., min_length=1, description="Conteúdo HTML do artigo")
-    knowbaseitemcategories_id: Optional[int] = Field(None, description="ID da categoria")
-    is_faq: int = Field(0, ge=0, le=1, description="Marcar como FAQ (0 ou 1)")
+    """Payload to create a KB article."""
+
+    name: str = Field(..., min_length=3, max_length=500, description="Article title")
+    answer: str = Field(..., min_length=1, description="Article HTML content")
+    knowbaseitemcategories_id: Optional[int] = Field(None, description="Category id")
+    is_faq: int = Field(0, ge=0, le=1, description="Mark as FAQ (0 or 1)")
 
 
 class KBArticleUpdate(BaseModel):
-    """Payload para atualizar um artigo da KB."""
+    """Payload to update a KB article."""
+
     name: Optional[str] = Field(None, min_length=3, max_length=500)
     answer: Optional[str] = Field(None, min_length=1)
     knowbaseitemcategories_id: Optional[int] = None

@@ -214,4 +214,45 @@ describe("ContextGuard", () => {
     expect(screen.getByText(/m[oó]dulo restrito/i)).toBeInTheDocument();
     expect(screen.queryByText("analytics module")).not.toBeInTheDocument();
   });
+
+  it("allows inventory in DTIC only when inventario tag is present", () => {
+    act(() => {
+      useAuthStore.setState({
+        _hasHydrated: true,
+        activeContext: "dtic",
+        currentUserRole: makeIdentity("dtic", {
+          app_access: ["inventario"],
+        }),
+      });
+    });
+
+    render(
+      <ContextGuard featureId="inventory">
+        <div>inventory module</div>
+      </ContextGuard>,
+    );
+
+    expect(screen.getByText("inventory module")).toBeInTheDocument();
+  });
+
+  it("blocks inventory when inventario tag is missing", () => {
+    act(() => {
+      useAuthStore.setState({
+        _hasHydrated: true,
+        activeContext: "dtic",
+        currentUserRole: makeIdentity("dtic", {
+          app_access: ["busca"],
+        }),
+      });
+    });
+
+    render(
+      <ContextGuard featureId="inventory">
+        <div>inventory module</div>
+      </ContextGuard>,
+    );
+
+    expect(screen.getByText(/m[oó]dulo restrito/i)).toBeInTheDocument();
+    expect(screen.queryByText("inventory module")).not.toBeInTheDocument();
+  });
 });

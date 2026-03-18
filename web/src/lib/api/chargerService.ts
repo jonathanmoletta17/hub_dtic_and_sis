@@ -11,6 +11,7 @@ import type {
 } from "../../types/charger";
 import { apiDelete, apiGet, apiPost, apiPut, buildApiPath } from './client';
 import { useAuthStore } from '@/store/useAuthStore';
+import { publishLiveDataEvent } from "@/lib/realtime/liveDataBus";
 import type {
   ChargerOfflineStatusDto,
   ChargerScheduleReadResponseDto,
@@ -47,6 +48,16 @@ export interface ChargerBatchActionResponse {
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
+}
+
+function notifyChargerMutation(context: string, reason: string, ticketId?: number): void {
+  publishLiveDataEvent({
+    context,
+    domains: ["chargers", "tickets", "dashboard", "analytics", "search"],
+    source: "mutation",
+    reason,
+    ticketId,
+  });
 }
 
 
@@ -102,7 +113,10 @@ export const updateGlobalSchedule = (
     business_start: settings.businessStart,
     business_end: settings.businessEnd,
     work_on_weekends: settings.workOnWeekends,
-  }).then(() => true);
+  }).then(() => {
+    notifyChargerMutation(context, "chargers-global-schedule");
+    return true;
+  });
 
 export const updateChargerSchedule = (
   context: string,
@@ -113,7 +127,10 @@ export const updateChargerSchedule = (
     business_start: settings.businessStart,
     business_end: settings.businessEnd,
     work_on_weekends: settings.workOnWeekends,
-  }).then(() => true);
+  }).then(() => {
+    notifyChargerMutation(context, "chargers-schedule-update");
+    return true;
+  });
 
 export const toggleChargerOffline = (
   context: string,
@@ -126,10 +143,14 @@ export const toggleChargerOffline = (
     is_offline: isOffline,
     reason: reason || null,
     expected_return: expectedReturn || null,
-  }).then(() => true);
+  }).then(() => {
+    notifyChargerMutation(context, "chargers-offline-toggle");
+    return true;
+  });
 
 export const assignChargerToTicket = async (context: string, ticketId: number, chargerId: number): Promise<boolean> => {
   await apiPost(buildApiPath(context, `chargers/${chargerId}/assign/${ticketId}`));
+  notifyChargerMutation(context, "chargers-assign", ticketId);
   return true;
 };
 
@@ -148,6 +169,7 @@ export const assignMultipleChargersToTicket = async (context: string, ticketId: 
     console.log(`[assignMultipleChargersToTicket] Iniciando atribuição múltipla para o ticket ${ticketId}`, { chargerIds });
 
     await apiPost(buildApiPath(context, `chargers/tickets/${ticketId}/assign-multiple`), { charger_ids: chargerIds });
+    notifyChargerMutation(context, "chargers-assign-multiple", ticketId);
 
     console.log(`[assignMultipleChargersToTicket] Atribuição múltipla concluída com sucesso para o ticket ${ticketId}`);
     return true;
@@ -165,6 +187,7 @@ export const unassignChargerFromTicket = async (
   chargerId: number
 ): Promise<boolean> => {
   await apiDelete(buildApiPath(context, `chargers/${chargerId}/assign/${ticketId}`));
+  notifyChargerMutation(context, "chargers-unassign", ticketId);
   return true;
 };
 
@@ -181,7 +204,10 @@ export const createCharger = (
   locationId: number = 0
 ): Promise<boolean> =>
   apiPost(buildApiPath(context, "chargers"), { name, locations_id: locationId })
-    .then(() => true);
+    .then(() => {
+      notifyChargerMutation(context, "chargers-create");
+      return true;
+    });
 
 export const updateCharger = (
   context: string,
@@ -190,21 +216,30 @@ export const updateCharger = (
   locationId: number = 0
 ): Promise<boolean> =>
   apiPut(buildApiPath(context, `chargers/${chargerId}`), { name, locations_id: locationId })
-    .then(() => true);
+    .then(() => {
+      notifyChargerMutation(context, "chargers-update");
+      return true;
+    });
 
 export const deleteCharger = (
   context: string,
   chargerId: number
 ): Promise<boolean> =>
   apiDelete(buildApiPath(context, `chargers/${chargerId}`))
-    .then(() => true);
+    .then(() => {
+      notifyChargerMutation(context, "chargers-delete");
+      return true;
+    });
 
 export const reactivateCharger = (
   context: string,
   chargerId: number
 ): Promise<boolean> =>
   apiPost(buildApiPath(context, `chargers/${chargerId}/reactivate`))
-    .then(() => true);
+    .then(() => {
+      notifyChargerMutation(context, "chargers-reactivate");
+      return true;
+    });
 
 export const batchUpdateChargers = (
   context: string,
@@ -238,6 +273,9 @@ export const batchUpdateChargers = (
         reason: payload.offline.reason,
         expected_return: payload.offline.expected_return
       } : undefined
+    }).then((response) => {
+      notifyChargerMutation(context, "chargers-batch-update");
+      return response;
     }).catch((e) => {
     console.error("API Error batch updating chargers:", e);
     throw e;

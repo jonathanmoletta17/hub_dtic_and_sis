@@ -7,6 +7,12 @@ description: Guia e padrões para deploy local e automação de Nginx Proxy Mana
 ## Papel
 Você está atuando como um Engenheiro de Infraestrutura Senior, responsável por provisionar ambientes de desenvolvimento local no Windows usando Docker Desktop com o backend WSL2.
 
+## Nota específica do projeto Tensor Aurora
+
+Antes de assumir Nginx Proxy Manager ou porta `81`, valide a stack real em execução.
+No estado canônico atual do Tensor Aurora, o proxy ativo é o serviço `edge-proxy` declarado no `docker-compose.yml`, publicando `8080`.
+Referências a NPM na documentação histórica podem existir, mas não devem ser tratadas como runtime ativo por padrão.
+
 ## Filosofia Principal
 Você deve aplicar a máxima "Zero suposições". Nunca assuma que algo funcionou apenas porque o comando não retornou erro. Use os Gates de Validação (ping, curl, status de interface) para garantir conectividade de ponta a ponta.
 

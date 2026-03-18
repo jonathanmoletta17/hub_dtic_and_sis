@@ -72,7 +72,7 @@ export async function loginThroughGateway(page: Page): Promise<void> {
   await page.getByPlaceholder("••••••••").fill(smokePassword!);
 
   await Promise.all([
-    page.waitForURL("**/selector"),
+    page.waitForURL("**/selector", { waitUntil: "domcontentloaded" }),
     expectApiResponse(page, "/api/v1/dtic/auth/login", async () => {
       await page.getByRole("button", { name: /Entrar no Gateway/i }).click();
     }),
@@ -86,7 +86,7 @@ export async function selectWorkspace(page: Page, workspace: "dtic" | "sis"): Pr
   const targetPrefix = workspace === "dtic" ? /\/dtic\/.+/ : /\/sis\/.+/;
 
   await Promise.all([
-    page.waitForURL(targetPrefix),
+    page.waitForURL(targetPrefix, { waitUntil: "domcontentloaded" }),
     page.locator("button").filter({ hasText: label }).first().click(),
   ]);
 }

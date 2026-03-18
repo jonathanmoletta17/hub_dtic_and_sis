@@ -14,6 +14,7 @@ from app.core.session_manager import session_manager
 from app.core.rate_limit import limiter
 from app.services.charger_service import ChargerService
 from app.services.charger_settings_store import read_global_schedule, write_global_schedule
+from app.core.utils.cache_utils import clear_ttl_cache
 from app.services.charger_commands import (
     update_charger_schedule_glpi, update_charger_offline_glpi,
     assign_charger_to_ticket, remove_charger_from_ticket,
@@ -56,6 +57,12 @@ logger = logging.getLogger(__name__)
 service = ChargerService()
 
 CHARGERS_READ_RATE_LIMIT = "240/minute"
+CHARGERS_CACHE_PREFIX = "app.services.charger_service."
+
+
+def _invalidate_chargers_cache(reason: str) -> None:
+    removed = clear_ttl_cache(CHARGERS_CACHE_PREFIX)
+    logger.info("chargers.cache.invalidate reason=%s removed_keys=%s", reason, removed)
 
 
 def _extract_request_id(request: Request) -> str:
@@ -164,6 +171,7 @@ async def update_schedule(
     """Atualiza o horário de expediente de um carregador diretamente no GLPI."""
     try:
         await update_charger_schedule_glpi(glpi_client, charger_id, payload, db=db)
+        _invalidate_chargers_cache("update-schedule")
         return {"success": True, "message": "Expediente sincronizado com o GLPI"}
     except Exception as e:
         logger.error(f"Erro ao atualizar schedule: {e}")
@@ -267,6 +275,7 @@ async def update_offline(
     """Atualiza o status offline de um carregador diretamente no GLPI."""
     try:
         await update_charger_offline_glpi(glpi_client, charger_id, payload, db=db)
+        _invalidate_chargers_cache("update-offline")
         return {"success": True, "message": "Inatividade sincronizada com o GLPI"}
     except Exception as e:
         logger.error(f"Erro ao atualizar offline: {e}")
@@ -294,6 +303,7 @@ async def assign_charger(
     """Atribui um carregador a um ticket nativamente no GLPI."""
     try:
         res = await assign_charger_to_ticket(glpi_client, charger_id, ticket_id, glpi_db=db)
+        _invalidate_chargers_cache("assign")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao atribuir: {e}")
@@ -320,6 +330,7 @@ async def assign_multiple(
         for cid in payload.charger_ids:
             res = await assign_charger_to_ticket(glpi_client, cid, ticket_id, glpi_db=db)
             results.append(res)
+        _invalidate_chargers_cache("assign-multiple")
         return {"success": True, "data": results}
     except Exception as e:
         logger.error(f"Erro ao atribuir multiplos: {e}")
@@ -343,6 +354,7 @@ async def unassign_charger(
     """Remove a atribuição de um carregador a um ticket."""
     try:
         res = await remove_charger_from_ticket(glpi_client, charger_id, ticket_id, glpi_db=db)
+        _invalidate_chargers_cache("unassign")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao remover: {e}")
@@ -364,6 +376,7 @@ async def create_new_charger(
     """Cria um novo carregador (Asset) no GLPI."""
     try:
         res = await create_charger(glpi_client, payload.name, payload.locations_id)
+        _invalidate_chargers_cache("create")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao criar: {e}")
@@ -386,6 +399,7 @@ async def edit_charger(
     """Edita (Renomeia / Realoca) um carregador existente."""
     try:
         res = await update_charger(glpi_client, charger_id, payload.name, payload.locations_id)
+        _invalidate_chargers_cache("update")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao editar: {e}")
@@ -407,6 +421,7 @@ async def remove_charger(
     """Envia o carregador ativo para a lixeira (Soft Delete) no GLPI."""
     try:
         res = await delete_charger(glpi_client, charger_id)
+        _invalidate_chargers_cache("delete")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao remover: {e}")
@@ -428,6 +443,7 @@ async def restore_charger(
     """Restaura o carregador da lixeira (is_deleted=0) no GLPI."""
     try:
         res = await reactivate_charger(glpi_client, charger_id)
+        _invalidate_chargers_cache("reactivate")
         return {"success": True, "data": res}
     except Exception as e:
         logger.error(f"Erro ao reativar: {e}")
@@ -470,7 +486,7 @@ async def batch_update(
                     item_result["updates"].append({"type": "offline", "success": False, "error": str(e)})
             
             results.append(item_result)
-        
+        _invalidate_chargers_cache("batch-update")
         return {"success": True, "results": results}
     except Exception as e:
         logger.error(f"Erro no batch action: {e}")

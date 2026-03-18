@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   mapCategoriesResponseDto,
   mapLocationsResponseDto,
+  mapStatesResponseDto,
   mapTechniciansResponseDto,
 } from "./lookups";
 
@@ -49,6 +50,35 @@ describe("lookup mappers", () => {
         name: "Carlos",
         login: "carlos",
         label: "Carlos",
+      },
+    ]);
+  });
+
+  it("disambiguates duplicate state labels by id", () => {
+    expect(
+      mapStatesResponseDto({
+        context: "dtic",
+        states: [
+          { id: 4, name: "2024" },
+          { id: 5, name: "2024" },
+          { id: 1, name: "Ativo" },
+        ],
+      }),
+    ).toEqual([
+      {
+        id: 4,
+        name: "2024",
+        label: "2024 (#4)",
+      },
+      {
+        id: 5,
+        name: "2024",
+        label: "2024 (#5)",
+      },
+      {
+        id: 1,
+        name: "Ativo",
+        label: "Ativo",
       },
     ]);
   });

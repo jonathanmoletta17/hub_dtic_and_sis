@@ -155,7 +155,7 @@ async def get_ranking(
     date_to: str | None = Query(default=None),
     department: str | None = Query(default=None),
     group_ids: str | None = Query(default=None, description="IDs separados por virgula: '21,22'"),
-    limit: int = Query(default=10, ge=1, le=50),
+    limit: int | None = Query(default=None, ge=1),
     _identity: dict = Depends(require_analytics_access),
     db: AsyncSession = Depends(get_db),
 ):

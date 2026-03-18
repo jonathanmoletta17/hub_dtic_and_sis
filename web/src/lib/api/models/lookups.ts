@@ -11,3 +11,10 @@ export interface TechnicianOption {
   login: string;
   label: string;
 }
+
+export interface UserOption {
+  id: number;
+  name: string;
+  login: string;
+  label: string;
+}

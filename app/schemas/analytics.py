@@ -51,7 +51,7 @@ class AnalyticsRankingItem(BaseModel):
 class AnalyticsRankingResponse(BaseModel):
     context: str
     filters: AnalyticsFilters
-    limit: int
+    limit: int | None
     data: list[AnalyticsRankingItem]
 
 

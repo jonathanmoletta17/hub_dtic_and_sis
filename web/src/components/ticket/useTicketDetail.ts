@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { TicketTimelineEntry as TimelineEntry } from "@/lib/api/models/ticket-detail";
 import {
@@ -16,6 +16,8 @@ import {
 } from "@/lib/api/ticketWorkflowService";
 import type { TicketDetail } from "@/lib/api/types";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLiveDataRefresh } from "@/hooks/useLiveDataRefresh";
+import { POLL_INTERVALS } from "@/lib/realtime/polling";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -49,11 +51,15 @@ export function useTicketDetail(ticketId: number, context: string) {
   const [technicianUserId, setTechnicianUserId] = useState<number | null>(null);
   const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const hasLoadedOnceRef = useRef(false);
 
-  const loadTicketData = useCallback(async () => {
-    setLoading(true);
+  const loadTicketData = useCallback(async (options?: { silent?: boolean }) => {
+    const isInitialLoad = !hasLoadedOnceRef.current;
+    if (isInitialLoad) setLoading(true);
+    else if (!options?.silent) setRefreshing(true);
     setError(null);
     try {
       const detail = await fetchTicketWorkflowDetail(context, ticketId);
@@ -63,18 +69,30 @@ export function useTicketDetail(ticketId: number, context: string) {
       setTechnicianName(detail.technicianName);
       setTechnicianUserId(detail.technicianUserId);
       setGroupName(detail.groupName);
+      hasLoadedOnceRef.current = true;
     } catch (err) {
       setError(getErrorMessage(err, "Erro ao carregar dados do ticket."));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [context, ticketId]);
 
   useEffect(() => {
     if (ticketId) {
+      hasLoadedOnceRef.current = false;
       void loadTicketData();
     }
   }, [ticketId, loadTicketData]);
+
+  useLiveDataRefresh({
+    context,
+    domains: ["tickets", "dashboard", "analytics", "search", "user", "chargers"],
+    onRefresh: () => loadTicketData({ silent: true }),
+    enabled: Boolean(ticketId),
+    pollIntervalMs: POLL_INTERVALS.ticketDetail,
+    minRefreshGapMs: 750,
+  });
 
   const handleAddFollowup = async (newMessage: string) => {
     if (!newMessage.trim()) {
@@ -88,7 +106,7 @@ export function useTicketDetail(ticketId: number, context: string) {
         user_id: currentUserId,
         is_private: false,
       });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao adicionar acompanhamento: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -100,7 +118,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     setActionLoading("assume");
     try {
       await assumeTicket(context, ticketId, { technician_user_id: currentUserId });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao assumir ticket: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -119,7 +137,7 @@ export function useTicketDetail(ticketId: number, context: string) {
         content: solutionText.trim(),
         user_id: currentUserId,
       });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao adicionar solução: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -131,7 +149,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     setActionLoading("pending");
     try {
       await setTicketPending(context, ticketId);
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao colocar em pendente: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -143,7 +161,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     setActionLoading("resume");
     try {
       await resumeTicket(context, ticketId);
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao retomar atendimento: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -155,7 +173,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     setActionLoading("return");
     try {
       await returnTicketToQueue(context, ticketId);
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao devolver à fila: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -167,7 +185,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     setActionLoading("reopen");
     try {
       await reopenTicket(context, ticketId);
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao reabrir ticket: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -181,7 +199,7 @@ export function useTicketDetail(ticketId: number, context: string) {
       await approveTicketSolution(context, ticketId, {
         comment: comment.trim() || undefined,
       });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao aprovar solução: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -195,7 +213,7 @@ export function useTicketDetail(ticketId: number, context: string) {
       await rejectTicketSolution(context, ticketId, {
         comment: comment.trim() || undefined,
       });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao recusar solução: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -209,7 +227,7 @@ export function useTicketDetail(ticketId: number, context: string) {
       await transferTicket(context, ticketId, {
         technician_user_id: newTechnicianId,
       });
-      await loadTicketData();
+      await loadTicketData({ silent: true });
     } catch (err) {
       alert(`Erro ao transferir ticket: ${getErrorMessage(err, "Erro interno.")}`);
     } finally {
@@ -225,6 +243,7 @@ export function useTicketDetail(ticketId: number, context: string) {
     technicianUserId,
     groupName,
     loading,
+    refreshing,
     error,
     actionLoading,
     currentUserId,

@@ -11,9 +11,20 @@ import type {
 } from "./contracts/ticket-detail";
 import { mapTicketWorkflowDetailResponseDto } from "./mappers/ticket-detail";
 import type { TicketWorkflowDetail } from "./models/ticket-detail";
+import { publishLiveDataEvent } from "@/lib/realtime/liveDataBus";
 
 function workflowPath(context: string, ticketId: number, action: string): string {
   return buildApiPath(context, `tickets/${ticketId}/${action}`);
+}
+
+function notifyTicketMutation(context: string, ticketId: number, action: string): void {
+  publishLiveDataEvent({
+    context,
+    domains: ["tickets", "dashboard", "analytics", "search", "user", "chargers"],
+    source: "mutation",
+    reason: action,
+    ticketId,
+  });
 }
 
 export function fetchTicketWorkflowDetail(context: string, ticketId: number): Promise<TicketWorkflowDetail> {
@@ -29,7 +40,10 @@ export function addTicketFollowup(
   return apiPost<TicketActionResponseDto, TicketFollowupCreateRequestDto>(
     workflowPath(context, ticketId, "followups"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "followup");
+    return response;
+  });
 }
 
 export function addTicketSolution(
@@ -40,7 +54,10 @@ export function addTicketSolution(
   return apiPost<TicketActionResponseDto, TicketSolutionCreateRequestDto>(
     workflowPath(context, ticketId, "solutions"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "solution");
+    return response;
+  });
 }
 
 export function assumeTicket(
@@ -51,7 +68,10 @@ export function assumeTicket(
   return apiPost<TicketActionResponseDto, TicketAssumeRequestDto>(
     workflowPath(context, ticketId, "assume"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "assume");
+    return response;
+  });
 }
 
 export function setTicketPending(
@@ -62,7 +82,10 @@ export function setTicketPending(
   return apiPost<TicketActionResponseDto, TicketStatusActionRequestDto>(
     workflowPath(context, ticketId, "pending"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "pending");
+    return response;
+  });
 }
 
 export function resumeTicket(
@@ -73,7 +96,10 @@ export function resumeTicket(
   return apiPost<TicketActionResponseDto, TicketStatusActionRequestDto>(
     workflowPath(context, ticketId, "resume"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "resume");
+    return response;
+  });
 }
 
 export function returnTicketToQueue(
@@ -84,7 +110,10 @@ export function returnTicketToQueue(
   return apiPost<TicketActionResponseDto, TicketStatusActionRequestDto>(
     workflowPath(context, ticketId, "return-to-queue"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "return-to-queue");
+    return response;
+  });
 }
 
 export function reopenTicket(
@@ -95,7 +124,10 @@ export function reopenTicket(
   return apiPost<TicketActionResponseDto, TicketStatusActionRequestDto>(
     workflowPath(context, ticketId, "reopen"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "reopen");
+    return response;
+  });
 }
 
 export function transferTicket(
@@ -106,7 +138,10 @@ export function transferTicket(
   return apiPost<TicketActionResponseDto, TicketTransferRequestDto>(
     workflowPath(context, ticketId, "transfer"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "transfer");
+    return response;
+  });
 }
 
 export function approveTicketSolution(
@@ -117,7 +152,10 @@ export function approveTicketSolution(
   return apiPost<TicketActionResponseDto, TicketSolutionApprovalRequestDto>(
     workflowPath(context, ticketId, "solution-approval/approve"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "solution-approve");
+    return response;
+  });
 }
 
 export function rejectTicketSolution(
@@ -128,5 +166,8 @@ export function rejectTicketSolution(
   return apiPost<TicketActionResponseDto, TicketSolutionApprovalRequestDto>(
     workflowPath(context, ticketId, "solution-approval/reject"),
     payload,
-  );
+  ).then((response) => {
+    notifyTicketMutation(context, ticketId, "solution-reject");
+    return response;
+  });
 }

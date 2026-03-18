@@ -98,7 +98,7 @@ class Settings(BaseSettings):
         alias="AUTH_FAIL_OPEN_ON_GLPI_UNAVAILABLE",
     )
     cors_origins_raw: str = Field(
-        default="http://localhost:3000,http://hub.local:8080,http://hub.local:3000,http://api.hub.local:8080,http://carregadores.local:8080,http://carregadores.local:3000,http://api.carregadores.local:8080",
+        default="http://localhost:3000,http://hub.local:8080,http://hub.local:3001,http://hub.local:3000,http://api.hub.local:8080,http://carregadores.local:8080,http://carregadores.local:3001,http://carregadores.local:3000,http://api.carregadores.local:8080",
         alias="CORS_ORIGINS",
     )
     local_state_db_path: Path = Field(

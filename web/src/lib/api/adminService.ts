@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPost, buildApiPath, withQuery } from './client';
+import { publishLiveDataEvent } from "@/lib/realtime/liveDataBus";
 
 export interface AdminUser {
     id: number;
@@ -57,10 +58,17 @@ export async function assignModuleToUser(
     groupId: number,
     targetContext?: string
 ): Promise<AssignGroupResponse> {
-    return apiPost<AssignGroupResponse, { group_id: number }>(
+    const response = await apiPost<AssignGroupResponse, { group_id: number }>(
         withQuery(buildApiPath(context, `admin/users/${userId}/groups`), { target_context: targetContext }),
         { group_id: groupId },
     );
+    publishLiveDataEvent({
+        context: targetContext || context,
+        domains: ["permissions"],
+        source: "mutation",
+        reason: "permissions-assign",
+    });
+    return response;
 }
 
 /**
@@ -72,7 +80,14 @@ export async function revokeModuleFromUser(
     groupId: number,
     targetContext?: string
 ): Promise<RevokeGroupResponse> {
-    return apiDelete<RevokeGroupResponse>(
+    const response = await apiDelete<RevokeGroupResponse>(
         withQuery(buildApiPath(context, `admin/users/${userId}/groups/${groupId}`), { target_context: targetContext }),
     );
+    publishLiveDataEvent({
+        context: targetContext || context,
+        domains: ["permissions"],
+        source: "mutation",
+        reason: "permissions-revoke",
+    });
+    return response;
 }

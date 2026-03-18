@@ -14,6 +14,7 @@ import {
 import type { CatalogGroup } from "./models/formcreator";
 import { fetchLookupItems as fetchLookupOptions } from "./lookupService";
 import type { FormSchema } from "@/types/form-schema";
+import { publishLiveDataEvent } from "@/lib/realtime/liveDataBus";
 
 export type { CatalogGroup, CatalogItem } from "./models/formcreator";
 
@@ -61,5 +62,13 @@ export function submitFormAnswers(
   return apiPost<SubmitFormResponseDto, { answers: Record<string, unknown> }>(
     buildApiPath(context, `domain/formcreator/forms/${formId}/submit`),
     { answers },
-  );
+  ).then((response) => {
+    publishLiveDataEvent({
+      context,
+      domains: ["tickets", "dashboard", "analytics", "search", "user", "chargers"],
+      source: "mutation",
+      reason: "form-submit",
+    });
+    return response;
+  });
 }

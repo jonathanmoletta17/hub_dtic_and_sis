@@ -20,8 +20,18 @@ export interface KBArticleSummaryDto {
   view_count: number;
 }
 
+export interface KBArticleAttachmentDto {
+  id: number;
+  filename: string;
+  mime_type: string;
+  size: number | null;
+  date_upload: IsoDateTimeString | null;
+  url: string;
+}
+
 export interface KBArticleDetailDto extends KBArticleSummaryDto {
   answer: string;
+  attachments?: KBArticleAttachmentDto[];
 }
 
 export interface KBListResponseDto {

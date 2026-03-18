@@ -40,7 +40,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
   BarChart3,
 };
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  collapsed?: boolean;
+}
+
+export function AppSidebar({ collapsed = false }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
@@ -77,7 +81,14 @@ export function AppSidebar() {
   }
 
   return (
-    <aside className="w-16 lg:w-56 border-r border-white/[0.06] bg-surface-1/80 backdrop-blur-sm flex flex-col py-6 shrink-0">
+    <aside
+      className={`${
+        collapsed
+          ? "w-0 overflow-hidden border-r-0 py-0"
+          : "w-16 lg:w-56 border-r border-white/[0.06] py-6"
+      } bg-surface-1/80 backdrop-blur-sm flex flex-col shrink-0 transition-all duration-300`}
+      aria-hidden={collapsed}
+    >
       {/* ═══ Header: Identidade Institucional ═══ */}
       <div className="px-3 lg:px-5 mb-8 flex items-center gap-3">
         <div className="w-10 h-10 lg:w-11 lg:h-11 relative flex items-center justify-center shrink-0">

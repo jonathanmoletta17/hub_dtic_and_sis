@@ -129,3 +129,13 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(51, 65, 85, 0.6) rgba(15, 23, 42, 0.3);
 }
+
+/* Hide scrollbar while preserving scroll behavior */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

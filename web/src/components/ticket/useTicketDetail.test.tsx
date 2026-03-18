@@ -114,7 +114,9 @@ describe("useTicketDetail", () => {
     expect(result.current.canActOnTicket).toBe(true);
 
     await act(async () => {
-      await result.current.handleAddFollowup("Novo retorno");
+      const pending = result.current.handleAddFollowup("Novo retorno");
+      expect(result.current.loading).toBe(false);
+      await pending;
     });
 
     expect(ticketHookMocks.addTicketFollowupMock).toHaveBeenCalledWith("dtic", 55, {

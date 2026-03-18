@@ -61,7 +61,7 @@ export interface AnalyticsTrendsResponseDto {
 export interface AnalyticsRankingResponseDto {
   context: string;
   filters: AnalyticsFiltersDto;
-  limit: number;
+  limit: number | null;
   data: AnalyticsRankingItemDto[];
 }
 

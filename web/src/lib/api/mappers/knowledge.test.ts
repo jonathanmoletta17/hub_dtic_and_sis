@@ -78,6 +78,16 @@ describe("knowledge mappers", () => {
         is_faq: false,
         view_count: 0,
         answer: "<p>Procedimento</p>",
+        attachments: [
+          {
+            id: 88,
+            filename: "vpn.pdf",
+            mime_type: "application/pdf",
+            size: 1024,
+            date_upload: null,
+            url: "/api/v1/dtic/knowledge/articles/5/attachments/88/download",
+          },
+        ],
       },
     });
 
@@ -92,6 +102,16 @@ describe("knowledge mappers", () => {
       is_faq: false,
       view_count: 0,
       answer: "<p>Procedimento</p>",
+      attachments: [
+        {
+          id: 88,
+          filename: "vpn.pdf",
+          mime_type: "application/pdf",
+          size: 1024,
+          date_upload: null,
+          url: "/api/v1/dtic/knowledge/articles/5/attachments/88/download",
+        },
+      ],
     });
   });
 });

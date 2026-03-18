@@ -6,7 +6,7 @@ Consultas SQL diretas na base GLPI para artigos da KB (read-only, CQRS).
 import logging
 import re
 from typing import Optional
-from html import escape
+from html import escape, unescape
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
@@ -16,11 +16,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.datetime_contract import serialize_datetime
 
 logger = logging.getLogger(__name__)
+_DOCUMENT_FILESIZE_AVAILABLE: Optional[bool] = None
 
 
 _DROP_CONTENT_TAGS = re.compile(
     r"<(?:script|style|iframe|object|embed|svg|math)[^>]*>.*?</(?:script|style|iframe|object|embed|svg|math)\s*>",
     flags=re.IGNORECASE | re.DOTALL,
+)
+_ENCODED_HTML_TAGS = re.compile(
+    r"(?i)(?:&lt;|&#0*60;|&#x0*3c;)\s*/?\s*(?:a|b|blockquote|br|code|div|em|h[1-6]|hr|i|img|li|ol|p|pre|span|strong|table|tbody|td|th|thead|tr|u|ul)\b"
 )
 _VOID_TAGS = {"br", "hr", "img"}
 _ALLOWED_TAGS: dict[str, set[str]] = {
@@ -80,6 +84,27 @@ def _sanitize_url(value: str, glpi_base_url: str = "", *, for_image: bool = Fals
         return None
 
     return candidate
+
+
+def _decode_entity_encoded_html(html: str) -> str:
+    """
+    Decodifica documentos HTML armazenados como entidades (&lt;div&gt; / &#60;div&#62;).
+
+    Alguns artigos copiados do Office/Outlook chegam ao GLPI com o markup inteiro
+    entity-escaped. Sem essa etapa, o parser trata tudo como texto e o frontend
+    passa a exibir as tags literalmente.
+    """
+    if not html or len(_ENCODED_HTML_TAGS.findall(html)) < 2:
+        return html
+
+    decoded = html
+    for _ in range(2):
+        candidate = unescape(decoded)
+        if candidate == decoded:
+            break
+        decoded = candidate
+
+    return decoded
 
 
 class _SafeHTMLParser(HTMLParser):
@@ -203,6 +228,7 @@ def _sanitize_html(html: str, glpi_base_url: str = "") -> str:
     if not html:
         return ""
 
+    html = _decode_entity_encoded_html(html)
     html = _DROP_CONTENT_TAGS.sub("", html)
     parser = _SafeHTMLParser(glpi_base_url)
     parser.feed(html)
@@ -338,6 +364,226 @@ async def search_kb_articles(
         return {"total": 0, "articles": []}
 
 
+def _map_kb_attachment(row_mapping: dict) -> dict:
+    attachment = {
+        "id": int(row_mapping.get("id")),
+        "filename": row_mapping.get("filename") or f"anexo-{row_mapping.get('id')}",
+        "mime_type": row_mapping.get("mime_type") or "application/octet-stream",
+        "size": row_mapping.get("size"),
+        "date_upload": None,
+    }
+    if row_mapping.get("date_upload"):
+        attachment["date_upload"] = serialize_datetime(row_mapping["date_upload"])
+    return attachment
+
+
+async def _has_document_filesize_column(db: AsyncSession) -> bool:
+    """
+    Detecta se a coluna glpi_documents.filesize existe nesta instalacao.
+
+    Algumas versoes do GLPI nao possuem essa coluna; nesse caso o tamanho e
+    retornado como null para evitar erro SQL de coluna inexistente.
+    """
+    global _DOCUMENT_FILESIZE_AVAILABLE
+    if _DOCUMENT_FILESIZE_AVAILABLE is not None:
+        return _DOCUMENT_FILESIZE_AVAILABLE
+
+    try:
+        sql = text(
+            """
+            SELECT 1
+            FROM information_schema.columns
+            WHERE LOWER(table_name) = 'glpi_documents'
+              AND LOWER(column_name) = 'filesize'
+            LIMIT 1
+            """
+        )
+        result = await db.execute(sql)
+        _DOCUMENT_FILESIZE_AVAILABLE = result.scalar() is not None
+    except Exception as exc:
+        logger.warning(
+            "Nao foi possivel detectar coluna glpi_documents.filesize, "
+            "seguindo sem tamanho de anexo: %s",
+            exc,
+        )
+        _DOCUMENT_FILESIZE_AVAILABLE = False
+
+    return _DOCUMENT_FILESIZE_AVAILABLE
+
+
+async def get_kb_article_attachments(db: AsyncSession, article_id: int) -> list[dict]:
+    """Busca anexos vinculados a um artigo da KB."""
+    try:
+        has_filesize = await _has_document_filesize_column(db)
+        size_expr = "COALESCE(d.filesize, 0)" if has_filesize else "NULL"
+        sql = text(
+            f"""
+            SELECT
+                d.id,
+                COALESCE(NULLIF(d.filename, ''), NULLIF(d.name, ''), CONCAT('documento-', d.id)) AS filename,
+                COALESCE(NULLIF(d.mime, ''), 'application/octet-stream') AS mime_type,
+                {size_expr} AS size,
+                COALESCE(d.date_creation, d.date_mod) AS date_upload
+            FROM glpi_documents_items di
+            INNER JOIN glpi_documents d
+                ON d.id = di.documents_id
+            WHERE di.itemtype = 'KnowbaseItem'
+              AND di.items_id = :article_id
+              AND COALESCE(d.is_deleted, 0) = 0
+            ORDER BY COALESCE(d.date_creation, d.date_mod) DESC, d.id DESC
+            """
+        )
+        result = await db.execute(sql, {"article_id": article_id})
+        return [_map_kb_attachment(dict(row._mapping)) for row in result.fetchall()]
+    except Exception as e:
+        logger.error(
+            "Erro ao buscar anexos do artigo KB %s: %s",
+            article_id,
+            e,
+            exc_info=True,
+        )
+        return []
+
+
+async def get_kb_document_metadata(db: AsyncSession, document_id: int) -> Optional[dict]:
+    """Busca metadados de um documento do GLPI por ID."""
+    try:
+        has_filesize = await _has_document_filesize_column(db)
+        size_expr = "COALESCE(d.filesize, 0)" if has_filesize else "NULL"
+        sql = text(
+            f"""
+            SELECT
+                d.id,
+                COALESCE(NULLIF(d.filename, ''), NULLIF(d.name, ''), CONCAT('documento-', d.id)) AS filename,
+                COALESCE(NULLIF(d.mime, ''), 'application/octet-stream') AS mime_type,
+                {size_expr} AS size,
+                COALESCE(d.date_creation, d.date_mod) AS date_upload
+            FROM glpi_documents d
+            WHERE d.id = :document_id
+              AND COALESCE(d.is_deleted, 0) = 0
+            LIMIT 1
+            """
+        )
+        result = await db.execute(sql, {"document_id": document_id})
+        row = result.fetchone()
+        if not row:
+            return None
+        return _map_kb_attachment(dict(row._mapping))
+    except Exception as e:
+        logger.error(
+            "Erro ao buscar metadados do documento %s: %s",
+            document_id,
+            e,
+            exc_info=True,
+        )
+        return None
+
+
+async def get_kb_attachment(db: AsyncSession, article_id: int, document_id: int) -> Optional[dict]:
+    """Busca um anexo específico vinculado a um artigo da KB."""
+    try:
+        has_filesize = await _has_document_filesize_column(db)
+        size_expr = "COALESCE(d.filesize, 0)" if has_filesize else "NULL"
+        sql = text(
+            f"""
+            SELECT
+                d.id,
+                COALESCE(NULLIF(d.filename, ''), NULLIF(d.name, ''), CONCAT('documento-', d.id)) AS filename,
+                COALESCE(NULLIF(d.mime, ''), 'application/octet-stream') AS mime_type,
+                {size_expr} AS size,
+                COALESCE(d.date_creation, d.date_mod) AS date_upload
+            FROM glpi_documents_items di
+            INNER JOIN glpi_documents d
+                ON d.id = di.documents_id
+            WHERE di.itemtype = 'KnowbaseItem'
+              AND di.items_id = :article_id
+              AND d.id = :document_id
+              AND COALESCE(d.is_deleted, 0) = 0
+            LIMIT 1
+            """
+        )
+        result = await db.execute(
+            sql,
+            {
+                "article_id": article_id,
+                "document_id": document_id,
+            },
+        )
+        row = result.fetchone()
+        if not row:
+            return None
+        return _map_kb_attachment(dict(row._mapping))
+    except Exception as e:
+        logger.error(
+            "Erro ao buscar anexo %s do artigo KB %s: %s",
+            document_id,
+            article_id,
+            e,
+            exc_info=True,
+        )
+        return None
+
+
+async def get_kb_attachment_relation_ids(
+    db: AsyncSession,
+    article_id: int,
+    document_id: int,
+) -> list[int]:
+    """Retorna IDs de relacionamento Document_Item para um anexo de artigo KB."""
+    try:
+        sql = text(
+            """
+            SELECT di.id
+            FROM glpi_documents_items di
+            WHERE di.itemtype = 'KnowbaseItem'
+              AND di.items_id = :article_id
+              AND di.documents_id = :document_id
+            ORDER BY di.id
+            """
+        )
+        result = await db.execute(
+            sql,
+            {
+                "article_id": article_id,
+                "document_id": document_id,
+            },
+        )
+        rows = result.fetchall()
+        return [int(row._mapping["id"]) for row in rows]
+    except Exception as e:
+        logger.error(
+            "Erro ao buscar relacoes de anexo %s no artigo KB %s: %s",
+            document_id,
+            article_id,
+            e,
+            exc_info=True,
+        )
+        return []
+
+
+async def count_document_relations(db: AsyncSession, document_id: int) -> int:
+    """Conta quantas relacoes um documento possui em glpi_documents_items."""
+    try:
+        sql = text(
+            """
+            SELECT COUNT(*) AS total
+            FROM glpi_documents_items di
+            WHERE di.documents_id = :document_id
+            """
+        )
+        result = await db.execute(sql, {"document_id": document_id})
+        total = result.scalar()
+        return int(total or 0)
+    except Exception as e:
+        logger.error(
+            "Erro ao contar relacoes do documento %s: %s",
+            document_id,
+            e,
+            exc_info=True,
+        )
+        return 0
+
+
 async def get_kb_article(
     db: AsyncSession,
     article_id: int,
@@ -380,6 +626,7 @@ async def get_kb_article(
         if article.get("date_mod"):
             article["date_mod"] = serialize_datetime(article["date_mod"])
         article["answer"] = _sanitize_html(article.get("answer", ""), glpi_base_url)
+        article["attachments"] = await get_kb_article_attachments(db, article_id)
         return article
 
     except Exception as e:

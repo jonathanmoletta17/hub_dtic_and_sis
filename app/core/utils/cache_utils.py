@@ -10,6 +10,24 @@ from typing import Any, Dict, Tuple, Optional
 
 _cache_store: Dict[str, Tuple[Any, float]] = {}
 
+
+def clear_ttl_cache(prefix: Optional[str] = None) -> int:
+    """
+    Remove entradas do cache TTL.
+    - prefix=None: limpa todo o cache.
+    - prefix="pkg.mod.fn": limpa somente chaves iniciadas pelo prefixo.
+    Retorna quantidade de chaves removidas.
+    """
+    if prefix is None:
+        removed = len(_cache_store)
+        _cache_store.clear()
+        return removed
+
+    keys = [key for key in _cache_store if key.startswith(prefix)]
+    for key in keys:
+        _cache_store.pop(key, None)
+    return len(keys)
+
 def ttl_cache(ttl_seconds: int, ignore_args: Optional[list[int]] = None):
     """
     Decorator de cache com TTL.

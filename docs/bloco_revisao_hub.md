@@ -1,3 +1,5 @@
+> Historical note: this document reflects an earlier operating model and may mention NPM as if it were the active proxy. For the current runtime and network contract, use [network-availability-consolidated-diagnosis.md](/home/jonathan-moletta/projects/tensor-aurora/docs/network-availability-consolidated-diagnosis.md).
+
 Hub DTIC & SIS  |  Protocolo Operacional Antigravity  —  v1.0  |  Março 2026
 
 HUB DTIC & SIS

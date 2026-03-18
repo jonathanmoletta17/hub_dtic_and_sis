@@ -26,31 +26,43 @@ test.describe("Hub canonical smoke", () => {
     await selectWorkspace(page, "dtic");
 
     await expectApiResponse(page, "/api/v1/dtic/db/stats", async () => {
-      await page.goto("/dtic/dashboard", { waitUntil: "networkidle" });
+      await page.goto("/dtic/dashboard", { waitUntil: "domcontentloaded" });
     });
     await expect(page).toHaveURL(/\/dtic\/dashboard$/);
 
-    await page.goto("/dtic/search", { waitUntil: "networkidle" });
+    await page.goto("/dtic/search", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/dtic\/search$/);
 
+    const hasInventoryMenu = (await page.getByRole("button", { name: /Invent[aá]rio/i }).count()) > 0;
+    if (hasInventoryMenu) {
+      await expectApiResponse(page, "/api/v1/dtic/inventory/summary", async () => {
+        await page.goto("/dtic/inventario", { waitUntil: "domcontentloaded" });
+      });
+      await expect(page.getByText(/Gestão patrimonial do DTIC/i)).toBeVisible();
+    } else {
+      await page.goto("/dtic/inventario", { waitUntil: "domcontentloaded" });
+      await expect(page.getByText(/M[oó]dulo Restrito|Acesso Negado/i)).toBeVisible();
+    }
+    await expect(page).toHaveURL(/\/dtic\/inventario$/);
+
     await expectApiResponse(page, "/api/v1/dtic/knowledge/articles", async () => {
-      await page.goto("/dtic/knowledge", { waitUntil: "networkidle" });
+      await page.goto("/dtic/knowledge", { waitUntil: "domcontentloaded" });
     });
     await expect(page).toHaveURL(/\/dtic\/knowledge$/);
 
-    await page.goto("/selector", { waitUntil: "networkidle" });
-    await page.reload({ waitUntil: "networkidle" });
+    await page.goto("/selector", { waitUntil: "domcontentloaded" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     await selectWorkspace(page, "sis");
 
     await expectApiResponse(page, "/api/v1/sis/db/stats", async () => {
-      await page.goto("/sis/dashboard", { waitUntil: "networkidle" });
+      await page.goto("/sis/dashboard", { waitUntil: "domcontentloaded" });
     });
     await expect(page).toHaveURL(/\/sis\/dashboard$/);
 
     await Promise.all([
       page.waitForResponse((response) => response.url().startsWith(new URL("/api/v1/sis/metrics/chargers", baseURL).toString())),
       page.waitForResponse((response) => response.url().startsWith(new URL("/api/v1/sis/chargers/kanban", baseURL).toString())),
-      page.goto("/sis/gestao-carregadores", { waitUntil: "networkidle" }),
+      page.goto("/sis/gestao-carregadores", { waitUntil: "domcontentloaded" }),
     ]);
     await expect(page).toHaveURL(/\/sis\/gestao-carregadores$/);
 

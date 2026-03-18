@@ -23,6 +23,8 @@ import {
 import { logoutApi } from "../../../lib/api/glpiService";
 import { ContextGuard } from "@/components/auth/ContextGuard";
 
+const GLPI_MUTATION_REFETCH_DELAY_MS = 700;
+
 export default function GestaoCarregadoresPage() {
   const { context } = useParams() as { context: string };
   return (
@@ -91,9 +93,12 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
     setOperationError(null);
     try {
       await apiDeleteCharger(context, id);
-      refresh();
+      // GLPI pode levar alguns centenas de ms para refletir o soft delete no read model.
+      setTimeout(() => refresh(), GLPI_MUTATION_REFETCH_DELAY_MS);
     } catch (err) {
-      setOperationError(err instanceof Error ? err.message : "Erro ao excluir carregador.");
+      const message = err instanceof Error ? err.message : "Erro ao excluir carregador.";
+      setOperationError(message);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setMutationLoading(false);
     }

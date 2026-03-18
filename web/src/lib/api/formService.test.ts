@@ -4,6 +4,7 @@ const formServiceMocks = vi.hoisted(() => ({
   apiGetMock: vi.fn(),
   apiPostMock: vi.fn(),
   fetchLookupItemsMock: vi.fn(),
+  publishLiveDataEventMock: vi.fn(),
 }));
 
 vi.mock("./client", () => ({
@@ -26,6 +27,10 @@ vi.mock("./lookupService", () => ({
   fetchLookupItems: formServiceMocks.fetchLookupItemsMock,
 }));
 
+vi.mock("@/lib/realtime/liveDataBus", () => ({
+  publishLiveDataEvent: formServiceMocks.publishLiveDataEventMock,
+}));
+
 import { fetchResolvedFormSchema, fetchServiceCatalog, submitFormAnswers } from "./formService";
 
 describe("formService", () => {
@@ -33,6 +38,7 @@ describe("formService", () => {
     formServiceMocks.apiGetMock.mockReset();
     formServiceMocks.apiPostMock.mockReset();
     formServiceMocks.fetchLookupItemsMock.mockReset();
+    formServiceMocks.publishLiveDataEventMock.mockReset();
   });
 
   it("returns a normalized service catalog", async () => {
@@ -139,5 +145,12 @@ describe("formService", () => {
       message: "ok",
       ticket_ids: [55],
     });
+
+    expect(formServiceMocks.publishLiveDataEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: "sis",
+        source: "mutation",
+      }),
+    );
   });
 });

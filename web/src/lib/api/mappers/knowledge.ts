@@ -1,7 +1,20 @@
 import { toIsoDateTimeOrNull } from "@/lib/datetime/iso";
 
-import type { KBArticleDetailDto, KBArticleResponseDto, KBArticleSummaryDto, KBCategoryDto, KBListResponseDto } from "../contracts/knowledge";
-import type { KBArticleDetail, KBArticleSummary, KBCategory, KBListResult } from "../models/knowledge";
+import type {
+  KBArticleAttachmentDto,
+  KBArticleDetailDto,
+  KBArticleResponseDto,
+  KBArticleSummaryDto,
+  KBCategoryDto,
+  KBListResponseDto,
+} from "../contracts/knowledge";
+import type {
+  KBArticleAttachment,
+  KBArticleDetail,
+  KBArticleSummary,
+  KBCategory,
+  KBListResult,
+} from "../models/knowledge";
 
 export function mapKBCategoryDto(dto: KBCategoryDto): KBCategory {
   return {
@@ -27,10 +40,22 @@ export function mapKBArticleSummaryDto(dto: KBArticleSummaryDto): KBArticleSumma
   };
 }
 
+export function mapKBArticleAttachmentDto(dto: KBArticleAttachmentDto): KBArticleAttachment {
+  return {
+    id: dto.id,
+    filename: dto.filename,
+    mime_type: dto.mime_type,
+    size: dto.size,
+    date_upload: toIsoDateTimeOrNull(dto.date_upload),
+    url: dto.url,
+  };
+}
+
 export function mapKBArticleDetailDto(dto: KBArticleDetailDto): KBArticleDetail {
   return {
     ...mapKBArticleSummaryDto(dto),
     answer: dto.answer,
+    attachments: (dto.attachments || []).map(mapKBArticleAttachmentDto),
   };
 }
 

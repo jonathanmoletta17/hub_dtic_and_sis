@@ -15,6 +15,8 @@ import {
     ModuleCatalogItem,
 } from '@/lib/api/adminService';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLiveDataRefresh } from '@/hooks/useLiveDataRefresh';
+import { POLL_INTERVALS } from '@/lib/realtime/polling';
 
 interface MatrixProps {
     context: string;
@@ -892,6 +894,7 @@ export function PermissionsMatrix({ context }: MatrixProps) {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [moduleCatalog, setModuleCatalog] = useState<ModuleCatalogItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<TabId>('usuarios');
@@ -902,9 +905,12 @@ export function PermissionsMatrix({ context }: MatrixProps) {
     const currentUserRole = useAuthStore((state) => state.currentUserRole);
     const setActiveContext = useAuthStore((state) => state.setActiveContext);
     const cacheContextSession = useAuthStore((state) => state.cacheContextSession);
+    const hasLoadedOnceRef = useRef(false);
 
     const loadUsers = useCallback(async (): Promise<void> => {
-        setLoading(true);
+        const isInitialLoad = !hasLoadedOnceRef.current;
+        if (isInitialLoad) setLoading(true);
+        else setRefreshing(true);
         setError(null);
         try {
             const [usersData, modulesData] = await Promise.all([
@@ -914,14 +920,30 @@ export function PermissionsMatrix({ context }: MatrixProps) {
             setUsers(usersData);
             setModuleCatalog(modulesData);
             setSelectedUser(prev => prev ? usersData.find(u => u.id === prev.id) || null : null);
+            hasLoadedOnceRef.current = true;
         } catch (err) {
             setError(getErrorMessage(err, 'Erro ao carregar dados de permissões.'));
+            if (!hasLoadedOnceRef.current) {
+                setUsers([]);
+                setModuleCatalog([]);
+                setSelectedUser(null);
+            }
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     }, [context, viewingContext]);
 
     useEffect(() => { loadUsers(); }, [loadUsers]);
+
+    useLiveDataRefresh({
+        context: viewingContext,
+        domains: ["permissions"],
+        onRefresh: loadUsers,
+        pollIntervalMs: POLL_INTERVALS.permissions,
+        enabled: !selectedUser,
+        minRefreshGapMs: 1_000,
+    });
 
     useEffect(() => {
         if (!currentUserRole || !activeContext) return;
@@ -984,11 +1006,11 @@ export function PermissionsMatrix({ context }: MatrixProps) {
                 </div>
                 <button
                     onClick={loadUsers}
-                    disabled={loading}
+                    disabled={loading || refreshing}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white/[0.05] border border-white/[0.08] text-text-2 rounded-xl hover:bg-white/[0.08] transition-all disabled:opacity-50 text-[13px] font-medium"
                 >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    Atualizar
+                    <RefreshCw className={`w-4 h-4 ${(loading || refreshing) ? 'animate-spin' : ''}`} />
+                    {refreshing ? "Atualizando..." : "Atualizar"}
                 </button>
             </div>
 
@@ -1005,7 +1027,7 @@ export function PermissionsMatrix({ context }: MatrixProps) {
                             <card.icon size={14} className={card.color} />
                             <span className="text-text-3/50 text-[11px] uppercase tracking-wider font-semibold">{card.label}</span>
                         </div>
-                        <p className={`text-2xl font-bold ${card.color}`}>{loading ? '—' : card.value}</p>
+                        <p className={`text-2xl font-bold ${card.color}`}>{loading && users.length === 0 ? '—' : card.value}</p>
                     </div>
                 ))}
             </div>
@@ -1059,7 +1081,7 @@ export function PermissionsMatrix({ context }: MatrixProps) {
 
             {/* Content Area */}
             <div className={`bg-surface-2 border border-white/[0.06] rounded-xl overflow-hidden ${!selectedUser ? 'overflow-y-auto custom-scrollbar max-h-[600px] min-h-[300px]' : 'min-h-[500px]'}`}>
-                {loading && !selectedUser ? (
+                {loading && users.length === 0 && !selectedUser ? (
                     <div className="flex flex-col items-center justify-center py-20 text-text-3/40 gap-3">
                         <Loader2 size={28} className="animate-spin" />
                         <p className="text-sm">Carregando permissões...</p>

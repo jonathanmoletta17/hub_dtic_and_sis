@@ -42,6 +42,16 @@
       "requireApp": "busca"
     },
     {
+      "id": "inventory",
+      "icon": "Landmark",
+      "route": "/inventario",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "inventario"
+    },
+    {
       "id": "knowledge",
       "icon": "Database",
       "route": "/knowledge",

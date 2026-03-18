@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -9,6 +9,8 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { fetchMyTickets } from "@/lib/api/ticketService";
 import type { TicketSummary } from "@/lib/api/types";
+import { useLiveDataRefresh } from "@/hooks/useLiveDataRefresh";
+import { POLL_INTERVALS } from "@/lib/realtime/polling";
 
 const contextData: Record<string, { title: string; subtitle: string; color: string; accentClass: string }> = {
   "dtic": { title: "Chamados", subtitle: "DTIC — Tecnologia da Informação", color: "text-accent-blue", accentClass: "bg-accent-blue" },
@@ -46,6 +48,7 @@ export default function UserTicketsPage() {
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilterType>("all");
@@ -54,10 +57,11 @@ export default function UserTicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [isTruncated, setIsTruncated] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
 
   const userId = currentUserRole?.user_id;
 
-  useEffect(() => {
+  const loadTickets = useCallback(async () => {
     function resolveDateRange(): { dateFrom?: string; dateTo?: string } {
       if (dateFilter === "all") return {};
 
@@ -82,39 +86,60 @@ export default function UserTicketsPage() {
       return { dateFrom: formatDateYmd(dateFrom), dateTo };
     }
 
-    async function load() {
-      if (!userId) {
-        setTickets([]);
-        setTotalRecords(0);
-        setLoading(false);
-        return;
-      }
+    if (!userId) {
+      setTickets([]);
+      setTotalRecords(0);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
 
-      setLoading(true);
-      setError(null);
-      try {
-        const range = resolveDateRange();
-        const result = await fetchMyTickets(context, userId, {
-          ...range,
-          pageSize: 200,
-          maxPages: 50,
-        });
-        setTickets(result.tickets);
-        setTotalRecords(result.total);
-        setIsTruncated(result.tickets.length < result.total);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Erro ao carregar chamados";
-        setError(message);
+    const isInitialLoad = !hasLoadedOnceRef.current;
+    if (isInitialLoad) setLoading(true);
+    else setRefreshing(true);
+    setError(null);
+
+    try {
+      const range = resolveDateRange();
+      const result = await fetchMyTickets(context, userId, {
+        ...range,
+        pageSize: 200,
+        maxPages: 50,
+      });
+      setTickets(result.tickets);
+      setTotalRecords(result.total);
+      setIsTruncated(result.tickets.length < result.total);
+      hasLoadedOnceRef.current = true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao carregar chamados";
+      setError(message);
+      if (!hasLoadedOnceRef.current) {
         setTickets([]);
         setTotalRecords(0);
         setIsTruncated(false);
-      } finally {
-        setLoading(false);
       }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  }, [context, dateFilter, dateFromCustom, dateToCustom, userId]);
 
-    load();
-  }, [context, userId, dateFilter, dateFromCustom, dateToCustom]);
+  useEffect(() => {
+    hasLoadedOnceRef.current = false;
+  }, [context, userId]);
+
+  useEffect(() => {
+    void loadTickets();
+  }, [loadTickets]);
+
+  useLiveDataRefresh({
+    context,
+    domains: ["tickets", "dashboard", "analytics", "user", "search"],
+    onRefresh: loadTickets,
+    enabled: Boolean(userId),
+    pollIntervalMs: POLL_INTERVALS.userTickets,
+    minRefreshGapMs: 900,
+  });
 
   // Filtros
   const filtered = tickets.filter((t) => {
@@ -148,6 +173,12 @@ export default function UserTicketsPage() {
             </p>
           )}
             </div>
+            {refreshing && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-text-3/50">
+                <Loader2 size={12} className="animate-spin" />
+                Atualizando
+              </span>
+            )}
           </header>
 
           {/* Filters */}
@@ -230,7 +261,7 @@ export default function UserTicketsPage() {
 
           {/* Ticket List */}
           <div className="flex-grow min-h-0 overflow-y-auto pr-1" style={{ scrollbarWidth: "none" }}>
-            {loading ? (
+            {loading && tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-text-3/40 gap-3">
                 <Loader2 size={28} className="animate-spin" />
                 <p className="text-sm">Carregando chamados...</p>

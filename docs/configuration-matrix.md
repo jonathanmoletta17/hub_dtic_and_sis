@@ -12,6 +12,7 @@ Define a single source of truth for environment configuration across backend, fr
 | Frontend server-side | Next.js server / Docker | `/web/.env`, `/web/.env.example`, [runtime.ts](/home/jonathan-moletta/projects/tensor-aurora/web/src/lib/config/runtime.ts) | `INTERNAL_API_URL` |
 | Frontend browser-side | Browser | same-origin contract | no public API origin env; browser always uses `/api/v1/*` |
 | Edge proxy | Nginx | [docker-compose.yml](/home/jonathan-moletta/projects/tensor-aurora/docker-compose.yml), [tensor-aurora.conf](/home/jonathan-moletta/projects/tensor-aurora/infra/nginx/conf.d/tensor-aurora.conf) | `hub.local`, `api.hub.local`, alias redirects |
+| Host publish fallback | Windows `iphlpsvc` / `portproxy` | `netsh interface portproxy`, Windows Firewall | fallback `3001 -> 127.0.0.1:8080` when LAN cannot reach `:8080` |
 | Local smoke validation | Windows wrapper / Playwright | [run_hub_smoke_windows.ps1](/home/jonathan-moletta/projects/tensor-aurora/scripts/run_hub_smoke_windows.ps1) | `SMOKE_USERNAME`, `SMOKE_PASSWORD`, optional `SMOKE_BASE_URL` |
 
 ## Canonical environments
@@ -20,7 +21,9 @@ Define a single source of truth for environment configuration across backend, fr
 | --- | --- | --- | --- | --- |
 | Local host | `http://hub.local:8080` | `http://api.hub.local:8080` | `http://localhost:8080` or `http://glpi-backend:8080` in Docker | browser stays same-origin |
 | Docker compose | `http://hub.local:8080` | `http://api.hub.local:8080` | `http://glpi-backend:8080` | edge proxy is mandatory |
+| LAN fallback (Windows host networking) | `http://hub.local:3001` | `http://api.hub.local:8080` | `http://glpi-backend:8080` | use portproxy `3001 -> 127.0.0.1:8080` when LAN cannot reach `:8080` |
 | Legacy aliases | `http://carregadores.local:8080` | `http://api.carregadores.local:8080` | not used internally | redirect-only compatibility |
+| Historical NPM references | not canonical | not canonical | not canonical | treat docs mentioning NPM/81 as legacy unless the runtime was explicitly changed |
 
 ## Rules
 
@@ -31,6 +34,7 @@ Define a single source of truth for environment configuration across backend, fr
    - `/.env.example` when consumed by backend or docker
    - `/web/.env.example` when consumed by frontend server-side
    - this matrix when they affect deployment/runtime topology
+5. Tensor Aurora Compose must be executed from Linux inside WSL, not from `\\wsl.localhost\...` in Windows, to avoid unstable bind mounts for `edge-proxy`.
 
 ## Minimal local set
 
