@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Governança · Mapa</title>
+    <link rel="stylesheet" href="./governanca-v1.css" />
+  </head>
+  <body>
+    <main class="frame">
+      <section class="workspace">
+        <aside class="sidebar">
+          <div class="logo">DTIC</div>
+          <div class="navdot"></div>
+          <div class="navdot active"></div>
+          <div class="navdot"></div>
+          <div class="navdot"></div>
+          <div style="flex:1"></div>
+          <div class="navdot"></div>
+        </aside>
+
+        <section class="main">
+          <header class="topbar">
+            <div class="title-group">
+              <strong>Governança · Mapa</strong>
+              <span>Camada normativa central do módulo, com evidência acoplada em drawer e links para Indicadores, RACI e POPs</span>
+            </div>
+            <div class="actions">
+              <div class="chip">Node · PSI</div>
+              <div class="chip">Busca · segurança</div>
+              <div class="chip">Modo · evidência lateral</div>
+            </div>
+          </header>
+
+          <nav class="subnav">
+            <span class="chip">Resumo Executivo</span>
+            <span class="chip active">Mapa</span>
+            <span class="chip">Indicadores</span>
+            <span class="chip">RACI</span>
+            <span class="chip">POPs</span>
+          </nav>
+
+          <div class="legend">
+            <span class="badge normative">normativo</span>
+            <span class="badge evidence">evidência</span>
+            <span class="badge live">live</span>
+            <span class="legend-line">O mapa não é um dashboard estatístico. O dado live aparece como lastro associado, não como headline do grafo.</span>
+          </div>
+
+          <section class="map-layout" style="flex:1;">
+            <article class="panel" style="display:flex; flex-direction:column;">
+              <div class="panel-title">
+                <div>
+                  <strong>Mapa de alinhamento normativo de TIC e Segurança</strong>
+                  <span>Relação entre federal, estadual, PDTI, PSI, instruções internas e desdobramentos operacionais</span>
+                </div>
+                <span class="badge normative">normativo</span>
+              </div>
+
+              <div class="map-box" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                <div class="map-columns" style="grid-template-columns: 130px 1fr 1fr;">
+                  <div class="node-col">
+                    <div class="tier">Federal</div>
+                    <div class="tier">Estadual</div>
+                    <div class="tier">Casa Civil</div>
+                  </div>
+
+                  <div class="node-col">
+                    <div class="node primary">
+                      <strong>EGD 2024–2027</strong>
+                      <span>Direciona modernização, governança digital e articulação institucional.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node secondary">
+                      <strong>Decreto 57.547/2024</strong>
+                      <span>Materializa o recorte estadual de governança e alinhamento administrativo.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary">
+                      <strong>PDTI</strong>
+                      <span>Consolida prioridades, metas e governança própria da DTIC.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary">
+                      <strong>Manual Operacional</strong>
+                      <span>Traduz a estrutura N1–N4 em processos, responsabilidades e forma de atuação.</span>
+                    </div>
+                  </div>
+
+                  <div class="node-col">
+                    <div class="node primary">
+                      <strong>IN SLTI 4/2020</strong>
+                      <span>Contratações e organização dos serviços de TIC.</span>
+                    </div>
+                    <div class="node primary">
+                      <strong>IN NGD 11</strong>
+                      <span>Diretriz complementar de governo digital e práticas associadas.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node secondary">
+                      <strong>IN SPGG 15/2025</strong>
+                      <span>Continuidade, segurança e execução operacional no contexto estadual.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary" style="box-shadow:0 0 0 2px rgba(47,111,178,0.18);">
+                      <strong>PSI</strong>
+                      <span>Node selecionado. Instrumento estruturante do PDTI voltado à segurança da informação e comunicações.</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary">
+                      <strong>INs internas</strong>
+                      <span>Detalham prática, responsabilidade, controle e execução por tema.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ribbon" style="margin-top:14px;">
+                <span class="accent">Desdobramentos do mapa:</span> `Indicadores` mede, `RACI` responsabiliza e `POPs` operacionaliza. O mapa organiza a rastreabilidade entre essas camadas.
+              </div>
+            </article>
+
+            <aside class="drawer">
+              <div class="panel-title" style="margin-bottom:0;">
+                <div>
+                  <strong>Drawer de evidência</strong>
+                  <span>Node selecionado · PSI</span>
+                </div>
+                <span class="badge evidence">evidência</span>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Resumo do node</strong>
+                <p>Política de Segurança da Informação e Comunicações vinculada ao PDTI e à cadeia normativa da Casa Civil.</p>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Relações diretas</strong>
+                <ul>
+                  <li>PDTI</li>
+                  <li>IN SPGG 15/2025</li>
+                  <li>POPs de incidentes, acessos e continuidade</li>
+                </ul>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Links de aprofundamento</strong>
+                <ul>
+                  <li>Ver POPs associados</li>
+                  <li>Ver RACI dos processos de segurança</li>
+                  <li>Ver KPIs ligados a incidentes e continuidade</li>
+                </ul>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Tipo de lastro</strong>
+                <p>O conteúdo principal deste node é <span class="accent">normativo</span>. A camada operacional entra apenas como sustentação e prova complementar.</p>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Evidência operacional vinculável</strong>
+                <ul>
+                  <li>Tickets classificados como incidente</li>
+                  <li>Tempo de atendimento e reincidência</li>
+                  <li>Registros de followup e execução técnica</li>
+                </ul>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Restrições honestas</strong>
+                <p>Disponibilidade, backups testados e PCN atualizado continuam dependentes de fonte externa. Não aparecem aqui como número calculado.</p>
+              </div>
+
+              <div class="drawer-block">
+                <strong>Próximo clique natural</strong>
+                <p>Se a dúvida for “como medir”, o caminho é `Indicadores`. Se a dúvida for “quem responde”, o caminho é `RACI`. Se a dúvida for “como executar”, o caminho é `POPs`.</p>
+              </div>
+            </aside>
+          </section>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

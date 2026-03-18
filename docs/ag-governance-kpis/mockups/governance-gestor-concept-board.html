@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Governance Gestor Concept Board</title>
+    <style>
+      :root {
+        --bg: #09111b;
+        --panel: rgba(14, 23, 36, 0.86);
+        --panel-soft: rgba(19, 31, 47, 0.78);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #edf3ff;
+        --muted: #9db0c8;
+        --soft: #6d7d94;
+        --blue: #4ea3ff;
+        --cyan: #5be1ff;
+        --amber: #f5be4b;
+        --red: #f46b6b;
+        --green: #44d39d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", "Inter", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(78, 163, 255, 0.18), transparent 32%),
+          radial-gradient(circle at top right, rgba(91, 225, 255, 0.1), transparent 26%),
+          radial-gradient(circle at bottom center, rgba(245, 190, 75, 0.08), transparent 35%),
+          linear-gradient(160deg, #06101a 0%, #0a1522 46%, #08111b 100%);
+      }
+
+      .page {
+        width: 1920px;
+        min-height: 1080px;
+        margin: 0 auto;
+        padding: 40px 44px 34px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        font-size: 11px;
+        color: var(--cyan);
+        opacity: 0.92;
+      }
+
+      h1 {
+        margin: 10px 0 14px;
+        font-size: 38px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 920px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      .legend {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pill strong {
+        color: var(--text);
+      }
+
+      .boards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .board {
+        background: linear-gradient(180deg, rgba(18, 29, 44, 0.84) 0%, rgba(11, 19, 31, 0.92) 100%);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+      }
+
+      .board-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .board-title {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .board-title strong {
+        font-size: 18px;
+        letter-spacing: -0.03em;
+      }
+
+      .board-title span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .badge {
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(78, 163, 255, 0.12);
+        border: 1px solid rgba(78, 163, 255, 0.24);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #c6e1ff;
+      }
+
+      .screen {
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 68px 1fr;
+        gap: 16px;
+        min-height: 760px;
+      }
+
+      .rail {
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .dot {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .dot.active {
+        background: linear-gradient(180deg, rgba(78, 163, 255, 0.3), rgba(78, 163, 255, 0.08));
+        border-color: rgba(78, 163, 255, 0.3);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .canvas {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .topbar {
+        height: 62px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.035);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px 0 18px;
+      }
+
+      .topbar-title strong {
+        display: block;
+        font-size: 15px;
+      }
+
+      .topbar-title span,
+      .clock {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .clock strong {
+        display: block;
+        font-size: 18px;
+        color: var(--text);
+        letter-spacing: -0.04em;
+      }
+
+      .section {
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--panel-soft);
+        padding: 14px;
+      }
+
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .section-title strong {
+        font-size: 13px;
+      }
+
+      .section-title span {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat-card {
+        min-height: 92px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .stat-card small {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .stat-card strong {
+        font-size: 24px;
+        letter-spacing: -0.05em;
+      }
+
+      .stat-card em {
+        font-style: normal;
+        font-size: 11px;
+        color: var(--soft);
+      }
+
+      .tone-blue { border-top: 2px solid var(--blue); }
+      .tone-amber { border-top: 2px solid var(--amber); }
+      .tone-red { border-top: 2px solid var(--red); }
+      .tone-green { border-top: 2px solid var(--green); }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 12px;
+      }
+
+      .grid-2.equal {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .placeholder-chart {
+        height: 220px;
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(78, 163, 255, 0.06), rgba(78, 163, 255, 0.01)),
+          rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(78, 163, 255, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .placeholder-chart::before,
+      .placeholder-chart::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 100%;
+        background-repeat: no-repeat;
+      }
+
+      .placeholder-chart::before {
+        background-image:
+          linear-gradient(transparent 95%, rgba(255,255,255,0.05) 95%),
+          linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.04) 95%);
+        background-size: 100% 25%, 14% 100%;
+      }
+
+      .placeholder-chart::after {
+        inset: 20px 18px 24px 18px;
+        height: auto;
+        background:
+          linear-gradient(135deg, transparent 0 4%, rgba(91, 225, 255, 0.8) 4% 5%, transparent 5%),
+          linear-gradient(180deg, rgba(91,225,255,0.22), transparent 70%);
+        clip-path: polygon(0% 76%, 12% 68%, 26% 71%, 42% 40%, 58% 47%, 72% 28%, 86% 34%, 100% 18%, 100% 100%, 0% 100%);
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .list-item {
+        min-height: 54px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .list-item strong {
+        display: block;
+        font-size: 12px;
+      }
+
+      .list-item span {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .chip {
+        white-space: nowrap;
+        border-radius: 999px;
+        padding: 6px 8px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .chip.red { background: rgba(244,107,107,0.12); color: #ffc6c6; }
+      .chip.blue { background: rgba(78,163,255,0.12); color: #d7e9ff; }
+      .chip.green { background: rgba(68,211,157,0.12); color: #d1ffe9; }
+      .chip.amber { background: rgba(245,190,75,0.12); color: #ffe7b0; }
+
+      .graph {
+        height: 280px;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 50% 14%, rgba(91,225,255,0.08), transparent 25%),
+          rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+      }
+
+      .node {
+        position: absolute;
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-size: 11px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+      }
+
+      .node.accent {
+        border-color: rgba(91,225,255,0.3);
+        box-shadow: 0 0 0 1px rgba(91,225,255,0.08) inset;
+      }
+
+      .node.warn {
+        border-color: rgba(245,190,75,0.26);
+      }
+
+      .node.small {
+        font-size: 10px;
+        padding: 8px 10px;
+      }
+
+      .note-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .note {
+        min-height: 82px;
+        border-radius: 14px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .note strong {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .note p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .risk-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 12px;
+      }
+
+      .heatmap {
+        height: 220px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .cell {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .cell.hot { background: rgba(244,107,107,0.2); }
+      .cell.warm { background: rgba(245,190,75,0.16); }
+      .cell.cold { background: rgba(68,211,157,0.12); }
+
+      .footer-callout {
+        margin-top: 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(91,225,255,0.14);
+        background: linear-gradient(90deg, rgba(91,225,255,0.06), rgba(78,163,255,0.02));
+        padding: 16px 18px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .footer-callout strong {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Concept Board / Hub Gestor DTIC</div>
+          <h1>Direcao visual para uma face executiva do Hub, separada da experiencia operacional do tecnico.</h1>
+          <p>
+            O foco aqui e decisao, risco, desempenho e evidencia. O gestor continua tendo acesso ao ecossistema completo,
+            mas a home precisa responder primeiro: o que esta sob controle, o que exige decisao hoje e qual trilha de
+            governanca sustenta isso.
+          </p>
+        </div>
+        <div class="legend">
+          <div class="pill"><strong>Tela 1</strong> Cockpit Executivo</div>
+          <div class="pill"><strong>Tela 2</strong> Governanca e Compliance</div>
+          <div class="pill"><strong>Tela 3</strong> Riscos e Continuidade</div>
+        </div>
+      </section>
+
+      <section class="boards">
+        <article class="board">
+          <div class="board-header">
+            <div class="board-title">
+              <strong>Cockpit Executivo</strong>
+              <span>Home do gestor | situacao do dia + prioridade de decisao</span>
+            </div>
+            <div class="badge">Gestor DTIC</div>
+          </div>
+
+          <div class="screen">
+            <div class="rail">
+              <div class="dot active"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+
+            <div class="canvas">
+              <div class="topbar">
+                <div class="topbar-title">
+                  <strong>Hub Executivo DTIC</strong>
+                  <span>Panorama estrategico com foco em risco, entrega e governanca</span>
+                </div>
+                <div class="clock">
+                  <strong>09:42</strong>
+                  18 MAR 2026
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <strong>Estado do dia</strong>
+                  <span>Prioridades executivas</span>
+                </div>
+                <div class="stats-row">
+                  <div class="stat-card tone-green">
+                    <small>SLA consolidado</small>
+                    <strong>92,4%</strong>
+                    <em>acima da meta mensal</em>
+                  </div>
+                  <div class="stat-card tone-amber">
+                    <small>Backlog critico</small>
+                    <strong>18</strong>
+                    <em>6 exigem desbloqueio</em>
+                  </div>
+                  <div class="stat-card tone-red">
+                    <small>Reincidencia</small>
+                    <strong>7,8%</strong>
+                    <em>subiu 2,1 p.p.</em>
+                  </div>
+                  <div class="stat-card tone-blue">
+                    <small>Capacidade equipe</small>
+                    <strong>84%</strong>
+                    <em>boa, mas concentrada</em>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Tendencia e pressao operacional</strong>
+                    <span>30 dias</span>
+                  </div>
+                  <div class="placeholder-chart"></div>
+                </div>
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Decisoes que exigem acao</strong>
+                    <span>Hoje</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item">
+                      <div>
+                        <strong>Fila N2 com aumento de 23%</strong>
+                        <span>demanda extra sem reforco alocado</span>
+                      </div>
+                      <div class="chip amber">escalar</div>
+                    </div>
+                    <div class="list-item">
+                      <div>
+                        <strong>POP de continuidade desatualizado</strong>
+                        <span>ultimo update ha 143 dias</span>
+                      </div>
+                      <div class="chip red">risco</div>
+                    </div>
+                    <div class="list-item">
+                      <div>
+                        <strong>Meta de reincidencia fora da faixa</strong>
+                        <span>3 tecnicos concentram o problema</span>
+                      </div>
+                      <div class="chip blue">analisar</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-2 equal">
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Capacidade e dono dos fluxos</strong>
+                    <span>RACI vivo</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>Incidentes criticos</strong><span>owner: Coordenacao N2</span></div><div class="chip green">ok</div></div>
+                    <div class="list-item"><div><strong>Mudancas e layout</strong><span>owner: Infra + Apoio predial</span></div><div class="chip amber">atencao</div></div>
+                    <div class="list-item"><div><strong>Backups testados</strong><span>owner: Infraestrutura</span></div><div class="chip red">sem prova</div></div>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Evidencias recentes</strong>
+                    <span>documentos e auditoria</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>PSI v5 anexada</strong><span>valida ate 2026</span></div><div class="chip blue">doc</div></div>
+                    <div class="list-item"><div><strong>AG-09 rastreabilidade</strong><span>37 claims tecnicos fortes</span></div><div class="chip green">auditado</div></div>
+                    <div class="list-item"><div><strong>SE-02 pendente</strong><span>aguarda resposta da diretoria</span></div><div class="chip amber">compliance</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="board">
+          <div class="board-header">
+            <div class="board-title">
+              <strong>Governanca e Compliance</strong>
+              <span>Mapa de normativas, documentos e aderencia institucional</span>
+            </div>
+            <div class="badge">Narrativa institucional</div>
+          </div>
+
+          <div class="screen">
+            <div class="rail">
+              <div class="dot"></div>
+              <div class="dot active"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+
+            <div class="canvas">
+              <div class="topbar">
+                <div class="topbar-title">
+                  <strong>Painel de Governanca</strong>
+                  <span>Como a operacao se sustenta em norma, processo e evidencia</span>
+                </div>
+                <div class="clock">
+                  <strong>7 nodes</strong>
+                  19 evidencias rastreadas
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <strong>Mapa normativo e de responsabilizacao</strong>
+                  <span>Board principal</span>
+                </div>
+                <div class="graph">
+                  <div class="node accent" style="top:16px; left:120px;">Normativas federais</div>
+                  <div class="node accent" style="top:16px; right:118px;">Decretos estaduais</div>
+                  <div class="node warn" style="top:92px; left:182px;">PDTI</div>
+                  <div class="node warn" style="top:92px; right:188px;">PSI</div>
+                  <div class="node accent" style="top:160px; left:50%; transform:translateX(-50%);">CIG-TIC / SI</div>
+                  <div class="node small" style="bottom:78px; left:110px;">INs</div>
+                  <div class="node small" style="bottom:78px; right:110px;">Manual operacional</div>
+                  <div class="node small accent" style="bottom:20px; left:50%; transform:translateX(-50%);">KPIs / POPs / RACI</div>
+                </div>
+              </div>
+
+              <div class="grid-2 equal">
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Conformidade por bloco</strong>
+                    <span>semaforo</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>PDTI vigente</strong><span>ultima revisao em prazo</span></div><div class="chip green">ok</div></div>
+                    <div class="list-item"><div><strong>POP de incidentes</strong><span>aderente ao RACI</span></div><div class="chip green">ok</div></div>
+                    <div class="list-item"><div><strong>PCN atualizado</strong><span>sem portifolio digital validado</span></div><div class="chip red">gap</div></div>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Biblioteca de evidencias</strong>
+                    <span>documentos</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>PDTI 2026.pdf</strong><span>anexo oficial</span></div><div class="chip blue">abrir</div></div>
+                    <div class="list-item"><div><strong>Manual v5.docx</strong><span>ultimo upload automatico</span></div><div class="chip blue">abrir</div></div>
+                    <div class="list-item"><div><strong>INDEX evidencias institucionais</strong><span>claims SE em coleta</span></div><div class="chip amber">pendente</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <strong>Por que esta tela existe</strong>
+                  <span>visao do gestor</span>
+                </div>
+                <div class="note-strip">
+                  <div class="note">
+                    <strong>Mostra base de legitimidade</strong>
+                    <p>O gestor nao decide apenas por volume. Ele precisa ligar resultado, norma, processo e owner.</p>
+                  </div>
+                  <div class="note">
+                    <strong>Facilita comite e auditoria</strong>
+                    <p>Essa vista responde rapidamente se a operacao esta sustentada por instrumento formal.</p>
+                  </div>
+                  <div class="note">
+                    <strong>Evita virar tela de tecnico</strong>
+                    <p>Sem fila detalhada. O foco e aderencia, lacuna, decisao e prova documental.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="board">
+          <div class="board-header">
+            <div class="board-title">
+              <strong>Riscos e Continuidade</strong>
+              <span>Onde o gestor atua por excecao, contingencia e priorizacao</span>
+            </div>
+            <div class="badge">Decisao e acao</div>
+          </div>
+
+          <div class="screen">
+            <div class="rail">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot active"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+
+            <div class="canvas">
+              <div class="topbar">
+                <div class="topbar-title">
+                  <strong>Radar de Riscos DTIC</strong>
+                  <span>continuidade, criticidade, reincidencia e dependencias</span>
+                </div>
+                <div class="clock">
+                  <strong>4 alertas</strong>
+                  2 bloqueiam decisao
+                </div>
+              </div>
+
+              <div class="risk-grid">
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Mapa de calor</strong>
+                    <span>probabilidade x impacto</span>
+                  </div>
+                  <div class="heatmap">
+                    <div class="cell cold"></div>
+                    <div class="cell cold"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell cold"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell hot"></div>
+                    <div class="cell cold"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell hot"></div>
+                    <div class="cell hot"></div>
+                    <div class="cell cold"></div>
+                    <div class="cell warm"></div>
+                    <div class="cell hot"></div>
+                    <div class="cell hot"></div>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Alertas priorizados</strong>
+                    <span>acoes sugeridas</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item">
+                      <div><strong>Backups testados sem evidencia mensal</strong><span>risco de continuidade sem prova valida</span></div>
+                      <div class="chip red">critico</div>
+                    </div>
+                    <div class="list-item">
+                      <div><strong>Reincidencia elevada em rede</strong><span>tendencia de falha estrutural</span></div>
+                      <div class="chip amber">alto</div>
+                    </div>
+                    <div class="list-item">
+                      <div><strong>Capacidade concentrada em 2 tecnicos</strong><span>risco de dependencia operacional</span></div>
+                      <div class="chip amber">alto</div>
+                    </div>
+                    <div class="list-item">
+                      <div><strong>PCN sem portfolio digital consolidado</strong><span>gap documental e de simulacao</span></div>
+                      <div class="chip blue">monitorar</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-2 equal">
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Linha do tempo de incidentes e mitigacoes</strong>
+                    <span>ultimos 30 dias</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>Queda N2 - autenticacao</strong><span>mitigado em 43 min | owner: Infra</span></div><div class="chip green">encerrado</div></div>
+                    <div class="list-item"><div><strong>Fila de rede acima da meta</strong><span>plano de contencao em execucao</span></div><div class="chip amber">aberto</div></div>
+                    <div class="list-item"><div><strong>Falha em restore de teste</strong><span>aguarda nova janela de validacao</span></div><div class="chip red">pendente</div></div>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="section-title">
+                    <strong>Decisoes do gestor</strong>
+                    <span>fila executiva</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item"><div><strong>Aprovar reforco temporario N2</strong><span>impacta SLA e backlog</span></div><div class="chip blue">aprovar</div></div>
+                    <div class="list-item"><div><strong>Demandar formalizacao PCN</strong><span>acionar owner institucional</span></div><div class="chip blue">cobrar</div></div>
+                    <div class="list-item"><div><strong>Agendar revisao com comite</strong><span>evidencia de governanca</span></div><div class="chip blue">agendar</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="footer-callout">
+                <strong>Racional de integracao:</strong> o Hub do gestor precisa unir performance operacional, governanca e
+                risco numa narrativa unica. O tecnico navega por fila e acao; o gestor navega por excecao, owner, meta,
+                evidencia e decisao.
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

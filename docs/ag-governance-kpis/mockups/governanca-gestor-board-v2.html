@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Governanca DTIC - Board Visual V2</title>
+    <style>
+      :root {
+        --ink: #193754;
+        --ink-soft: #49657f;
+        --shell: #17314c;
+        --shell-deep: #10263d;
+        --paper: #f7f3eb;
+        --panel: #fffdf9;
+        --line: rgba(25, 55, 84, 0.14);
+        --muted: #6f8090;
+        --blue: #2f6fb2;
+        --teal: #2c8f8d;
+        --green: #2f8f5b;
+        --amber: #b8822e;
+        --red: #b9504a;
+        --lavender: #6954b5;
+        --shadow: 0 24px 50px rgba(17, 34, 51, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+
+      body {
+        font-family: "Segoe UI", "Aptos", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(180deg, rgba(47, 111, 178, 0.07), transparent 30%),
+          linear-gradient(90deg, rgba(25, 55, 84, 0.03) 1px, transparent 1px),
+          linear-gradient(rgba(25, 55, 84, 0.03) 1px, transparent 1px),
+          linear-gradient(180deg, #fcfaf5 0%, #f4efe5 100%);
+        background-size: auto, 22px 22px, 22px 22px, auto;
+      }
+
+      .page {
+        width: 2520px;
+        min-height: 1440px;
+        margin: 0 auto;
+        padding: 44px 48px 52px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 32px;
+        align-items: end;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 42px;
+        height: 1px;
+        background: currentColor;
+      }
+
+      h1 {
+        margin: 14px 0 12px;
+        max-width: 980px;
+        font-size: 50px;
+        line-height: 1.04;
+        letter-spacing: -0.05em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 920px;
+        color: var(--ink-soft);
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-end;
+        align-content: flex-start;
+      }
+
+      .legend-pill {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        font-size: 13px;
+      }
+
+      .legend-pill strong { color: var(--ink); }
+
+      .swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+
+      .board-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+
+      .artboard {
+        position: relative;
+        overflow: hidden;
+        border-radius: 34px;
+        border: 1px solid rgba(16, 38, 61, 0.08);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.82));
+        box-shadow: var(--shadow);
+      }
+
+      .artboard-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px 0;
+        font-size: 12px;
+        color: var(--ink-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      .screen {
+        margin: 14px 18px 18px;
+        height: 1160px;
+        border-radius: 28px;
+        overflow: hidden;
+        background: var(--paper);
+        border: 1px solid rgba(16, 38, 61, 0.08);
+        display: grid;
+        grid-template-columns: 92px 1fr;
+      }
+
+      .sidebar {
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent 30%),
+          linear-gradient(180deg, var(--shell) 0%, var(--shell-deep) 100%);
+        color: rgba(255, 255, 255, 0.82);
+        padding: 18px 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .sidebar .logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+      }
+
+      .navdot {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .navdot.active {
+        background: rgba(255, 255, 255, 0.18);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+
+      .content {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 74px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+
+      .title-group strong {
+        display: block;
+        font-size: 20px;
+        letter-spacing: -0.03em;
+      }
+
+      .title-group span,
+      .mini-meta {
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .ghost-chip,
+      .subnav .chip,
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.85);
+        font-size: 12px;
+        color: var(--ink);
+      }
+
+      .subnav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .subnav .chip { background: rgba(255, 255, 255, 0.52); }
+
+      .subnav .chip.active {
+        background: var(--ink);
+        color: white;
+        border-color: var(--ink);
+      }
+
+      .row-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1.16fr 1fr;
+        gap: 14px;
+      }
+
+      .row-2.equal { grid-template-columns: 1fr 1fr; }
+
+      .panel {
+        border-radius: 22px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 16px;
+      }
+
+      .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .panel-title strong {
+        display: block;
+        font-size: 16px;
+        letter-spacing: -0.02em;
+      }
+
+      .panel-title span {
+        display: block;
+        margin-top: 4px;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .metric-card {
+        min-height: 136px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 245, 238, 0.96));
+        border: 1px solid var(--line);
+        padding: 14px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .metric-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: var(--blue);
+      }
+
+      .metric-card.amber::before { background: var(--amber); }
+      .metric-card.green::before { background: var(--green); }
+      .metric-card.red::before { background: var(--red); }
+
+      .metric-card h3 {
+        margin: 8px 0 0;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: -0.06em;
+      }
+
+      .metric-card p {
+        margin: 6px 0 0;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .metric-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .status-badge {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 6px 9px;
+      }
+
+      .status-badge.live { color: var(--green); border-color: rgba(47, 143, 91, 0.22); background: rgba(47, 143, 91, 0.08); }
+      .status-badge.normative { color: var(--blue); border-color: rgba(47, 111, 178, 0.22); background: rgba(47, 111, 178, 0.08); }
+      .status-badge.evidence { color: var(--teal); border-color: rgba(44, 143, 141, 0.22); background: rgba(44, 143, 141, 0.08); }
+      .status-badge.virtual { color: var(--amber); border-color: rgba(184, 130, 46, 0.22); background: rgba(184, 130, 46, 0.08); }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .list-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: start;
+        padding: 12px 0;
+        border-top: 1px solid rgba(25, 55, 84, 0.08);
+      }
+
+      .list-item:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .dot-marker {
+        width: 10px;
+        height: 10px;
+        margin-top: 7px;
+        border-radius: 999px;
+        background: var(--blue);
+      }
+
+      .dot-marker.amber { background: var(--amber); }
+      .dot-marker.red { background: var(--red); }
+      .dot-marker.green { background: var(--green); }
+
+      .list-item strong { font-size: 14px; }
+
+      .list-item p {
+        margin: 4px 0 0;
+        color: var(--ink-soft);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .list-item em {
+        font-style: normal;
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .chart-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .chart {
+        position: relative;
+        height: 240px;
+        border-radius: 18px;
+        border: 1px solid rgba(47, 111, 178, 0.16);
+        background:
+          linear-gradient(180deg, rgba(47, 111, 178, 0.06), rgba(47, 111, 178, 0.015)),
+          linear-gradient(90deg, rgba(25, 55, 84, 0.05) 1px, transparent 1px),
+          linear-gradient(rgba(25, 55, 84, 0.05) 1px, transparent 1px),
+          #fbfaf6;
+        background-size: auto, 72px 100%, 100% 52px, auto;
+        overflow: hidden;
+      }
+
+      .chart svg {
+        position: absolute;
+        inset: 0;
+      }
+
+      .chart-legend {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .chart-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .line-key {
+        width: 18px;
+        height: 3px;
+        border-radius: 999px;
+      }
+
+      .mini-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mini-kpi {
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(247, 243, 235, 0.74);
+        padding: 12px;
+      }
+
+      .mini-kpi strong {
+        display: block;
+        font-size: 24px;
+        letter-spacing: -0.05em;
+        margin-top: 10px;
+      }
+
+      .mini-kpi span {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .map-preview,
+      .map-stage {
+        position: relative;
+        min-height: 300px;
+        border-radius: 20px;
+        border: 1px dashed rgba(25, 55, 84, 0.18);
+        background:
+          radial-gradient(circle at top right, rgba(47, 111, 178, 0.08), transparent 34%),
+          linear-gradient(180deg, rgba(247, 243, 235, 0.88), rgba(255, 255, 255, 0.96));
+        padding: 18px;
+      }
+
+      .node-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .map-grid {
+        display: grid;
+        grid-template-columns: 140px 1fr 1fr;
+        gap: 18px;
+        height: 100%;
+      }
+
+      .tier-label {
+        align-self: stretch;
+        min-height: 70px;
+        border-radius: 16px;
+        border: 1px solid rgba(25, 55, 84, 0.14);
+        background: rgba(25, 55, 84, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .node {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(25, 55, 84, 0.14);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 12px 14px;
+        box-shadow: 0 12px 18px rgba(25, 55, 84, 0.05);
+      }
+
+      .node strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .node span {
+        display: block;
+        margin-top: 4px;
+        color: var(--ink-soft);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .node.primary { border-color: rgba(47, 111, 178, 0.24); box-shadow: 0 14px 24px rgba(47, 111, 178, 0.08); }
+      .node.secondary { border-color: rgba(184, 130, 46, 0.22); }
+      .node.tertiary { border-color: rgba(47, 143, 91, 0.22); }
+
+      .connector {
+        width: 2px;
+        flex: 1;
+        background: linear-gradient(180deg, rgba(25, 55, 84, 0.06), rgba(25, 55, 84, 0.24), rgba(25, 55, 84, 0.06));
+      }
+
+      .responsibility-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .responsibility-card {
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(247, 243, 235, 0.75);
+        padding: 12px;
+      }
+
+      .responsibility-card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .responsibility-card p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .map-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .drawer {
+        border-radius: 22px;
+        background: #fcfbf8;
+        border: 1px solid var(--line);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .drawer-block {
+        border-radius: 16px;
+        background: rgba(247, 243, 235, 0.82);
+        border: 1px solid rgba(25, 55, 84, 0.08);
+        padding: 12px;
+      }
+
+      .drawer-block strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .drawer-block p,
+      .drawer-block li {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .drawer-block ul {
+        margin: 8px 0 0;
+        padding-left: 16px;
+      }
+
+      .ribbon {
+        border-radius: 18px;
+        background: linear-gradient(90deg, rgba(25, 55, 84, 0.06), rgba(47, 111, 178, 0.05));
+        border: 1px solid rgba(25, 55, 84, 0.08);
+        padding: 12px 14px;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .footer-note {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 18px;
+        color: var(--ink-soft);
+        font-size: 12px;
+      }
+
+      .accent {
+        color: var(--ink);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Hub DTIC · Gestor · Governança</div>
+          <h1>Esboço visual disciplinado para o módulo de Governança do gestor</h1>
+          <p>
+            A proposta abandona a ideia de “super dashboard” e volta para uma composição mais institucional:
+            leitura executiva curta, camada normativa explícita e evidência operacional só onde ela realmente existe.
+          </p>
+        </div>
+        <div class="legend">
+          <div class="legend-pill"><span class="swatch" style="background:#2f8f5b"></span><strong>LIVE</strong> dado operacional real</div>
+          <div class="legend-pill"><span class="swatch" style="background:#b8822e"></span><strong>PROXY</strong> derivado não oficial</div>
+          <div class="legend-pill"><span class="swatch" style="background:#2f6fb2"></span><strong>NORMATIVO</strong> estrutura e regra</div>
+          <div class="legend-pill"><span class="swatch" style="background:#2c8f8d"></span><strong>EVIDÊNCIA</strong> lastro documental e operacional</div>
+          <div class="legend-pill"><span class="swatch" style="background:#6954b5"></span><strong>EXTERNO</strong> depende de integração</div>
+        </div>
+      </section>
+
+      <section class="board-grid">
+        <article class="artboard">
+          <div class="artboard-header">
+            <span>Artboard 01</span>
+            <span>Resumo Executivo</span>
+          </div>
+          <div class="screen">
+            <aside class="sidebar">
+              <div class="logo">DTIC</div>
+              <div class="navdot"></div>
+              <div class="navdot active"></div>
+              <div class="navdot"></div>
+              <div class="navdot"></div>
+              <div style="flex:1"></div>
+              <div class="navdot"></div>
+            </aside>
+            <section class="content">
+              <header class="topbar">
+                <div class="title-group">
+                  <strong>Governança · Resumo Executivo</strong>
+                  <span>Leitura orientada a decisão, não a operação</span>
+                </div>
+                <div class="top-actions">
+                  <div class="ghost-chip">Período · Fev/2026</div>
+                  <div class="ghost-chip">Atualização · 11:42</div>
+                </div>
+              </header>
+              <nav class="subnav">
+                <span class="chip active">Resumo Executivo</span>
+                <span class="chip">Mapa</span>
+                <span class="chip">Indicadores</span>
+                <span class="chip">RACI</span>
+                <span class="chip">POPs</span>
+              </nav>
+              <div class="row-4">
+                <section class="metric-card green">
+                  <div class="topline">
+                    <span class="metric-label">SLA Cumprido</span>
+                    <span class="status-badge live">live</span>
+                  </div>
+                  <h3>51,6%</h3>
+                  <p>Meta 90% · base com fallback virtual predominante</p>
+                  <span class="status-badge virtual">virtual</span>
+                </section>
+                <section class="metric-card amber">
+                  <div class="topline">
+                    <span class="metric-label">TMA</span>
+                    <span class="status-badge live">live</span>
+                  </div>
+                  <h3>117,3h</h3>
+                  <p>Média de atendimento no período selecionado</p>
+                </section>
+                <section class="metric-card green">
+                  <div class="topline">
+                    <span class="metric-label">TME</span>
+                    <span class="status-badge live">live</span>
+                  </div>
+                  <h3>10,48h</h3>
+                  <p>Dado real existente no GLPI, ainda pendente de port no Hub</p>
+                </section>
+                <section class="metric-card red">
+                  <div class="topline">
+                    <span class="metric-label">Pendências críticas</span>
+                    <span class="status-badge normative">normativo</span>
+                  </div>
+                  <h3>4</h3>
+                  <p>POPs sem revisão recente e processo sem evidência validada</p>
+                </section>
+              </div>
+              <div class="row-2">
+                <section class="panel">
+                  <div class="panel-title">
+                    <div>
+                      <strong>Decisões e pendências</strong>
+                      <span>O que exige ação do gestor agora</span>
+                    </div>
+                    <span class="status-badge evidence">evidência</span>
+                  </div>
+                  <div class="list">
+                    <div class="list-item">
+                      <span class="dot-marker red"></span>
+                      <div>
+                        <strong>Formalizar owner da governança administrativa</strong>
+                        <p>O processo existe no RACI, mas o vínculo com evidências operacionais ainda é fraco no ecossistema atual.</p>
+                      </div>
+                      <em>Alta</em>
+                    </div>
+                    <div class="list-item">
+                      <span class="dot-marker amber"></span>
+                      <div>
+                        <strong>Resolver semântica do KPI 8</strong>
+                        <p>O workbook pede “% Mudanças com sucesso”, enquanto o legado tratou “Mudanças de Sala / Layout” como proxy operacional.</p>
+                      </div>
+                      <em>Estrutural</em>
+                    </div>
+                    <div class="list-item">
+                      <span class="dot-marker green"></span>
+                      <div>
+                        <strong>Portar TME para o backend atual</strong>
+                        <p>O dado já existe em followups, tasks e logs, então a pendência é de implementação, não de base real.</p>
+                      </div>
+                      <em>Próxima fase</em>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="panel chart-panel">
+                  <div class="panel-title">
+                    <div>
+                      <strong>Indicadores-chave do período</strong>
+                      <span>Somente métricas com lastro operacional real</span>
+                    </div>
+                    <span class="status-badge live">live</span>
+                  </div>
+                  <div class="chart">
+                    <svg viewBox="0 0 600 260" preserveAspectRatio="none" aria-hidden="true">
+                      <polyline fill="none" stroke="#2f6fb2" stroke-width="4" points="24,184 94,154 164,162 234,124 304,142 374,112 444,128 514,88 576,100" />
+                      <polyline fill="none" stroke="#b8822e" stroke-width="4" points="24,206 94,188 164,176 234,192 304,170 374,166 444,148 514,156 576,144" />
+                      <polyline fill="none" stroke="#2f8f5b" stroke-width="4" points="24,220 94,214 164,204 234,194 304,182 374,170 444,164 514,150 576,136" />
+                    </svg>
+                  </div>
+                  <div class="chart-legend">
+                    <span><i class="line-key" style="background:#2f6fb2"></i>Chamados fechados</span>
+                    <span><i class="line-key" style="background:#b8822e"></i>Tempo médio</span>
+                    <span><i class="line-key" style="background:#2f8f5b"></i>Reincidência</span>
+                  </div>
+                  <div class="mini-kpis">
+                    <div class="mini-kpi">
+                      <span>Incidentes</span>
+                      <strong>9</strong>
+                    </div>
+                    <div class="mini-kpi">
+                      <span>Reincidência</span>
+                      <strong>0,5%</strong>
+                    </div>
+                    <div class="mini-kpi">
+                      <span>Volumetria</span>
+                      <strong>374/419</strong>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="row-2 equal">
+                <section class="panel">
+                  <div class="panel-title">
+                    <div>
+                      <strong>Preview do mapa de governança</strong>
+                      <span>Relação entre norma, processo e execução</span>
+                    </div>
+                    <span class="status-badge normative">normativo</span>
+                  </div>
+                  <div class="map-preview">
+                    <div class="map-grid">
+                      <div class="node-col">
+                        <div class="tier-label">Federal</div>
+                        <div class="tier-label">Estadual</div>
+                        <div class="tier-label">Casa Civil</div>
+                      </div>
+                      <div class="node-col">
+                        <div class="node primary"><strong>EGD 2024–2027</strong><span>Diretriz e alinhamento estratégico</span></div>
+                        <div class="connector"></div>
+                        <div class="node secondary"><strong>Decreto 57.547/2024</strong><span>Base estadual de governança</span></div>
+                        <div class="connector"></div>
+                        <div class="node tertiary"><strong>PDTI</strong><span>Desdobra planejamento e prioridades</span></div>
+                      </div>
+                      <div class="node-col">
+                        <div class="node primary"><strong>IN SLTI 4/2020</strong><span>Contratação e governança</span></div>
+                        <div class="node primary"><strong>IN NGD 11</strong><span>Diretriz de digitalização</span></div>
+                        <div class="connector"></div>
+                        <div class="node secondary"><strong>IN SPGG 15/2025</strong><span>Continuidade, segurança e execução</span></div>
+                        <div class="connector"></div>
+                        <div class="node tertiary"><strong>PSI + INs internas</strong><span>Norma operacional da Casa Civil</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-title">
+                    <div>
+                      <strong>Responsabilização e execução</strong>
+                      <span>Camada normativa com amarração a evidências</span>
+                    </div>
+                    <span class="status-badge evidence">evidência</span>
+                  </div>
+                  <div class="responsibility-grid">
+                    <div class="responsibility-card">
+                      <strong>RACI prioritário</strong>
+                      <p>Atendimento N1, N2 e N3 já têm forte relação com tickets, tempos e interação operacional.</p>
+                    </div>
+                    <div class="responsibility-card">
+                      <strong>POPs com melhor aderência</strong>
+                      <p>Triagem e suporte especializado têm evidência forte em followups, tasks e soluções.</p>
+                    </div>
+                    <div class="responsibility-card">
+                      <strong>Pontos frágeis</strong>
+                      <p>Backup, continuidade, contratações e PCN dependem de fontes externas ao GLPI.</p>
+                    </div>
+                    <div class="responsibility-card">
+                      <strong>Próximo clique natural</strong>
+                      <p>Abrir Indicadores para semântica dos KPIs ou Mapa para rastreabilidade normativa.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="ribbon">
+                <span class="accent">Leitura recomendada:</span> primeiro estado e risco, depois pendências e só então aprofundamento em Mapa, Indicadores, RACI ou POPs.
+              </div>
+            </section>
+          </div>
+        </article>
+
+        <article class="artboard">
+          <div class="artboard-header">
+            <span>Artboard 02</span>
+            <span>Mapa de Governança</span>
+          </div>
+          <div class="screen">
+            <aside class="sidebar">
+              <div class="logo">DTIC</div>
+              <div class="navdot"></div>
+              <div class="navdot active"></div>
+              <div class="navdot"></div>
+              <div class="navdot"></div>
+              <div style="flex:1"></div>
+              <div class="navdot"></div>
+            </aside>
+            <section class="content">
+              <header class="topbar">
+                <div class="title-group">
+                  <strong>Governança · Mapa</strong>
+                  <span>Narrativa normativa com evidência acoplada</span>
+                </div>
+                <div class="top-actions">
+                  <div class="ghost-chip">Node · PSI</div>
+                  <div class="ghost-chip">Drawer aberto</div>
+                </div>
+              </header>
+              <nav class="subnav">
+                <span class="chip">Resumo Executivo</span>
+                <span class="chip active">Mapa</span>
+                <span class="chip">Indicadores</span>
+                <span class="chip">RACI</span>
+                <span class="chip">POPs</span>
+              </nav>
+
+              <div class="map-layout">
+                <section class="panel" style="display:flex; flex-direction:column;">
+                  <div class="panel-title">
+                    <div>
+                      <strong>Mapa de alinhamento normativo de TIC e Segurança</strong>
+                      <span>O board é documental por natureza; o dado live entra só como evidência lateral</span>
+                    </div>
+                    <span class="status-badge normative">normativo</span>
+                  </div>
+
+                  <div class="map-stage" style="flex:1;">
+                    <div class="map-grid" style="grid-template-columns: 130px 1fr 1fr;">
+                      <div class="node-col">
+                        <div class="tier-label">Federal</div>
+                        <div class="tier-label">Estadual</div>
+                        <div class="tier-label">Casa Civil</div>
+                      </div>
+
+                      <div class="node-col">
+                        <div class="node primary">
+                          <strong>EGD 2024–2027</strong>
+                          <span>Define norte de governança digital e modernização</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node secondary">
+                          <strong>Decreto 57.547/2024</strong>
+                          <span>Institui a estrutura de governança estadual</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node tertiary">
+                          <strong>PDTI</strong>
+                          <span>Traduz estratégia em prioridades, metas e governança interna</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node tertiary">
+                          <strong>Manual Operacional</strong>
+                          <span>Faz a ponte entre estrutura N1–N4, processos e entregas</span>
+                        </div>
+                      </div>
+
+                      <div class="node-col">
+                        <div class="node primary">
+                          <strong>IN SLTI 4/2020</strong>
+                          <span>Contratações e organização de serviços</span>
+                        </div>
+                        <div class="node primary">
+                          <strong>IN NGD 11</strong>
+                          <span>Governo digital e práticas associadas</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node secondary">
+                          <strong>IN SPGG 15/2025</strong>
+                          <span>Continuidade, diretrizes estaduais e segurança aplicada</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node tertiary" style="box-shadow:0 0 0 2px rgba(47,111,178,0.18);">
+                          <strong>PSI</strong>
+                          <span>Instrumento estruturante do PDTI voltado à segurança da informação e comunicações</span>
+                        </div>
+                        <div class="connector"></div>
+                        <div class="node tertiary">
+                          <strong>INs internas</strong>
+                          <span>Detalham prática, responsabilidade e operação por tema</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ribbon">
+                    <span class="accent">Desdobramentos naturais do mapa:</span> Indicadores para medir, RACI para responsabilizar e POPs para operacionalizar.
+                  </div>
+                </section>
+
+                <aside class="drawer">
+                  <div class="panel-title" style="margin-bottom:0;">
+                    <div>
+                      <strong>Drawer de evidência</strong>
+                      <span>Node selecionado · PSI</span>
+                    </div>
+                    <span class="status-badge evidence">evidência</span>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Resumo do node</strong>
+                    <p>Política de Segurança da Informação e Comunicações vinculada ao PDTI e à estrutura normativa da Casa Civil.</p>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Relações diretas</strong>
+                    <ul>
+                      <li>PDTI</li>
+                      <li>IN SPGG 15/2025</li>
+                      <li>POPs de incidentes, acessos e continuidade</li>
+                    </ul>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Links de aprofundamento</strong>
+                    <ul>
+                      <li>Ver POPs associados</li>
+                      <li>Ver RACI dos processos de segurança</li>
+                      <li>Ver KPIs relacionados a incidentes e continuidade</li>
+                    </ul>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Tipo de lastro</strong>
+                    <p>O node é <span class="accent">normativo</span>. A evidência operacional associada deve ser apresentada como suporte, nunca como substituição do documento.</p>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Exemplo de evidência operacional vinculável</strong>
+                    <ul>
+                      <li>Tickets classificados como incidente</li>
+                      <li>Tempos de atendimento e reincidência</li>
+                      <li>Registros de followup e execução técnica</li>
+                    </ul>
+                  </div>
+
+                  <div class="drawer-block">
+                    <strong>Restrições honestas</strong>
+                    <p>Disponibilidade, backups testados e PCN atualizado continuam dependentes de fonte externa. Não aparecem aqui como número calculado.</p>
+                  </div>
+                </aside>
+              </div>
+            </section>
+          </div>
+        </article>
+      </section>
+
+      <section class="footer-note">
+        <span>Direção visual: mais institucional, menos data wall, preservando o shell do Hub como moldura.</span>
+        <span>Base conceitual: AG-14 + AG-15 + AG-16 + AG-17.</span>
+      </section>
+    </main>
+  </body>
+</html>

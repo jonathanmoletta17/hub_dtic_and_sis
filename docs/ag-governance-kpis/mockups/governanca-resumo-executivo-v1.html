@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Governança · Resumo Executivo</title>
+    <link rel="stylesheet" href="./governanca-v1.css" />
+  </head>
+  <body>
+    <main class="frame">
+      <section class="workspace">
+        <aside class="sidebar">
+          <div class="logo">DTIC</div>
+          <div class="navdot"></div>
+          <div class="navdot active"></div>
+          <div class="navdot"></div>
+          <div class="navdot"></div>
+          <div style="flex:1"></div>
+          <div class="navdot"></div>
+        </aside>
+
+        <section class="main">
+          <header class="topbar">
+            <div class="title-group">
+              <strong>Governança · Resumo Executivo</strong>
+              <span>Visão de decisão para o gestor da DTIC, com separação explícita entre dado live e camada normativa</span>
+            </div>
+            <div class="actions">
+              <div class="chip">Período · Fev/2026</div>
+              <div class="chip">Atualização · 11:42</div>
+              <div class="chip">Fonte · GLPI + acervo normativo</div>
+            </div>
+          </header>
+
+          <nav class="subnav">
+            <span class="chip active">Resumo Executivo</span>
+            <span class="chip">Mapa</span>
+            <span class="chip">Indicadores</span>
+            <span class="chip">RACI</span>
+            <span class="chip">POPs</span>
+          </nav>
+
+          <div class="legend">
+            <span class="badge live">live</span>
+            <span class="badge normative">normativo</span>
+            <span class="badge evidence">evidência</span>
+            <span class="badge external">externo</span>
+            <span class="badge virtual">virtual</span>
+            <span class="legend-line">A home só promove para headline aquilo que já tem sustentação real ou regra institucional explícita.</span>
+          </div>
+
+          <section class="grid-4">
+            <article class="metric-card green">
+              <div class="metric-top">
+                <span class="metric-label">SLA Cumprido</span>
+                <span class="badge live">live</span>
+              </div>
+              <div>
+                <h2>51,6%</h2>
+                <p>Meta oficial: 90%. A leitura continua útil, mas precisa expor que o cálculo usa fallback em grande parte da base.</p>
+              </div>
+              <span class="badge virtual">fallback virtual</span>
+            </article>
+
+            <article class="metric-card amber">
+              <div class="metric-top">
+                <span class="metric-label">TMA</span>
+                <span class="badge live">live</span>
+              </div>
+              <div>
+                <h2>117,3h</h2>
+                <p>Média de atendimento consolidada. Entra como headline porque já existe no backend atual do Hub.</p>
+              </div>
+            </article>
+
+            <article class="metric-card green">
+              <div class="metric-top">
+                <span class="metric-label">TME</span>
+                <span class="badge live">live</span>
+              </div>
+              <div>
+                <h2>10,48h</h2>
+                <p>O dado é real no GLPI. Aqui ele aparece como parte da visão-alvo que deve ser portada para o backend do Hub.</p>
+              </div>
+            </article>
+
+            <article class="metric-card red">
+              <div class="metric-top">
+                <span class="metric-label">Pendências críticas</span>
+                <span class="badge normative">normativo</span>
+              </div>
+              <div>
+                <h2>4</h2>
+                <p>Itens de governança e processo que exigem revisão, owner explícito ou vínculo de evidência antes de entrar em produção.</p>
+              </div>
+            </article>
+          </section>
+
+          <section class="grid-2">
+            <article class="panel">
+              <div class="panel-title">
+                <div>
+                  <strong>Decisões e pendências</strong>
+                  <span>Fila curta do gestor, orientada a decisão e governança</span>
+                </div>
+                <span class="badge evidence">evidência</span>
+              </div>
+
+              <div class="list">
+                <div class="list-item">
+                  <span class="dot red"></span>
+                  <div>
+                    <strong>Fechar a semântica do KPI 8</strong>
+                    <p>O catálogo oficial exige “% Mudanças com sucesso”, enquanto o legado adotou “Mudanças de Sala / Layout” como proxy operacional.</p>
+                  </div>
+                  <em>Estrutural</em>
+                </div>
+
+                <div class="list-item">
+                  <span class="dot amber"></span>
+                  <div>
+                    <strong>Formalizar owner da camada N4</strong>
+                    <p>Governança administrativa existe no corpus documental, mas ainda precisa de vínculo mais claro com evidências operacionais.</p>
+                  </div>
+                  <em>Alta</em>
+                </div>
+
+                <div class="list-item">
+                  <span class="dot green"></span>
+                  <div>
+                    <strong>Portar TME para o Hub</strong>
+                    <p>Followups, tasks e logs já sustentam a métrica. A pendência é de implementação, não de base real.</p>
+                  </div>
+                  <em>Fase 2</em>
+                </div>
+
+                <div class="list-item">
+                  <span class="dot amber"></span>
+                  <div>
+                    <strong>Marcar métricas estratégicas como externas</strong>
+                    <p>Disponibilidade, backups testados e PCN atualizado não devem aparecer como números enquanto não houver fonte integrada.</p>
+                  </div>
+                  <em>Governança</em>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-title">
+                <div>
+                  <strong>Indicadores-chave do período</strong>
+                  <span>Somente dados com lastro operacional real ou já auditado</span>
+                </div>
+                <span class="badge live">live</span>
+              </div>
+
+              <div class="chart">
+                <svg viewBox="0 0 640 280" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline fill="none" stroke="#2f6fb2" stroke-width="4" points="28,208 98,170 168,180 238,136 308,152 378,118 448,130 518,92 610,108" />
+                  <polyline fill="none" stroke="#b8822e" stroke-width="4" points="28,226 98,200 168,190 238,202 308,178 378,171 448,154 518,160 610,148" />
+                  <polyline fill="none" stroke="#2f8f5b" stroke-width="4" points="28,240 98,232 168,220 238,208 308,194 378,182 448,170 518,158 610,144" />
+                </svg>
+              </div>
+
+              <div class="mini-kpis">
+                <div class="mini-kpi">
+                  <span>Incidentes</span>
+                  <strong>9</strong>
+                </div>
+                <div class="mini-kpi">
+                  <span>Reincidência</span>
+                  <strong>0,5%</strong>
+                </div>
+                <div class="mini-kpi">
+                  <span>Volumetria</span>
+                  <strong>374/419</strong>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="grid-2 equal">
+            <article class="panel">
+              <div class="panel-title">
+                <div>
+                  <strong>Preview do mapa de governança</strong>
+                  <span>Contexto institucional antes de aprofundar em boards especializados</span>
+                </div>
+                <span class="badge normative">normativo</span>
+              </div>
+
+              <div class="map-box">
+                <div class="map-columns">
+                  <div class="node-col">
+                    <div class="tier">Federal</div>
+                    <div class="tier">Estadual</div>
+                    <div class="tier">Casa Civil</div>
+                  </div>
+
+                  <div class="node-col">
+                    <div class="node primary">
+                      <strong>EGD 2024–2027</strong>
+                      <span>Norte estratégico de governança digital</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node secondary">
+                      <strong>Decreto 57.547/2024</strong>
+                      <span>Base estadual de governança</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary">
+                      <strong>PDTI</strong>
+                      <span>Tradução institucional para prioridades internas</span>
+                    </div>
+                  </div>
+
+                  <div class="node-col">
+                    <div class="node primary">
+                      <strong>IN SLTI 4/2020</strong>
+                      <span>Contratações e organização de serviços</span>
+                    </div>
+                    <div class="node primary">
+                      <strong>IN NGD 11</strong>
+                      <span>Governo digital</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node secondary">
+                      <strong>IN SPGG 15/2025</strong>
+                      <span>Continuidade e segurança</span>
+                    </div>
+                    <div class="connector"></div>
+                    <div class="node tertiary">
+                      <strong>PSI + INs</strong>
+                      <span>Norma operacional interna</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-title">
+                <div>
+                  <strong>Responsabilização e execução</strong>
+                  <span>Leitura de processos, owners e aderência documental</span>
+                </div>
+                <span class="badge evidence">evidência</span>
+              </div>
+
+              <div class="responsibility-grid">
+                <div class="responsibility-card">
+                  <strong>RACI prioritário</strong>
+                  <p>Atendimento N1, N2 e N3 têm melhor aderência com evidências reais de ticket, tempo e interação.</p>
+                </div>
+                <div class="responsibility-card">
+                  <strong>POPs mais maduros</strong>
+                  <p>Triagem e suporte especializado já têm boa ancoragem em followups, tasks e soluções registradas.</p>
+                </div>
+                <div class="responsibility-card">
+                  <strong>Pontos frágeis</strong>
+                  <p>Backup, continuidade, contratações TIC e PCN dependem de fontes externas e metadata adicional.</p>
+                </div>
+                <div class="responsibility-card">
+                  <strong>Próximo clique natural</strong>
+                  <p>Entrar em `Indicadores` para semântica dos KPIs ou em `Mapa` para rastreabilidade normativa.</p>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="ribbon">
+            <span class="accent">Princípio da home:</span> primeiro situação e decisão, depois contexto, e só então profundidade. Nenhuma tabela longa ou listão operacional domina essa tela.
+          </section>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
