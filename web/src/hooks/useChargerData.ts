@@ -33,6 +33,29 @@ export interface UseOperationDataResult {
   setRankingPeriod: (period: { startDate: string; endDate: string }) => void;
 }
 
+function parseHourMinute(value: string | undefined, fallback: string): [number, number] {
+  const source = (value || fallback).trim();
+  const [hourRaw, minuteRaw] = source.split(":");
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    const [fallbackHour, fallbackMinute] = fallback.split(":").map((part) => Number(part));
+    return [fallbackHour || 0, fallbackMinute || 0];
+  }
+  return [hour, minute];
+}
+
+function isWithinResourceSchedule(resource: { business_start?: string; business_end?: string; is_offline?: boolean }): boolean {
+  if (resource.is_offline) return false;
+  const now = new Date();
+  const [startHour, startMinute] = parseHourMinute(resource.business_start, "08:00");
+  const [endHour, endMinute] = parseHourMinute(resource.business_end, "18:00");
+  const current = now.getHours() * 60 + now.getMinutes();
+  const start = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+  return current >= start && current < end;
+}
+
 export function useChargerData(context: string | undefined, pause: boolean = false): UseOperationDataResult {
   const rootContext = resolveRootContext(context || "");
   const isSisContext = rootContext === "sis";
@@ -85,17 +108,24 @@ export function useChargerData(context: string | undefined, pause: boolean = fal
 
   // Stats derivados (exatamente como o legado)
   const stats = useMemo<OperationDashboardStats>(
-    () => ({
-      available: kanbanData.availableResources.filter((r) => !r.is_offline).length,
-      occupied: kanbanData.allocatedResources.reduce(
-        (acc, r) => acc + (r.chargers?.length || 0),
-        0
-      ),
-      offline:
-        kanbanData.availableResources.filter((r) => r.is_offline).length +
-        chargers.filter((c) => c.is_deleted).length,
-      total: chargers.length,
-    }),
+    () => {
+      const livres = kanbanData.availableResources.filter((resource) => isWithinResourceSchedule(resource)).length;
+      const offline = kanbanData.availableResources.length - livres;
+      const reservados = kanbanData.allocatedResources
+        .filter((ticket) => ticket.status === 3)
+        .reduce((acc, ticket) => acc + (ticket.chargers?.length || 0), 0);
+      const emOperacao = kanbanData.allocatedResources
+        .filter((ticket) => ticket.status !== 3)
+        .reduce((acc, ticket) => acc + (ticket.chargers?.length || 0), 0);
+
+      return {
+        livres,
+        reservados,
+        emOperacao,
+        offline: offline + chargers.filter((charger) => charger.is_deleted).length,
+        total: chargers.length,
+      };
+    },
     [kanbanData, chargers]
   );
 

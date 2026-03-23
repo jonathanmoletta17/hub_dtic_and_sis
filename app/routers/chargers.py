@@ -305,6 +305,9 @@ async def assign_charger(
         res = await assign_charger_to_ticket(glpi_client, charger_id, ticket_id, glpi_db=db)
         _invalidate_chargers_cache("assign")
         return {"success": True, "data": res}
+    except ValueError as e:
+        logger.warning("Bloqueio de atribuicao charger_id=%s ticket_id=%s detalhe=%s", charger_id, ticket_id, e)
+        raise HTTPException(status_code=409, detail=str(e))
     except Exception as e:
         logger.error(f"Erro ao atribuir: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -332,6 +335,9 @@ async def assign_multiple(
             results.append(res)
         _invalidate_chargers_cache("assign-multiple")
         return {"success": True, "data": results}
+    except ValueError as e:
+        logger.warning("Bloqueio de atribuicao multipla ticket_id=%s detalhe=%s", ticket_id, e)
+        raise HTTPException(status_code=409, detail=str(e))
     except Exception as e:
         logger.error(f"Erro ao atribuir multiplos: {e}")
         raise HTTPException(status_code=500, detail=str(e))

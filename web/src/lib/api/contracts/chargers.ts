@@ -102,6 +102,9 @@ export interface AvailableChargerBriefDto {
   id: number;
   name: string;
   is_offline: boolean;
+  is_within_schedule?: boolean;
+  business_start?: string;
+  business_end?: string;
   lastTicket?: LastTicketBriefDto | null;
 }
 

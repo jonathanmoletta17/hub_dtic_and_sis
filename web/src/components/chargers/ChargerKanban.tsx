@@ -1,17 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
-  Zap,
+  CalendarClock,
+  CheckCircle,
   Clock,
   Hourglass,
-  UserCheck,
-  HardHat,
-  Car,
+  MapPin,
   User,
+  UserCog,
   X,
 } from "lucide-react";
-// SSoT: tempo calculado no backend via time_elapsed
+
 import type {
   KanbanDemand,
   KanbanAvailableResource,
@@ -19,10 +19,15 @@ import type {
 } from "../../types/charger";
 import {
   formatElapsedSince,
+  formatIsoDate,
   formatIsoTime,
   toDateOrNull,
 } from "../../lib/datetime/iso";
-import { formatLocation, formatCategoryName, decodeHtmlEntities } from "../../lib/utils/formatters";
+import {
+  decodeHtmlEntities,
+  formatCategoryName,
+  formatLocation,
+} from "../../lib/utils/formatters";
 
 interface Props {
   demands: KanbanDemand[];
@@ -33,357 +38,387 @@ interface Props {
   onAllocatedClick?: (ticketId: number) => void;
 }
 
-export function ChargerKanban({ demands, available, allocated, onDemandClick, onUnassignCharger, onAllocatedClick }: Props) {
-  const formatIdleTime = (value: string | null | undefined) => {
-    const elapsed = formatElapsedSince(value);
-    return elapsed ? `Ocioso ha: ${elapsed}` : "Pronto para nova atribuicao";
-  };
+interface ChargerCardViewModel {
+  id: number;
+  name: string;
+  location?: string;
+  offlineReason?: string;
+  expectedReturn?: string;
+  lastSolvedAt?: string;
+  idleMinutes: number;
+  isOffline: boolean;
+  isWithinSchedule: boolean;
+}
 
-  const formatDemandCreatedAt = (value: string | null | undefined) => {
-    const time = formatIsoTime(value);
-    const date = toDateOrNull(value)?.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
+interface AssignmentCardViewModel {
+  ticketId: number;
+  title: string;
+  category?: string;
+  location?: string;
+  requester?: string;
+  ticketElapsed?: string;
+  chargerId: number;
+  chargerName: string;
+  assignedAt?: string;
+  serviceMinutes?: number;
+}
 
-    if (!time || !date) {
-      return "";
+function parseHourMinute(value: string | undefined, fallback: string): [number, number] {
+  const source = (value || fallback).trim();
+  const [hourRaw, minuteRaw] = source.split(":");
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    const [fallbackHour, fallbackMinute] = fallback.split(":").map((item) => Number(item));
+    return [fallbackHour || 0, fallbackMinute || 0];
+  }
+  return [hour, minute];
+}
+
+function isWithinScheduleNow(resource: KanbanAvailableResource): boolean {
+  if (resource.is_offline) return false;
+  const now = new Date();
+  const [startHour, startMinute] = parseHourMinute(resource.business_start, "08:00");
+  const [endHour, endMinute] = parseHourMinute(resource.business_end, "18:00");
+
+  const current = now.getHours() * 60 + now.getMinutes();
+  const start = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+
+  if (start === end) return true;
+  if (end > start) return current >= start && current < end;
+  return current >= start || current < end;
+}
+
+function idleMinutesFromSolvedDate(lastSolvedAt?: string): number {
+  const solved = toDateOrNull(lastSolvedAt);
+  if (!solved) return Number.MAX_SAFE_INTEGER;
+  return Math.max(0, Math.floor((Date.now() - solved.getTime()) / 60000));
+}
+
+function formatIdleTime(lastSolvedAt?: string): string {
+  return formatElapsedSince(lastSolvedAt) ?? "Pronto para operacao";
+}
+
+function toAssignmentCards(source: KanbanAllocatedResource[]): AssignmentCardViewModel[] {
+  const cards: AssignmentCardViewModel[] = [];
+  for (const ticket of source) {
+    for (const charger of ticket.chargers || []) {
+      cards.push({
+        ticketId: ticket.ticket_id,
+        title: ticket.title,
+        category: ticket.category,
+        location: ticket.location,
+        requester: ticket.requester_name,
+        ticketElapsed: ticket.time_elapsed,
+        chargerId: charger.id,
+        chargerName: charger.name,
+        assignedAt: charger.assigned_date || ticket.date,
+        serviceMinutes: charger.service_time_minutes,
+      });
     }
+  }
+  return cards;
+}
 
-    return `Criado as ${time} (${date})`;
-  };
+function Column({
+  title,
+  icon,
+  count,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  count: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col h-full min-h-0 bg-slate-900/50 rounded-xl border border-slate-800/50 backdrop-blur-sm shadow-xl overflow-hidden">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
+        <h3 className="text-slate-100 font-semibold flex items-center gap-2">
+          {icon}
+          {title}
+        </h3>
+        <span className="text-xs font-bold px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-slate-300">
+          {count}
+        </span>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 mb-4 custom-scrollbar">
+        <div className="flex flex-col space-y-3 pb-4">{children}</div>
+      </div>
+    </div>
+  );
+}
 
-  const sorted = [...available].sort((a, b) => {
-    const isOffA = a.is_offline;
-    const isOffB = b.is_offline;
-    if (isOffA && !isOffB) return 1;
-    if (!isOffA && isOffB) return -1;
-    
-    // Se ambos online: ordenar por tempo ocioso (solvedate mais antigo primeiro)
-    const dateA = toDateOrNull(a.lastTicket?.solvedate)?.getTime() ?? 0;
-    const dateB = toDateOrNull(b.lastTicket?.solvedate)?.getTime() ?? 0;
-    
-    if (dateA !== dateB) return dateA - dateB;
-    
-    return a.name.localeCompare(b.name);
-  });
-  const activeCount = available.filter((r) => !r.is_offline).length;
-  const offlineCount = available.filter((r) => r.is_offline).length;
+export function ChargerKanban({
+  demands,
+  available,
+  allocated,
+  onDemandClick,
+  onUnassignCharger,
+  onAllocatedClick,
+}: Props) {
+  const chargerCards = useMemo<ChargerCardViewModel[]>(() => {
+    return available.map((resource) => {
+      const withinSchedule = isWithinScheduleNow(resource);
+      return {
+        id: resource.id,
+        name: resource.name,
+        location: resource.location,
+        offlineReason: resource.offline_reason,
+        expectedReturn: resource.expected_return,
+        lastSolvedAt: resource.lastTicket?.solvedate,
+        idleMinutes: idleMinutesFromSolvedDate(resource.lastTicket?.solvedate),
+        isOffline: !!resource.is_offline,
+        isWithinSchedule: withinSchedule,
+      };
+    });
+  }, [available]);
+
+  const livreCards = useMemo(
+    () =>
+      chargerCards
+        .filter((item) => !item.isOffline && item.isWithinSchedule)
+        .sort((a, b) => b.idleMinutes - a.idleMinutes),
+    [chargerCards]
+  );
+
+  const indisponivelCards = useMemo(
+    () =>
+      chargerCards
+        .filter((item) => item.isOffline || !item.isWithinSchedule)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [chargerCards]
+  );
+
+  const reservedCards = useMemo(
+    () =>
+      toAssignmentCards(allocated.filter((ticket) => ticket.status === 3)).sort((a, b) => {
+        const aValue = toDateOrNull(a.assignedAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const bValue = toDateOrNull(b.assignedAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        return aValue - bValue;
+      }),
+    [allocated]
+  );
+
+  const operatingCards = useMemo(
+    () =>
+      toAssignmentCards(allocated.filter((ticket) => ticket.status !== 3)).sort((a, b) => {
+        const aValue = toDateOrNull(a.assignedAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const bValue = toDateOrNull(b.assignedAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        return aValue - bValue;
+      }),
+    [allocated]
+  );
+
+  const waitingCards = useMemo(
+    () =>
+      [...demands].sort((a, b) => {
+        const aValue = toDateOrNull(a.date_creation || a.date)?.getTime() ?? 0;
+        const bValue = toDateOrNull(b.date_creation || b.date)?.getTime() ?? 0;
+        return bValue - aValue;
+      }),
+    [demands]
+  );
 
   return (
     <>
-      {/* ─── Coluna 1: Disponíveis ─── */}
-      <div className="flex flex-col h-full min-h-0 bg-slate-900/50 rounded-xl border border-slate-800/50 backdrop-blur-sm shadow-xl overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
-          <h3 className="text-emerald-500 font-semibold flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-            Disponíveis
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-500/20">
-              {activeCount} Livres
-            </span>
-            {offlineCount > 0 && (
-              <span className="bg-red-500/10 text-red-400 text-xs font-bold px-2.5 py-1 rounded-full border border-red-500/20">
-                {offlineCount} Indisponível
+      <Column
+        title="Livres"
+        icon={<CheckCircle size={18} className="text-emerald-400" />}
+        count={livreCards.length}
+      >
+        {livreCards.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-6">Nenhum carregador livre no momento.</p>
+        )}
+        {livreCards.map((resource) => (
+          <div
+            key={resource.id}
+            className="bg-slate-800/40 border border-emerald-500/20 rounded-xl p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-slate-100 truncate">{resource.name}</span>
+              <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded uppercase tracking-wider">
+                Livre
               </span>
-            )}
+            </div>
+            <div className="mt-2 text-xs text-slate-400 flex items-center gap-1">
+              <MapPin size={12} />
+              <span className="truncate">{formatLocation(resource.location || "Local nao informado")}</span>
+            </div>
+            <div className="mt-2 text-[11px] text-emerald-300 font-semibold">
+              Ocioso ha: {formatIdleTime(resource.lastSolvedAt)}
+            </div>
           </div>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 mb-4 custom-scrollbar">
-          <div className="flex flex-col space-y-3 pb-4">
-            {sorted.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center mt-10">
-                <UserCheck size={40} className="text-slate-700 mb-4" />
-                <h3 className="text-white font-bold text-lg">Nenhum disponível</h3>
-                <p className="text-slate-400 text-sm mt-2">
-                  Todos os carregadores estão em atendimento ou inativos.
-                </p>
-              </div>
-            ) : (
-              sorted.map((res, idx) => {
-                const isOff = res.is_offline;
-                const showSep = isOff && idx > 0 && !sorted[idx - 1].is_offline;
-                return (
-                  <React.Fragment key={res.id}>
-                    {showSep && (
-                      <div className="flex items-center gap-2 pt-2 pb-1">
-                        <div className="flex-1 h-px bg-red-500/20" />
-                        <span className="text-[10px] uppercase font-bold text-red-400/60 tracking-wider">
-                          Indisponíveis
-                        </span>
-                        <div className="flex-1 h-px bg-red-500/20" />
-                      </div>
-                    )}
-                    <div
-                      className={`p-3 rounded-xl border shadow-sm relative overflow-hidden group transition-colors cursor-pointer ${
-                        isOff
-                          ? "bg-slate-800/20 border-red-500/15 opacity-50 hover:opacity-70"
-                          : "bg-slate-800/40 border-emerald-500/20 hover:bg-slate-800/70"
-                      }`}
-                    >
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${isOff ? "bg-red-500/40" : "bg-emerald-500"}`} />
-                      <div className="flex items-center gap-3 pl-2">
-                        <div className={`w-10 h-10 shrink-0 rounded-full border flex justify-center items-center ${isOff ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/30"}`}>
-                          <span className={`font-bold text-sm ${isOff ? "text-red-400/60" : "text-emerald-400"}`}>
-                            {res.name.substring(0, 2).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="flex justify-between items-center gap-2">
-                            <span className={`font-bold text-[15px] truncate ${isOff ? "text-slate-400" : "text-slate-100"}`}>
-                              {res.name}
-                            </span>
-                            {isOff ? (
-                              <span className="shrink-0 text-[10px] font-bold text-red-400 uppercase tracking-widest bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
-                                Indisponível
-                              </span>
-                            ) : null}
-                          </div>
-                          {isOff && res.offline_reason && (
-                            <span className="text-[10px] text-red-400/60 mt-0.5 truncate">
-                              {res.offline_reason}
-                            </span>
-                          )}
-                          {!isOff && (
-                            <>
-                              {res.lastTicket?.solvedate ? (
-                                  <div className="flex flex-col gap-0.5 mt-1">
-                                    <div className="flex justify-between items-center w-full">
-                                      <span className="text-[10px] text-slate-400 truncate">
-                                        📍 {res.lastTicket.location || 'Local não informado'}
-                                      </span>
-                                      <span className="flex items-center gap-1 bg-emerald-500/10 text-[10px] text-emerald-400 font-black tracking-widest uppercase px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-sm ml-2 shrink-0">
-                                        <Clock size={10} className="text-emerald-500" />
-                                        {(() => {
-                                          return formatIdleTime(res.lastTicket.solvedate);
-                                        })()}
-                                      </span>
-                                    </div>
-                                    <span className="text-[10px] text-slate-500 truncate">
-                                    #{res.lastTicket.id} {decodeHtmlEntities(res.lastTicket.title)}
-                                    </span>
-                                  </div>
-                              ) : (
-                                <span className="text-xs text-slate-500 mt-1 truncate">
-                                  Pronto para nova atribuição
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
+        ))}
 
-      {/* ─── Coluna 2: Em Atendimento ─── */}
-      <div className="flex flex-col h-full min-h-0 bg-slate-900/50 rounded-xl border border-slate-800/50 backdrop-blur-sm shadow-xl overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
-          <h3 className="text-blue-500 font-semibold flex items-center gap-2">
-            <HardHat size={18} className="text-blue-500" />
-            Em Atendimento
-          </h3>
-          <span className="bg-blue-500/10 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-500/20">
-            {allocated.reduce((acc, r) => acc + (r.chargers?.length || 0), 0)} Em campo
-          </span>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 mb-4 custom-scrollbar">
-          <div className="flex flex-col space-y-3 pb-4">
-            {allocated.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center mt-10">
-                <Car size={40} className="text-slate-700 mb-4" />
-                <h3 className="text-white font-bold text-lg">Nenhum em andamento</h3>
-                <p className="text-slate-400 text-sm mt-2">
-                  Não há carregadores prestando serviço no momento.
-                </p>
-              </div>
-            ) : (
-              allocated.map((tg) => (
+        {indisponivelCards.length > 0 && (
+          <>
+            <div className="pt-2 border-t border-slate-700/60">
+              <p className="text-[10px] uppercase tracking-widest text-orange-300/80 font-bold">
+                Fora de disponibilidade
+              </p>
+            </div>
+            {indisponivelCards.map((resource) => {
+              const reason = resource.isOffline ? "Offline" : "Fora do expediente";
+              return (
                 <div
-                  key={tg.ticket_id}
-                  className="bg-slate-800/60 p-3 rounded-xl border border-blue-500/30 shadow-lg relative overflow-hidden group hover:border-blue-500/60 transition-colors cursor-pointer flex flex-col"
-                  onClick={() => onAllocatedClick?.(tg.ticket_id)}
+                  key={resource.id}
+                  className="bg-slate-800/20 border border-orange-500/20 rounded-xl p-3 opacity-80"
                 >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600" />
-                  {/* Linha 1: ID, Categoria, Location, Requester & SLA */}
-                  <div className="flex justify-between items-start gap-2 mb-2 pl-2">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0 flex-1">
-                      <span className="text-slate-500 font-bold tracking-wider text-[11px] uppercase shrink-0">
-                        #{tg.ticket_id}
-                      </span>
-                      {tg.category && (
-                        <span className="text-blue-400 font-bold text-[10px] uppercase tracking-wider shrink-0 bg-blue-500/10 px-1.5 py-0.5 rounded">
-                          {formatCategoryName(tg.category)}
-                        </span>
-                      )}
-                      {tg.location && (
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[140px]" title={tg.location}>
-                          <span className="text-slate-700 font-black px-0.5">·</span>
-                          <span className="truncate">{formatLocation(tg.location)}</span>
-                        </span>
-                      )}
-                      {tg.requester_name && (
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[120px]" title={tg.requester_name}>
-                          <span className="text-slate-700 font-black px-0.5">·</span>
-                          <User size={8} className="text-slate-500 shrink-0" />
-                          <span className="truncate">{tg.requester_name}</span>
-                        </span>
-                      )}
-                    </div>
-                    {tg.time_elapsed && (
-                      <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 shadow-sm shadow-blue-500/10 shrink-0 mt-0.5">
-                        <Clock size={10} className="text-blue-400" />
-                        <span className="text-[10px] font-black text-blue-300 uppercase tracking-tighter">
-                          {tg.time_elapsed}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Linha 2: Título do chamado com destaque */}
-                  <div className="pl-2 mb-2 flex-1 min-w-0">
-                    <span className="font-bold text-slate-100 text-[14px] leading-snug truncate uppercase tracking-wider block" title={decodeHtmlEntities(tg.title)}>
-                      {decodeHtmlEntities(tg.title)}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-slate-200 truncate">{resource.name}</span>
+                    <span className="text-[10px] font-bold text-orange-200 bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded uppercase tracking-wider">
+                      {reason}
                     </span>
                   </div>
-                  {/* Chargers Row */}
-                  <div 
-                    className="pl-2 pt-2 border-t border-slate-700/50 flex flex-nowrap items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1.5"
-                    onWheel={(e) => {
-                      if (e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
-                        e.currentTarget.scrollLeft += e.deltaY;
-                        // Removido e.preventDefault() devido ao erro the passivo. O scroll natural do container com flex-nowrap ocorrerá.
-                      }
-                    }}
-                  >
-                    {tg.chargers?.map((ch) => (
-                      <div key={ch.id} className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/50 rounded-full pl-2 pr-1.5 py-1 shrink-0 group/chip hover:border-blue-500/40 hover:bg-blue-950/40 transition-colors">
-                        <div className="w-4 h-4 rounded-full bg-blue-500/20 flex justify-center items-center">
-                          <User size={8} className="text-blue-400 shrink-0" />
-                        </div>
-                        <span className="text-xs text-slate-300 font-medium whitespace-nowrap">
-                          {ch.name}
-                        </span>
-                        {ch.service_time_minutes !== undefined && (
-                          <span className="text-[9px] text-slate-500 font-bold whitespace-nowrap ml-0.5">
-                            {Math.floor(ch.service_time_minutes / 60)}h {ch.service_time_minutes % 60}m
-                          </span>
-                        )}
-                        {onUnassignCharger && (
-                          <div className="w-0 overflow-hidden opacity-0 group-hover/chip:w-5 group-hover/chip:opacity-100 group-hover/chip:ml-0.5 transition-all duration-200">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onUnassignCharger(tg.ticket_id, ch.id, ch.name);
-                              }}
-                              className="w-5 h-5 rounded-full hover:bg-red-500/20 flex items-center justify-center transition-colors border border-transparent hover:border-red-500/50 shrink-0"
-                              title="Desvincular Carregador"
-                            >
-                              <X size={10} className="text-red-400" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  <div className="mt-2 text-xs text-slate-400 flex items-center gap-1">
+                    <MapPin size={12} />
+                    <span className="truncate">{formatLocation(resource.location || "Local nao informado")}</span>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Coluna 3: Demandas Pendentes ─── */}
-      <div className="flex flex-col h-full min-h-0 bg-slate-900/50 rounded-xl border border-slate-800/50 backdrop-blur-sm shadow-xl overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
-          <h3 className="text-orange-500 font-semibold flex items-center gap-2">
-            <Zap size={18} className="text-orange-500 fill-orange-500/20" />
-            Aguardando Atribuição
-          </h3>
-          <span className="bg-orange-500/10 text-orange-400 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-500/20 animate-pulse">
-            {demands.length} Demandas
-          </span>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 mb-4 custom-scrollbar">
-          <div className="flex flex-col space-y-3 pb-4">
-            {demands.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center mt-10">
-                <Hourglass size={40} className="text-slate-700 mb-4" />
-                <h3 className="text-white font-bold text-lg">Sem Demandas</h3>
-                <p className="text-slate-400 text-sm mt-2">
-                  A fila de espera está vazia.
-                </p>
-              </div>
-            ) : (
-              [...demands].sort((a, b) => b.id - a.id).map((d) => (
-                <div
-                  key={d.id}
-                  onClick={() => onDemandClick?.(d)}
-                  className="bg-slate-800/60 p-3 rounded-xl border border-orange-500/30 shadow-lg relative overflow-hidden group hover:border-orange-500/60 transition-colors cursor-pointer flex flex-col"
-                >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-400 to-orange-600" />
-                  {/* Linha 1: ID, Categoria, Location, Requester & SLA */}
-                  <div className="flex justify-between items-start gap-2 mb-2 pl-2">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0 flex-1">
-                      <span className="text-slate-500 font-bold tracking-wider text-[11px] uppercase shrink-0">
-                        #{d.id}
-                      </span>
-                      {d.category && (
-                        <span className="text-orange-400 font-bold text-[10px] uppercase tracking-wider shrink-0 bg-orange-500/10 px-1.5 py-0.5 rounded">
-                          {formatCategoryName(d.category)}
-                        </span>
-                      )}
-                      {d.location && (
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[140px]" title={d.location}>
-                          <span className="text-slate-700 font-black px-0.5">·</span>
-                          <span className="truncate">{formatLocation(d.location)}</span>
-                        </span>
-                      )}
-                    </div>
-                    {d.time_elapsed && (
-                      <div className="flex items-center gap-1 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shadow-sm shadow-orange-500/10 shrink-0 mt-0.5">
-                        <Clock size={10} className="text-orange-400" />
-                        <span className="text-[10px] font-black text-orange-300 uppercase tracking-tighter">
-                          {d.time_elapsed}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Linha 2: Título do chamado com destaque */}
-                  <div className="pl-2 mb-1 flex-1 min-w-0">
-                    <span className="font-bold text-slate-100 text-[14px] leading-snug truncate uppercase tracking-wider block" title={decodeHtmlEntities(d.title || d.name)}>
-                      {decodeHtmlEntities(d.title || d.name)}
-                    </span>
-                  </div>
-                  {/* Linha 3: Data de Criação e Solicitante */}
-                  {(d.date_creation || d.requester || d.requester_name) && (
-                    <div className="pl-2 flex justify-between items-center mt-1 border-t border-slate-700/50 pt-1.5">
-                      <div className="flex items-center gap-1">
-                        {d.date_creation && (
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            {formatDemandCreatedAt(d.date_creation)}
-                          </span>
-                        )}
-                      </div>
-                      {(d.requester || d.requester_name) && (
-                        <span className="flex items-center text-[10px] text-slate-400 font-medium max-w-[130px] truncate justify-end" title={d.requester || d.requester_name}>
-                          <User size={10} className="inline mr-1 text-slate-500 shrink-0" />
-                          <span className="truncate">{d.requester || d.requester_name}</span>
-                        </span>
-                      )}
-                    </div>
+                  {resource.offlineReason && (
+                    <div className="mt-2 text-[11px] text-orange-200/80 truncate">{resource.offlineReason}</div>
                   )}
                 </div>
-              ))
-            )}
+              );
+            })}
+          </>
+        )}
+      </Column>
+
+      <Column
+        title="Reservados"
+        icon={<CalendarClock size={18} className="text-indigo-400" />}
+        count={reservedCards.length}
+      >
+        {reservedCards.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-6">Sem reservas planejadas.</p>
+        )}
+        {reservedCards.map((card) => (
+          <div
+            key={`${card.ticketId}-${card.chargerId}`}
+            className="bg-slate-800/60 border border-indigo-500/20 rounded-xl p-3 cursor-pointer hover:border-indigo-400/40 transition-colors"
+            onClick={() => onAllocatedClick?.(card.ticketId)}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                  #{card.ticketId}
+                </div>
+                <div className="font-semibold text-slate-100 truncate" title={decodeHtmlEntities(card.title)}>
+                  {decodeHtmlEntities(card.title)}
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-indigo-200 bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded uppercase tracking-wider">
+                {formatIsoTime(card.assignedAt) || "--:--"}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-400 truncate">
+              {card.category ? formatCategoryName(card.category) : "Sem categoria"}
+            </div>
+            <div className="mt-2 flex items-center gap-2 text-xs text-indigo-200">
+              <UserCog size={12} />
+              <span className="truncate">{card.chargerName}</span>
+            </div>
           </div>
-        </div>
-      </div>
+        ))}
+      </Column>
+
+      <Column
+        title="Em Operacao"
+        icon={<Clock size={18} className="text-blue-400" />}
+        count={operatingCards.length}
+      >
+        {operatingCards.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-6">Nenhuma operacao ativa.</p>
+        )}
+        {operatingCards.map((card) => (
+          <div
+            key={`${card.ticketId}-${card.chargerId}`}
+            className="bg-slate-800/60 border border-blue-500/20 rounded-xl p-3 cursor-pointer hover:border-blue-400/40 transition-colors"
+            onClick={() => onAllocatedClick?.(card.ticketId)}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                  #{card.ticketId}
+                </div>
+                <div className="font-semibold text-slate-100 truncate" title={decodeHtmlEntities(card.title)}>
+                  {decodeHtmlEntities(card.title)}
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-blue-200 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded uppercase tracking-wider">
+                {card.ticketElapsed || "--"}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-400 truncate">
+              {card.category ? formatCategoryName(card.category) : "Sem categoria"}
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs text-blue-200 min-w-0">
+                <User size={12} />
+                <span className="truncate">{card.chargerName}</span>
+              </div>
+              {onUnassignCharger && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onUnassignCharger(card.ticketId, card.chargerId, card.chargerName);
+                  }}
+                  className="w-5 h-5 rounded-full border border-red-500/40 text-red-300 hover:bg-red-500/20 flex items-center justify-center"
+                  title="Desvincular carregador"
+                >
+                  <X size={10} />
+                </button>
+              )}
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 truncate">
+              {card.location ? formatLocation(card.location) : "Local nao informado"}
+            </div>
+          </div>
+        ))}
+      </Column>
+
+      <Column
+        title="Aguardando Atribuicao"
+        icon={<Hourglass size={18} className="text-orange-400" />}
+        count={waitingCards.length}
+      >
+        {waitingCards.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-6">Fila vazia.</p>
+        )}
+        {waitingCards.map((demand) => (
+          <div
+            key={demand.id}
+            onClick={() => onDemandClick?.(demand)}
+            className="bg-slate-800/60 border border-orange-500/20 rounded-xl p-3 cursor-pointer hover:border-orange-400/40 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                  #{demand.id}
+                </div>
+                <div className="font-semibold text-slate-100 truncate" title={decodeHtmlEntities(demand.title || demand.name)}>
+                  {decodeHtmlEntities(demand.title || demand.name)}
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-orange-200 bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded uppercase tracking-wider">
+                {demand.time_elapsed || "--"}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-400 truncate">
+              {demand.category ? formatCategoryName(demand.category) : "Sem categoria"}
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 truncate">
+              {demand.location ? formatLocation(demand.location) : "Local nao informado"}
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500">
+              {formatIsoDate(demand.date_creation || demand.date)} {formatIsoTime(demand.date_creation || demand.date)}
+            </div>
+          </div>
+        ))}
+      </Column>
     </>
   );
 }

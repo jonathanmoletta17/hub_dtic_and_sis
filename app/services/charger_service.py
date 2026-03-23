@@ -43,6 +43,35 @@ def _elapsed_minutes_since(start_dt: Optional[datetime], end_dt: datetime) -> in
         return 0
     return max(int((normalized_end - normalized_start).total_seconds() / 60), 0)
 
+
+def _parse_hhmm(value: Optional[str], fallback: str) -> tuple[int, int]:
+    source = (value or fallback).strip()
+    try:
+        hour_raw, minute_raw = source.split(":", 1)
+        hour = int(hour_raw)
+        minute = int(minute_raw)
+        if 0 <= hour <= 23 and 0 <= minute <= 59:
+            return hour, minute
+    except Exception:
+        pass
+    fallback_hour, fallback_minute = fallback.split(":", 1)
+    return int(fallback_hour), int(fallback_minute)
+
+
+def _is_within_schedule(now_dt: datetime, business_start: Optional[str], business_end: Optional[str]) -> bool:
+    start_hour, start_minute = _parse_hhmm(business_start, "08:00")
+    end_hour, end_minute = _parse_hhmm(business_end, "18:00")
+
+    now_minutes = now_dt.hour * 60 + now_dt.minute
+    start_minutes = start_hour * 60 + start_minute
+    end_minutes = end_hour * 60 + end_minute
+
+    if start_minutes == end_minutes:
+        return True
+    if end_minutes > start_minutes:
+        return start_minutes <= now_minutes < end_minutes
+    return now_minutes >= start_minutes or now_minutes < end_minutes
+
 class ChargerService:
     @ttl_cache(ttl_seconds=10, ignore_args=[0, 2, 3])  # Ignora self, glpi_db, local_db
     async def get_kanban_data(
@@ -288,6 +317,9 @@ class ChargerService:
         res_avail = await glpi_db.execute(SQL_AVAILABLE_CHARGERS_DETAILED)
         available_list = []
         for r in res_avail.fetchall():
+            business_start = r.b_start or "08:00"
+            business_end = r.b_end or "18:00"
+            is_within_schedule = _is_within_schedule(now, business_start, business_end)
             last_ticket = None
             if r.last_ticket_id:
                 last_ticket = LastTicketBrief(
@@ -298,6 +330,9 @@ class ChargerService:
             available_list.append(AvailableChargerBrief(
                 id=r.id, name=r.name,
                 is_offline=bool(str(r.is_offline_raw) == '1'),
+                is_within_schedule=is_within_schedule,
+                business_start=business_start,
+                business_end=business_end,
                 lastTicket=last_ticket
             ))
 

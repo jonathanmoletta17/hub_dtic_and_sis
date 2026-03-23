@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { RotateCw } from "lucide-react";
 
@@ -36,6 +36,7 @@ export default function GestaoCarregadoresPage() {
 
 function GestaoCarregadoresContent({ context }: { context: string }) {
   const logoutStore = useAuthStore(state => state.logout);
+  const activeHubRole = useAuthStore(state => state.getActiveHubRoleForContext(context));
 
   // O fetch só deveria acontecer se houver token, porém a refatoração do hook é externa e
   // o ProtectedRoute já garante a autenticação antes de chegar aqui.
@@ -73,6 +74,21 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
     const bEnd = parseInt(settings?.businessEnd?.split(":")[0] || "18", 10);
     return h >= bStart && h < bEnd;
   })();
+
+  const permissions = useMemo(() => {
+    const rawRole = (activeHubRole?.role || "").toLowerCase();
+    const isSuperAdmin = rawRole === "admin" || rawRole === "admin-hub" || rawRole.startsWith("super");
+    const isGestor = isSuperAdmin || rawRole.startsWith("gestor");
+    const isOperador = rawRole.startsWith("operador");
+    const isTecnico = rawRole.startsWith("tecnico");
+
+    return {
+      canCreateCharger: isGestor || isSuperAdmin,
+      canConfigureSchedule: isGestor || isSuperAdmin,
+      canDeleteCharger: isSuperAdmin,
+      canOperateAssignments: isGestor || isSuperAdmin || isOperador || isTecnico,
+    };
+  }, [activeHubRole?.role]);
 
   // ─── Callbacks de Mutação ───
   const handleCreate = useCallback(async (name: string, locationId: number) => {
@@ -180,6 +196,9 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
             onOpenDelete={() => setShowDeleteModal(true)}
             onOpenSettings={() => setShowSettingsModal(true)}
             onLogout={handleLogout}
+            canCreate={permissions.canCreateCharger}
+            canDelete={permissions.canDeleteCharger}
+            canConfigure={permissions.canConfigureSchedule}
           />
         </div>
       </div>
@@ -193,14 +212,14 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
       {/* Stat Cards */}
       <StatCards stats={stats} />
 
-      {/* Kanban (3 Colunas) */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Kanban (4 Colunas) */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
         <ChargerKanban
           demands={kanbanData.demands}
           available={kanbanData.availableResources}
           allocated={kanbanData.allocatedResources}
           onDemandClick={(demand) => setDetailTicketId(demand.id)}
-          onUnassignCharger={handleUnassign}
+          onUnassignCharger={permissions.canOperateAssignments ? handleUnassign : undefined}
           onAllocatedClick={(ticketId) => setDetailTicketId(ticketId)}
         />
       </div>
@@ -215,7 +234,7 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
 
       {/* ─── Modais ─── */}
       <CreateChargerModal
-        isOpen={showCreateModal}
+        isOpen={showCreateModal && permissions.canCreateCharger}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreate}
         loading={mutationLoading}
@@ -223,14 +242,14 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
       />
 
       <DeleteChargerModal
-        isOpen={showDeleteModal}
+        isOpen={showDeleteModal && permissions.canDeleteCharger}
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleDelete}
         chargers={kanbanData.availableResources}
       />
 
       <SettingsModal
-        isOpen={showSettingsModal}
+        isOpen={showSettingsModal && permissions.canConfigureSchedule}
         onClose={() => setShowSettingsModal(false)}
         chargers={kanbanData.availableResources}
         context={context}
@@ -243,10 +262,11 @@ function GestaoCarregadoresContent({ context }: { context: string }) {
           context={context}
           onClose={() => setDetailTicketId(null)}
           onMutate={refresh}
+          canAssign={permissions.canOperateAssignments}
         />
       )}
 
-        {unassignTarget && (
+      {unassignTarget && permissions.canOperateAssignments && (
         <UnassignConfirmModal
           chargerName={unassignTarget.chargerName}
           onConfirm={handleConfirmUnassign}

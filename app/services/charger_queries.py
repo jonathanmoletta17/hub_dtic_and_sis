@@ -184,6 +184,8 @@ SQL_CHARGERS_IN_TICKET = text("""
 SQL_AVAILABLE_CHARGERS_DETAILED = text("""
     SELECT c.id, c.name,
            COALESCE(NULLIF(f.statusofflinefield, ''), '0') as is_offline_raw,
+           COALESCE(NULLIF(f.inciodoexpedientefield, ''), '08:00') as b_start,
+           COALESCE(NULLIF(f.fimdoexpedientefield, ''), '18:00') as b_end,
            (SELECT t2.id
             FROM glpi_items_tickets it2
             JOIN glpi_tickets t2 ON it2.tickets_id = t2.id

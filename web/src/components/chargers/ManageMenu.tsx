@@ -8,11 +8,23 @@ interface ManageMenuProps {
   onOpenDelete: () => void;
   onOpenSettings: () => void;
   onLogout: () => void;
+  canCreate?: boolean;
+  canDelete?: boolean;
+  canConfigure?: boolean;
 }
 
-export default function ManageMenu({ onOpenCreate, onOpenDelete, onOpenSettings, onLogout }: ManageMenuProps) {
+export default function ManageMenu({
+  onOpenCreate,
+  onOpenDelete,
+  onOpenSettings,
+  onLogout,
+  canCreate = false,
+  canDelete = false,
+  canConfigure = false,
+}: ManageMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const hasManagementActions = canCreate || canDelete || canConfigure;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,41 +57,43 @@ export default function ManageMenu({ onOpenCreate, onOpenDelete, onOpenSettings,
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50">
           <div className="p-1.5">
-            <button
-              onClick={() => { setIsOpen(false); onOpenCreate(); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-blue-500/10 hover:text-blue-400 transition-all group"
-            >
-              <div className="bg-blue-500/10 p-1.5 rounded-md group-hover:bg-blue-500/20 transition-colors">
-                <Plus size={14} className="text-blue-500" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider">Novo Carregador</span>
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => { setIsOpen(false); onOpenCreate(); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-blue-500/10 hover:text-blue-400 transition-all group"
+              >
+                <div className="bg-blue-500/10 p-1.5 rounded-md group-hover:bg-blue-500/20 transition-colors">
+                  <Plus size={14} className="text-blue-500" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider">Novo Carregador</span>
+              </button>
+            )}
 
-            <div className="mx-3 my-1 border-t border-slate-800"></div>
+            {canDelete && (
+              <button
+                onClick={() => { setIsOpen(false); onOpenDelete(); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition-all group"
+              >
+                <div className="bg-red-500/10 p-1.5 rounded-md group-hover:bg-red-500/20 transition-colors">
+                  <Trash2 size={14} className="text-red-500" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider">Desativar Carregador</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => { setIsOpen(false); onOpenDelete(); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition-all group"
-            >
-              <div className="bg-red-500/10 p-1.5 rounded-md group-hover:bg-red-500/20 transition-colors">
-                <Trash2 size={14} className="text-red-500" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider">Desativar Carregador</span>
-            </button>
+            {canConfigure && (
+              <button
+                onClick={() => { setIsOpen(false); onOpenSettings(); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all group"
+              >
+                <div className="bg-slate-700/30 p-1.5 rounded-md group-hover:bg-slate-700/60 transition-colors">
+                  <Settings size={14} className="text-slate-400 group-hover:text-white transition-colors" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider">Expediente / Ajustes</span>
+              </button>
+            )}
 
-            <div className="mx-3 my-1 border-t border-slate-800"></div>
-
-            <button
-              onClick={() => { setIsOpen(false); onOpenSettings(); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all group"
-            >
-              <div className="bg-slate-700/30 p-1.5 rounded-md group-hover:bg-slate-700/60 transition-colors">
-                <Settings size={14} className="text-slate-400 group-hover:text-white transition-colors" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider">Expediente / Ajustes</span>
-            </button>
-
-            <div className="mx-3 my-1 border-t border-slate-800"></div>
+            {hasManagementActions && <div className="mx-3 my-1 border-t border-slate-800"></div>}
 
             <button
               onClick={() => { setIsOpen(false); onLogout(); }}

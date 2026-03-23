@@ -46,8 +46,9 @@ export const DEFAULT_OPERATION_SETTINGS: OperationSettings = {
 // --- Dashboard Stats ---
 
 export interface OperationDashboardStats {
-  available: number;
-  occupied: number;
+  livres: number;
+  reservados: number;
+  emOperacao: number;
   offline: number;
   total: number;
 }
@@ -113,6 +114,9 @@ export interface AvailableChargerBrief {
   id: number;
   name: string;
   is_offline: boolean;
+  is_within_schedule?: boolean;
+  business_start?: string;
+  business_end?: string;
   lastTicket?: {
     id: number;
     title: string;

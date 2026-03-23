@@ -11,6 +11,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
 from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.auth_guard import verify_session
@@ -200,21 +201,19 @@ def _resolve_response_mime_type(metadata: Optional[dict], response) -> str:
 @read_router.get("/knowledge/categories", response_model=KBCategoriesResponse)
 async def list_categories(
     context: str,
+    db: AsyncSession = Depends(get_db),
     is_faq: Optional[bool] = Query(None, description="Filtrar contagem por FAQs"),
 ):
     """Lista categorias da KB com contagem de artigos."""
     _validate_kb_context(context)
-
-    async for db in get_db("dtic"):
-        categories = await get_kb_categories(db, is_faq=is_faq)
-        return {"categories": categories}
-
-    return {"categories": []}
+    categories = await get_kb_categories(db, is_faq=is_faq)
+    return {"categories": categories}
 
 
 @read_router.get("/knowledge/articles", response_model=KBListResponse)
 async def list_articles(
     context: str,
+    db: AsyncSession = Depends(get_db),
     q: Optional[str] = Query(None, description="Texto de busca"),
     category_id: Optional[int] = Query(None, description="Filtrar por categoria"),
     is_faq: Optional[bool] = Query(None, description="Apenas FAQs"),
@@ -222,26 +221,26 @@ async def list_articles(
 ):
     """Lista/busca artigos da Base de Conhecimento."""
     _validate_kb_context(context)
-
-    async for db in get_db("dtic"):
-        result = await search_kb_articles(
-            db=db,
-            query=q,
-            category_id=category_id,
-            is_faq=is_faq,
-            limit=limit,
-        )
-        return {
-            "total": result.get("total", 0),
-            "categories": result.get("categories", []),
-            "articles": result.get("articles", []),
-        }
-
-    return {"total": 0, "categories": [], "articles": []}
+    result = await search_kb_articles(
+        db=db,
+        query=q,
+        category_id=category_id,
+        is_faq=is_faq,
+        limit=limit,
+    )
+    return {
+        "total": result.get("total", 0),
+        "categories": result.get("categories", []),
+        "articles": result.get("articles", []),
+    }
 
 
 @read_router.get("/knowledge/articles/{article_id}", response_model=KBArticleResponse)
-async def get_article(context: str, article_id: int):
+async def get_article(
+    context: str,
+    article_id: int,
+    db: AsyncSession = Depends(get_db),
+):
     """Retorna artigo completo com conteudo HTML sanitizado e anexos."""
     resolved_context = _validate_kb_context(context)
 
@@ -252,18 +251,15 @@ async def get_article(context: str, article_id: int):
     except Exception:
         pass
 
-    async for db in get_db("dtic"):
-        article = await get_kb_article(db, article_id, glpi_base_url)
-        if not article:
-            raise HTTPException(status_code=404, detail="Artigo nao encontrado.")
-        article["attachments"] = _with_attachment_urls(
-            resolved_context,
-            article_id,
-            article.get("attachments", []),
-        )
-        return {"article": article}
-
-    raise HTTPException(status_code=500, detail="Erro ao carregar artigo.")
+    article = await get_kb_article(db, article_id, glpi_base_url)
+    if not article:
+        raise HTTPException(status_code=404, detail="Artigo nao encontrado.")
+    article["attachments"] = _with_attachment_urls(
+        resolved_context,
+        article_id,
+        article.get("attachments", []),
+    )
+    return {"article": article}
 
 
 @write_router.post("/knowledge/articles", status_code=201)

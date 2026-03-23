@@ -121,6 +121,9 @@ function mapAvailableChargerBriefDto(dto: AvailableChargerBriefDto): AvailableCh
     id: dto.id,
     name: dto.name,
     is_offline: dto.is_offline,
+    is_within_schedule: dto.is_within_schedule,
+    business_start: dto.business_start ?? undefined,
+    business_end: dto.business_end ?? undefined,
     lastTicket: dto.lastTicket ? mapLastTicketBriefDto(dto.lastTicket) : undefined,
   };
 }

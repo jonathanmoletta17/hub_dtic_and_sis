@@ -151,6 +151,9 @@ class AvailableChargerBrief(BaseModel):
     id: int
     name: str
     is_offline: bool = False
+    is_within_schedule: bool = True
+    business_start: str = "08:00"
+    business_end: str = "18:00"
     lastTicket: Optional[LastTicketBrief] = None
 
 class TicketDetailResponse(BaseModel):
