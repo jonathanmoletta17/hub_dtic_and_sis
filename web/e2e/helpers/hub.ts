@@ -145,3 +145,23 @@ export async function gotoSisNewTicket(page: Page): Promise<void> {
 
   await expect(page.locator(".service-card").first()).toBeVisible();
 }
+
+export async function waitForDticAgentSurface(
+  page: Page,
+): Promise<"ready" | "unavailable"> {
+  const composer = page.getByPlaceholder(/Escreva o problema, erro ou pedido/i);
+  const unavailableHeading = page.getByRole("heading", { name: /Atendimento indisponivel/i });
+  const deadline = Date.now() + 15_000;
+
+  while (Date.now() < deadline) {
+    if (await composer.isVisible().catch(() => false)) {
+      return "ready";
+    }
+    if (await unavailableHeading.isVisible().catch(() => false)) {
+      return "unavailable";
+    }
+    await page.waitForTimeout(250);
+  }
+
+  throw new Error("DTIC agent surface did not become ready or unavailable within 15s");
+}

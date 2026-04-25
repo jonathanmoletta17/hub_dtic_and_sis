@@ -6,6 +6,7 @@ import {
   gotoSisNewTicket,
   loginThroughGateway,
   selectWorkspace,
+  waitForDticAgentSurface,
 } from "./helpers/hub";
 
 test.describe("Hub MVP smoke", () => {
@@ -30,7 +31,13 @@ test.describe("Hub MVP smoke", () => {
 
     await page.goto("/dtic/new-ticket", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Abrir chamado/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Enviar mensagem/i })).toBeVisible();
+    const dticAgentState = await waitForDticAgentSurface(page);
+    if (dticAgentState === "ready") {
+      await expect(page.getByRole("button", { name: /Enviar mensagem/i })).toBeVisible();
+    } else {
+      await expect(page.getByRole("heading", { name: /Atendimento indisponivel/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Tentar novamente/i })).toBeVisible();
+    }
 
     await page.goto("/selector", { waitUntil: "domcontentloaded" });
     await selectWorkspace(page, "sis");

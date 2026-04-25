@@ -64,6 +64,8 @@ type CreateSessionPayload = {
   initialMessage?: string;
 };
 
+const AGENT_CHAT_REQUEST_TIMEOUT_MS = 8_000;
+
 function normalizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, "");
 }
@@ -72,13 +74,27 @@ async function requestAgentChat<TResponse>(
   path: string,
   init?: RequestInit,
 ): Promise<TResponse> {
-  const response = await fetch(`${normalizeBaseUrl(frontendRuntimeConfig.dticAgentApiUrl)}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-    ...init,
-  });
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), AGENT_CHAT_REQUEST_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${normalizeBaseUrl(frontendRuntimeConfig.dticAgentApiUrl)}${path}`, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+      signal: controller.signal,
+    });
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === "AbortError") {
+      throw new AgentChatApiError("Atendimento assistido indisponivel ou demorou para responder.", 504);
+    }
+    throw cause;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     let detail = "Falha ao comunicar com o atendimento assistido.";
