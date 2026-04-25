@@ -1,0 +1,60 @@
+import { expect, test } from "@playwright/test";
+
+import {
+  ensureSmokeCredentials,
+  expectApiResponse,
+  gotoSisNewTicket,
+  loginThroughGateway,
+  selectWorkspace,
+} from "./helpers/hub";
+
+test.describe("Hub MVP smoke", () => {
+  test.beforeEach(() => {
+    ensureSmokeCredentials();
+  });
+
+  test("autentica e navega no nucleo DTIC e SIS", async ({ page }) => {
+    await loginThroughGateway(page);
+
+    await selectWorkspace(page, "dtic");
+
+    await expectApiResponse(page, "/api/v1/dtic/db/stats", async () => {
+      await page.goto("/dtic/dashboard", { waitUntil: "domcontentloaded" });
+    });
+    await expect(page).toHaveURL(/\/dtic\/dashboard$/);
+
+    await expectApiResponse(page, "/api/v1/dtic/db/tickets", async () => {
+      await page.goto("/dtic/user", { waitUntil: "domcontentloaded" });
+    });
+    await expect(page).toHaveURL(/\/dtic\/user$/);
+
+    await page.goto("/dtic/new-ticket", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /Abrir chamado/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Enviar mensagem/i })).toBeVisible();
+
+    await page.goto("/selector", { waitUntil: "domcontentloaded" });
+    await selectWorkspace(page, "sis");
+
+    await expectApiResponse(page, "/api/v1/sis/db/stats", async () => {
+      await page.goto("/sis/dashboard", { waitUntil: "domcontentloaded" });
+    });
+    await expect(page).toHaveURL(/\/sis\/dashboard$/);
+
+    await expectApiResponse(page, "/api/v1/sis/db/tickets", async () => {
+      await page.goto("/sis/user", { waitUntil: "domcontentloaded" });
+    });
+    await expect(page).toHaveURL(/\/sis\/user$/);
+
+    await gotoSisNewTicket(page);
+    await expect(page).toHaveURL(/\/sis\/new-ticket$/);
+
+    await expectApiResponse(
+      page,
+      (url) => /\/api\/v1\/sis\/domain\/formcreator\/forms\/\d+\/schema$/.test(url),
+      async () => {
+        await page.locator(".service-card").first().click();
+      },
+    );
+    await expect(page.getByRole("heading", { name: /Dados gerais/i })).toBeVisible();
+  });
+});

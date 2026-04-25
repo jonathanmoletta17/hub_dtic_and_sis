@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+build
+.cache
+.turbo
+coverage
+output
+storybook-static
+playwright-report
+test-results
+*.log

@@ -1,0 +1,62 @@
+{
+  "project": "hub-operacional-web",
+  "description": "Plataforma operacional DTIC END SIS baseada em .env local, stack web e infraestrutura Docker",
+  "canonicalRepoPath": "/home/jonathan/projects/work/hub-operacional-web",
+  "workspaceClass": "wsl-ext4",
+  "stack": [
+    "FastAPI / Python",
+    "Next.js / React",
+    "Docker Compose",
+    "Nginx"
+  ],
+  "context": {
+    "primaryDocs": [
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "CLAUDE.md",
+      "ARCHITECTURE_RULES.md",
+      "docs/canonical-scope.md",
+      "docs/CLI_CONTROL_PLANE.md"
+    ],
+    "entryPoints": [
+      "docker-compose.yml",
+      "backend/pyproject.toml",
+      "web/package.json",
+      "web/src/lib/config/runtime.ts"
+    ],
+    "ignoreOnContext": [
+      "backend/.pytest_cache/",
+      "backend/*.egg-info/",
+      "web/.next/",
+      "web/storybook-static/",
+      "web/output/",
+      "output/",
+      "logs/",
+      "node_modules/"
+    ]
+  },
+  "hints": {
+    "configModel": ".env local + docker-compose",
+    "frontendSurface": "web/",
+    "backendSurface": "backend/",
+    "runtimeProxy": "nginx via docker-compose",
+    "externalDependencies": [
+      "Hermes externo",
+      "servicos SIS/GLPI externos"
+    ]
+  },
+  "governance": {
+    "agentDocs": [
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "CLAUDE.md",
+      "HERMES.md"
+    ],
+    "treatHostPathsAsLegacy": true,
+    "doNotVersion": [
+      ".claude/settings.json",
+      ".claude/settings.local.json",
+      ".mcp.json"
+    ]
+  }
+}

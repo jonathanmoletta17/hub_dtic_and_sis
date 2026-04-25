@@ -1,0 +1,209 @@
+{
+  "dtic": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "analytics",
+      "icon": "BarChart3",
+      "route": "/analytics",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "dtic-metrics"
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    },
+    {
+      "id": "inventory",
+      "icon": "Landmark",
+      "route": "/inventario",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "inventario"
+    },
+    {
+      "id": "knowledge",
+      "icon": "Database",
+      "route": "/knowledge",
+      "requiredRoles": []
+    },
+    {
+      "id": "permissoes",
+      "icon": "Shield",
+      "route": "/permissoes",
+      "requiredRoles": [
+        "gestor"
+      ],
+      "requireApp": "permissoes"
+    }
+  ],
+  "sis": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "analytics",
+      "icon": "BarChart3",
+      "route": "/analytics",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "sis-dashboard"
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    },
+    {
+      "id": "chargers",
+      "icon": "Cpu",
+      "route": "/gestao-carregadores",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "carregadores"
+    }
+  ],
+  "sis-manutencao": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "analytics",
+      "icon": "BarChart3",
+      "route": "/analytics",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "sis-dashboard"
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    }
+  ],
+  "sis-memoria": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "analytics",
+      "icon": "BarChart3",
+      "route": "/analytics",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "sis-dashboard"
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    }
+  ]
+}
