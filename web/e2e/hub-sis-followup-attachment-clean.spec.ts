@@ -265,7 +265,7 @@ async function glpiServiceKill(runtimeEnv: RuntimeEnv, serviceSessionToken: stri
   });
 }
 
-test.describe("Hub SIS followup and attachment smoke", () => {
+test.describe("Hub SIS followup and attachment smoke @mutation", () => {
   test.setTimeout(240_000);
 
   test("cria ticket real, envia followup, envia anexo, valida download e limpa tudo", async ({ page }) => {

@@ -208,7 +208,7 @@ async function glpiServiceKill(runtimeEnv: RuntimeEnv, serviceSessionToken: stri
   });
 }
 
-test.describe("Hub SIS mutation smoke", () => {
+test.describe("Hub SIS mutation smoke @mutation", () => {
   test.setTimeout(180_000);
 
   test("abre chamado real do SIS e limpa ticket e form answer", async ({ page }) => {

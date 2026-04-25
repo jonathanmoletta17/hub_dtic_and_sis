@@ -177,7 +177,7 @@ async function glpiServiceKill(runtimeEnv: RuntimeEnv, serviceSessionToken: stri
   });
 }
 
-test.describe("Hub DTIC agent-first mutation smoke", () => {
+test.describe("Hub DTIC agent-first mutation smoke @mutation", () => {
   test.setTimeout(240_000);
 
   test("abre ticket real via chat inline, valida no hub e limpa o ticket ao final", async ({ page }) => {

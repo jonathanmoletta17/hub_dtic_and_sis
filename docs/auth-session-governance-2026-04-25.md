@@ -78,8 +78,12 @@ Smokes destrutivos:
 
 - Arquivos em `web/e2e/*clean.spec.ts`.
 - Criam tickets/anexos/form answers reais e depois tentam limpar.
-- Exigem `ALLOW_GLPI_MUTATION_SMOKE=true`.
+- Marcados com `@mutation`.
+- Ficam fora do comando padrao `npm run smoke:hub`, que usa `--grep-invert @mutation`.
+- Rodam somente pelo comando explicito `npm run smoke:hub:mutation`, com `ALLOW_GLPI_MUTATION_SMOKE=true`.
+- Exigem `SMOKE_USERNAME`, `SMOKE_PASSWORD`, URLs/App-Tokens GLPI e `*_GLPI_USER_TOKEN` no runtime local.
 - Nao fazem parte da validacao padrao nem devem ser usados para diagnostico read-only.
+- O `user_token` nesses specs existe apenas para cleanup/purge de dados reais criados pelo proprio smoke destrutivo.
 
 ## Implicacoes de remover user_token do caminho padrao
 
