@@ -178,12 +178,17 @@ export default function UserTicketsPage() {
             >
               Novo chamado
             </button>
-            {refreshing && (
-              <span className="theme-copy-soft inline-flex items-center gap-1 text-[11px]">
-                <Loader2 size={12} className="animate-spin" />
-                Atualizando
-              </span>
-            )}
+            <span
+              className={`theme-copy-soft inline-flex min-w-[6.5rem] items-center gap-1 text-[11px] transition-opacity duration-150 ${
+                refreshing ? "opacity-100" : "invisible opacity-0"
+              }`}
+              aria-live="polite"
+              aria-atomic="true"
+              aria-hidden={!refreshing}
+            >
+              <Loader2 size={12} className="animate-spin" />
+              Atualizando
+            </span>
           </div>
         </div>
       </header>

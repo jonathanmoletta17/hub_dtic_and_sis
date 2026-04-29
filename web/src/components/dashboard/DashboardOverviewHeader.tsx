@@ -66,12 +66,17 @@ export function DashboardOverviewHeader({
                 <span className="theme-copy-soft">Operando como {operatorLabel}</span>
               </div>
             ) : null}
-            {refreshing ? (
-              <div className="theme-copy-soft flex items-center gap-2 text-[11px]">
+            <div className="min-h-[18px]" aria-live="polite" aria-atomic="true">
+              <div
+                className={`theme-copy-soft flex items-center gap-2 text-[11px] transition-opacity duration-150 ${
+                  refreshing ? "opacity-100" : "invisible opacity-0"
+                }`}
+                aria-hidden={!refreshing}
+              >
                 <Loader2 size={12} className="animate-spin" />
                 <span>Atualizando painel</span>
               </div>
-            ) : null}
+            </div>
           </div>
 
           <div className="w-full lg:max-w-[22rem]">
