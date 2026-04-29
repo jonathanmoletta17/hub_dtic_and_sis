@@ -7,7 +7,7 @@ import {
   waitForDticAgentSurface,
 } from "./helpers/hub";
 
-test.describe("DTIC agent handoff", () => {
+test.describe("DTIC agent chat", () => {
   test.beforeEach(() => {
     ensureSmokeCredentials();
   });

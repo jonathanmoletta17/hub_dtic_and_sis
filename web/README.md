@@ -9,11 +9,14 @@ Fluxos ativos nesta base:
 - `DTIC/dashboard`
 - `DTIC/user`
 - `DTIC/ticket/[id]`
-- `DTIC/new-ticket` agent-first
+- `DTIC/new-ticket` chat inline agent-first
 - `SIS/dashboard`
 - `SIS/user`
 - `SIS/ticket/[id]`
-
-Fluxo ainda fora desta fase:
-
 - `SIS/new-ticket` com FormCreator
+
+Runtime canonico:
+
+- proxy: `http://localhost:18080`
+- frontend direto: `http://127.0.0.1:18082`
+- Hermes API externa para `DTIC/new-ticket`: `http://localhost:8502`

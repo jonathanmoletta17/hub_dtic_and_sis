@@ -15,12 +15,12 @@ The canonical model is the inline Hermes chat inside the hub.
 
 Included:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\app\[context]\new-ticket\page.tsx`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\ticket-entry.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\mvp-navigation.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-chat\DticAgentChatEntry.tsx`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-chat\DticAgentWelcomePanel.tsx`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\api\agent-chat-service.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/app/[context]/new-ticket/page.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/ticket-entry.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/mvp-navigation.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/modules/tickets/components/agent-chat/DticAgentChatEntry.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/modules/tickets/components/agent-chat/DticAgentWelcomePanel.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/api/agent-chat-service.ts`
 
 Out of scope:
 
@@ -33,11 +33,11 @@ Out of scope:
 
 Protected files remain protected:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\context-registry.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\store\useAuthStore.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\api\httpClient.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\backend\app\services\auth_service.py`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\backend\app\core\contexts.yaml`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/context-registry.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/store/useAuthStore.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/api/httpClient.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/backend/app/services/auth_service.py`
+- `/home/jonathan/projects/work/hub-operacional-web/backend/app/core/contexts.yaml`
 
 ## Contract
 
@@ -47,7 +47,7 @@ Protected files remain protected:
 
 Evidence:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\ticket-entry.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/lib/ticket-entry.ts`
 
 Current rule:
 
@@ -78,7 +78,7 @@ For non-agent contexts, the route may render:
 
 Evidence:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\app\[context]\new-ticket\page.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/app/[context]/new-ticket/page.tsx`
 
 Current rule:
 
@@ -119,7 +119,7 @@ It must not expose a second chat route such as:
 
 Evidence:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-chat\DticAgentChatEntry.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/modules/tickets/components/agent-chat/DticAgentChatEntry.tsx`
 
 Current copy anchor:
 
@@ -146,7 +146,7 @@ The hub must not reimplement:
 
 Those remain owned by:
 
-- `C:\Users\jonathan-moletta\code\glpi-ticket-agent-mvp`
+- `/home/jonathan/projects/work/glpi-ticket-agent-mvp`
 
 ### C7 - Draft submit remains explicit
 
@@ -156,36 +156,35 @@ The user must see the draft-ready state and explicitly choose the submit action.
 
 Runtime anchor:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\e2e\hub-dtic-agent-handoff.spec.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\e2e\hub-dtic-agent-submit-clean.spec.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/e2e/hub-dtic-agent-chat.spec.ts`
+- `/home/jonathan/projects/work/hub-operacional-web/web/e2e/hub-dtic-agent-submit-clean.spec.ts`
 
-### C8 - Legacy handoff is not canonical
+### C8 - Legacy handoff code is removed
 
-The older `agent-entry` implementation is not the canonical DTIC new-ticket route.
+The older `agent-entry` implementation is not part of the canonical DTIC new-ticket route and was removed from `web/src/modules/tickets/components/agent-entry/`.
 
-Residues that must be classified before reuse:
+Removed residues:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-entry\README.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-entry\DticAgentEntry.tsx`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-entry\dtic-agent-flow.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-entry\dtic-agent-flow.test.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\api\agent-chat-service.ts`
+- `web/src/modules/tickets/components/agent-entry/README.md`
+- `web/src/modules/tickets/components/agent-entry/DticAgentEntry.tsx`
+- `web/src/modules/tickets/components/agent-entry/dtic-agent-flow.ts`
+- `web/src/modules/tickets/components/agent-entry/dtic-agent-flow.test.ts`
 
-Relevant residue:
+Also removed:
 
 - `buildLegacyDticAgentUrl()`
 
 Current disposition:
 
-- kept as legacy code
-- marked as non-canonical
-- not used as the active `DTIC/new-ticket` UX
+- no legacy alternate handoff implementation remains in the frontend source
+- `DTIC/new-ticket` stays on `DticAgentChatEntry`
+- `NEXT_PUBLIC_DTIC_AGENT_URL` remains only as public Hermes URL configuration, not as a second UI path
 
 Allowed dispositions:
 
-1. remove if confirmed unused
-2. keep as explicit legacy support
-3. convert useful parts into fixtures or tests
+1. keep removed while inline chat remains canonical
+2. reintroduce only with a new plan, clear ownership and regression path
+3. prefer fixtures or tests over a second user-facing chat path
 
 Not allowed:
 
@@ -205,8 +204,8 @@ The assisted DTIC flow must preserve these states:
 
 Current story coverage:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-chat\DticAgentWelcomePanel.stories.tsx`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-chat\DticAgentChatSurface.stories.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/modules/tickets/components/agent-chat/DticAgentWelcomePanel.stories.tsx`
+- `/home/jonathan/projects/work/hub-operacional-web/web/src/modules/tickets/components/agent-chat/DticAgentChatSurface.stories.tsx`
 
 Covered assisted-chat states:
 
@@ -240,7 +239,7 @@ Proceed in this order:
 
 1. keep this contract as the source of canonicity
 2. add stable state stories for the full assisted chat
-3. classify legacy `agent-entry` and `buildLegacyDticAgentUrl()`
+3. keep legacy `agent-entry` removed unless a new explicit plan reintroduces it
 4. prove the canonical runtime through the standard hub validation
 
 ## Validation
@@ -252,32 +251,32 @@ For documentation-only changes:
 
 For story or UI changes:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web/web
 npm run storybook:test
 npm run storybook:visual
 ```
 
 For runtime proof:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web
-powershell -ExecutionPolicy Bypass -File .\scripts\doctor-runtime.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\validate-runtime.ps1
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web
+powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w /home/jonathan/projects/work/hub-operacional-web/scripts/doctor-runtime.ps1)"
+powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w /home/jonathan/projects/work/hub-operacional-web/scripts/validate-runtime.ps1)"
 ```
 
 For material assisted-flow behavior changes:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web/web
 npx playwright test e2e/hub-mvp.spec.ts --workers=1
-npx playwright test e2e/hub-dtic-agent-handoff.spec.ts --workers=1
+npx playwright test e2e/hub-dtic-agent-chat.spec.ts --workers=1
 ```
 
 For real GLPI submit proof, only when intentionally validating against live runtime:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web/web
 npx playwright test e2e/hub-dtic-agent-submit-clean.spec.ts --workers=1
 ```
 
@@ -289,10 +288,10 @@ This contract is satisfied when:
 - `/sis/new-ticket` remains form-based unless separately migrated
 - the unavailable state exposes retry, not alternate chat
 - a ticket cannot be opened without explicit user confirmation
-- future work treats `agent-entry` as legacy until classified
+- no legacy `agent-entry` code path is present
 - full state story coverage is added before further UI changes
 
 ## Related Documents
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\phase42-agent-trading-hub-slice-s1-executable-plan-2026-04-12.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\phase44-hub-epic-h1-h2-executable-dossier-2026-04-12.md`
+- `/home/jonathan/projects/work/hub-operacional-web/docs/archive/phase-reports/phase42-agent-trading-hub-slice-s1-executable-plan-2026-04-12.md`
+- `/home/jonathan/projects/work/hub-operacional-web/docs/archive/phase-reports/phase44-hub-epic-h1-h2-executable-dossier-2026-04-12.md`

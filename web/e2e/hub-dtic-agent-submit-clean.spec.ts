@@ -212,7 +212,7 @@ test.describe("Hub DTIC agent-first mutation smoke @mutation", () => {
         `Equipe inteira sem acesso ao sistema de protocolo. ` +
         `Marcador de smoke: ${marker}.`;
       await page.getByPlaceholder(/Escreva o problema, erro ou pedido/i).fill(narrative);
-      await page.screenshot({ path: path.join(outputDir, "01-dtic-agent-entry.png"), fullPage: true });
+      await page.screenshot({ path: path.join(outputDir, "01-dtic-agent-chat.png"), fullPage: true });
 
       await page.getByRole("button", { name: /Enviar mensagem/i }).click();
       await page.getByRole("button", { name: /Abrir chamado/i }).waitFor({ timeout: 15000 });

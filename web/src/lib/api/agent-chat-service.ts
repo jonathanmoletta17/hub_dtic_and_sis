@@ -112,14 +112,6 @@ async function requestAgentChat<TResponse>(
   return (await response.json()) as TResponse;
 }
 
-export function buildLegacyDticAgentUrl(): string {
-  // Legacy handoff helper: DTIC/new-ticket uses the inline hub chat, not this URL path.
-  const url = new URL(frontendRuntimeConfig.dticAgentUrl);
-  url.searchParams.set("source", "hub-operacional-web");
-  url.searchParams.set("context", "dtic");
-  return url.toString();
-}
-
 export function createDticAgentChatSession(
   payload: CreateSessionPayload = {},
 ): Promise<AgentChatSession> {
