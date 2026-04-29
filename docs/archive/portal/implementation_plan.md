@@ -2,7 +2,7 @@
 
 Data: 2026-04-08
 Status: aprovado para execucao incremental
-Repositorio: `C:\Users\jonathan-moletta\code\hub-operacional-web`
+Repositorio: `/home/jonathan/projects/work/hub-operacional-web`
 
 ## 1. Objetivo
 
@@ -26,8 +26,8 @@ Base funcional ja validada neste repo:
 
 Evidencias principais:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\phase14-control-plane-runtime-revalidation-2026-04-08.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\phase15-backend-pytest-bootstrap-2026-04-08.md`
+- `docs/phase14-control-plane-runtime-revalidation-2026-04-08.md`
+- `docs/phase15-backend-pytest-bootstrap-2026-04-08.md`
 
 ## 3. Principios de execucao
 
@@ -95,7 +95,7 @@ Evidencias principais:
 
 Referencia de inventario:
 
-- `C:\Users\jonathan-moletta\code\docs\infra\portal-autoatendimento\secao-9.3-inventario.csv`
+- `/home/jonathan/design/docs/infra/portal-autoatendimento/secao-9.3-inventario.csv`
 
 ## 6. Criterio de pronto por etapa
 

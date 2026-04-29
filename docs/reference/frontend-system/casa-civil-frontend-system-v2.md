@@ -17,9 +17,9 @@ Ele define:
 
 Os documentos abaixo passam a ser suporte:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\casa-civil-visual-system-portfolio-study-v1.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\casa-civil-frontend-system-v2-study.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\casa-civil-frontend-system-v2-blueprint.md`
+- `../../archive/side-studies/casa-civil-visual-system-portfolio-study-v1.md`
+- `casa-civil-frontend-system-v2-study.md`
+- `casa-civil-frontend-system-v2-blueprint.md`
 
 ## Decisao de base
 

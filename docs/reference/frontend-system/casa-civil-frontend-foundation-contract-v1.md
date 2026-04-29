@@ -20,7 +20,7 @@ Ele define a infraestrutura visual comum.
 
 No sistema:
 
-- [casa-civil-frontend-system-v2.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-system-v2.md) define a verdade principal;
+- [casa-civil-frontend-system-v2.md](casa-civil-frontend-system-v2.md) define a verdade principal;
 - este documento define a fundacao tecnica e semantica reutilizavel;
 - os contratos de familia viram depois.
 

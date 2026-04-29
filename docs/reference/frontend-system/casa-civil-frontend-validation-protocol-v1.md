@@ -16,9 +16,9 @@ Este protocolo existe para impedir:
 
 No sistema:
 
-- [casa-civil-frontend-system-v2.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-system-v2.md) define a verdade principal;
-- [casa-civil-frontend-foundation-contract-v1.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-foundation-contract-v1.md) define a fundacao;
-- [casa-civil-frontend-family-contracts-v1.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-family-contracts-v1.md) define as familias;
+- [casa-civil-frontend-system-v2.md](casa-civil-frontend-system-v2.md) define a verdade principal;
+- [casa-civil-frontend-foundation-contract-v1.md](casa-civil-frontend-foundation-contract-v1.md) define a fundacao;
+- [casa-civil-frontend-family-contracts-v1.md](casa-civil-frontend-family-contracts-v1.md) define as familias;
 - este documento define como uma entrega prova qualidade.
 
 ## Principio operacional

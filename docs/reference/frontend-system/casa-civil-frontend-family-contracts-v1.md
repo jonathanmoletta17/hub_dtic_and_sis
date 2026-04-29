@@ -14,8 +14,8 @@ Regra central:
 
 Base de referencia:
 
-- [casa-civil-frontend-system-v2.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-system-v2.md)
-- [casa-civil-frontend-foundation-contract-v1.md](C:/Users/jonathan-moletta/code/hub-operacional-web/docs/casa-civil-frontend-foundation-contract-v1.md)
+- [casa-civil-frontend-system-v2.md](casa-civil-frontend-system-v2.md)
+- [casa-civil-frontend-foundation-contract-v1.md](casa-civil-frontend-foundation-contract-v1.md)
 
 ## Regra comum para todas as familias
 

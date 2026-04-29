@@ -112,9 +112,9 @@ Preserve:
 
 Use estes documentos como fonte de calibracao:
 
-- [hub-visual-standard-v1.md](/C:/Users/jonathan-moletta/code/hub-operacional-web/docs/hub-visual-standard-v1.md)
-- [hub-visual-review-workflow-v1.md](/C:/Users/jonathan-moletta/code/hub-operacional-web/docs/hub-visual-review-workflow-v1.md)
-- [hub-visual-pilot-dossier-v1.md](/C:/Users/jonathan-moletta/code/hub-operacional-web/docs/hub-visual-pilot-dossier-v1.md)
+- [hub-visual-standard-v1.md](../../hub-visual-standard-v1.md)
+- [hub-visual-review-workflow-v1.md](../../hub-visual-review-workflow-v1.md)
+- [hub-visual-pilot-dossier-v1.md](../../archive/side-studies/hub-visual-pilot-dossier-v1.md)
 
 ## Observacao operacional
 

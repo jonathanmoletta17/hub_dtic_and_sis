@@ -41,7 +41,7 @@ o resultado tende a ser:
 
 Estudo consolidado anteriormente em:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\casa-civil-visual-system-portfolio-study-v1.md`
+- `../../archive/side-studies/casa-civil-visual-system-portfolio-study-v1.md`
 
 Conclusoes reaproveitadas:
 
