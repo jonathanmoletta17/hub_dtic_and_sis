@@ -4,122 +4,55 @@
 
 Registrar o que ainda veio do legado para dentro do `hub-operacional-web`, mas nao faz parte do nucleo canonico atual.
 
-## Frontend herdado residual
+## Estado atual
 
-Os modulos legados de frontend fora do MVP ja foram removidos fisicamente.
+O runtime canonico esta limitado ao nucleo operacional de tickets para `DTIC` e `SIS`.
 
-O que ainda resta no frontend como heranca controlada e:
+Ja foram removidos fisicamente:
 
-- declaracoes de features legadas em `src/lib/config/features.json`
-- labels e temas associados
-- zona protegida de `src/lib/context-registry.ts`
+- modulos legados de frontend fora do MVP, como `chargers`, `permissions`, `knowledge`, `analytics`, `inventory` e `search`
+- services e contratos frontend ligados a esses dominios
+- schemas backend herdados sem uso no MVP
+- endpoints herdados `db/aggregate`, `db/query` e `db/kpis`
+- services backend `kpis_service.py` e `query_engine_service.py`
+- utilitarios herdados em `app/core/utils` quando confirmados sem referencias
 
-Status:
-- nao fazem parte do runtime canonico
-- permanecem por dependencia estrutural da navegacao protegida
-- exigem plano proprio antes de enxugamento final
+## Divida controlada restante
 
-### Lote ja removido
+Frontend:
 
-O lote `chargers` foi removido fisicamente desta base na rodada atual.
+- declaracoes residuais em `web/src/lib/config/features.json`
+- labels e temas associados em `web/src/lib/config/`
+- zona protegida `web/src/lib/context-registry.ts`
 
-### Lote adicional ja removido
+Backend:
 
-Tambem ja foram removidos:
+- eventuais schemas herdados ainda devem ser avaliados por referencia real antes de remocao
+- o contrato HTTP atual nao deve ser reduzido sem teste de regressao
 
-- `permissions`
-- `knowledge`
-- `analytics`
-- `inventory`
-- `search`
-- services, contracts, models, mappers e testes de frontend ligados a esses domínios
+Documentacao:
 
-## Backend herdado e oculto
+- relatorios historicos, memoria de trabalho e estudos laterais foram movidos para `docs/archive/`
+- referencias visuais reutilizaveis foram movidas para `docs/reference/`
+- arquivos em `docs/archive/` nao sao fonte normativa para operacao atual
 
-O principal excesso herdado do backend ja foi reduzido.
+## Regras para novo enxugamento
 
-Status atual:
-- `app/routers/db_read.py` ficou limitado a `stats` e `tickets`
-- `app/services/kpis_service.py` removido
-- `app/services/query_engine_service.py` removido
-- a reducao foi validada com compile, build, health e smoke
+1. Provar ausencia de uso com busca de referencias, imports, rotas e testes.
+2. Nao alterar zonas protegidas sem plano explicito.
+3. Manter `user_password_session` como auth padrao.
+4. Nao reintroduzir dependencia runtime normal de `user_token`.
+5. Rodar validacao proporcional ao escopo alterado.
 
-### Lote backend ja removido
+## Artefatos livres para limpeza
 
-Tambem ja foram removidos do backend:
-
-- `app/schemas/analytics.py`
-- `app/schemas/charger_management.py`
-- `app/schemas/charger_schemas.py`
-- `app/schemas/inventory.py`
-- `app/schemas/knowledge_schemas.py`
-- `app/schemas/mobile.py`
-- `app/schemas/universal.py`
-
-## Divida de consolidacao
-
-1. Reduzir `db_read.py` e seus services associados por lotes pequenos.
-2. Revisar a configuracao protegida de features no frontend.
-3. Manter compile, build e smoke a cada lote de reducao.
-
-No estado atual, o foco deixa de ser `db_read` e passa a ser identificar eventuais sobras herdadas menores fora do runtime canônico.
-
-O lote de utilitários herdados em `app/core/utils` também já foi limpo quando confirmado sem referências no runtime.
-
-*** Add File: C:\Users\jonathan-moletta\code\hub-operacional-web\docs\phase12-backend-dbread-reduction-2026-04-07.md
-# Phase 12 - Backend `db_read` Reduction
-
-## Objetivo
-
-Reduzir `backend/app/routers/db_read.py` ao contrato real usado pelo hub operacional canônico.
-
-## Escopo aplicado
-
-Mantido:
-
-- `GET /api/v1/{context}/db/stats`
-- `GET /api/v1/{context}/db/tickets`
-
-Removido:
-
-- `GET /api/v1/{context}/db/aggregate`
-- `GET /api/v1/{context}/db/query`
-- `GET /api/v1/{context}/db/kpis`
-- `backend/app/services/kpis_service.py`
-- `backend/app/services/query_engine_service.py`
-
-## Evidência de contrato
-
-O frontend canônico usa apenas:
-
-- `web/src/lib/api/ticketService.ts` -> `db/stats`
-- `web/src/lib/api/ticketService.ts` -> `db/tickets`
-
-Nao existe uso canônico de `db/aggregate`, `db/query` ou `db/kpis`.
-
-## Validação executada
-
-- `python -m compileall app`
-- `npm exec vitest run`
-- `npm run build`
-- `docker compose up -d --build`
-- `GET http://localhost:18080/health`
-- `npm exec playwright test e2e/hub-mvp.spec.ts`
-
-## Resultado
-
-Todos os checks passaram.
-
-Estado final:
-
-- backend mais alinhado ao MVP real
-- `db_read` agora reflete o contrato canônico
-- services herdados fora do runtime foram removidos sem regressão funcional observada
-
-## O que ja pode ser limpo livremente
+Podem ser removidos quando aparecerem no workspace local:
 
 - `__pycache__`
 - `*.pyc`
-- artefatos temporarios de runtime e build
-
-Esses artefatos nao fazem parte da base canonica e podem ser eliminados sem impacto funcional.
+- `.pytest_cache`
+- `.next`
+- `node_modules`
+- `output`
+- `logs`
+- relatorios temporarios de build e runtime

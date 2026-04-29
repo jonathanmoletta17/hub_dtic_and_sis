@@ -2,53 +2,62 @@
 
 ## Objetivo
 
-Definir como `C:\Users\jonathan-moletta\code\hub-operacional-web` deve ser representado para CLIs e para o control plane, sem copiar estado nativo de outros runtimes para dentro deste repo.
+Definir como `/home/jonathan/projects/work/hub-operacional-web` deve ser representado para CLIs e para o control plane, sem copiar estado nativo de outros runtimes para dentro deste repo.
+
+Este workspace roda em WSL/ext4. Caminhos `C:\Users\...` ou `/mnt/c/...` em materiais antigos sao historico de host Windows e nao devem ser tratados como raiz de codigo-fonte.
 
 ## Evidencia usada
 
 Projeto alvo:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\README.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\ARCHITECTURE_RULES.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docs\canonical-scope.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\docker-compose.yml`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\backend\pyproject.toml`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\backend\app\main.py`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\backend\app\config.py`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\package.json`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\playwright.config.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\vitest.config.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\lib\config\runtime.ts`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\web\src\modules\tickets\components\agent-entry\DticAgentEntry.tsx`
+- `README.md`
+- `ARCHITECTURE_RULES.md`
+- `docs/canonical-scope.md`
+- `docker-compose.yml`
+- `backend/pyproject.toml`
+- `backend/app/main.py`
+- `backend/app/config.py`
+- `backend/app/routers/health.py`
+- `web/package.json`
+- `web/playwright.config.ts`
+- `web/vitest.config.ts`
+- `web/src/lib/config/runtime.ts`
+- `web/src/lib/api/agent-chat-service.ts`
+- `web/src/modules/tickets/components/agent-chat/DticAgentChatEntry.tsx`
 
-Modelo de referencia:
+Fronteira auxiliar:
 
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\packages\contracts\src\capability-catalog.ts`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\apps\control-web\src\features\capability\services\capabilityService.ts`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\apps\control-web\src\features\capability\hooks\useCapabilityWorkbench.ts`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\apps\control-web\src\features\capability\pages\CapabilityPage.tsx`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\scripts\tooling\validate-clis-runtime.mjs`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\scripts\tooling\validate-command-center-runtime.mjs`
-- `C:\Users\jonathan-moletta\code\cli-control-3ui\docs\DOCKER_NETWORK.md`
+- `AGENTS.md`
+- `BOOTSTRAP.md`
+- `CLAUDE.md`
+- `GEMINI.md`
+- `HERMES.md`
+- `docs/auth-session-governance-2026-04-25.md`
 
-Fronteira arquitetural auxiliar:
+Referencia historica de host Windows:
 
-- `C:\Users\jonathan-moletta\code\storageEinconsistenciasIDES\claudecode\docs\knowledge-base-gate-c-fronteiras-arquitetura.md`
+- o control plane `cli-control-3ui` e externo a este repo
+- referencias antigas a caminhos Windows do control plane servem apenas como historico/modelo, nao como alvo de patch deste workspace
 
-Essa referencia adicional reforca uma regra importante: o repo dono do dominio deve versionar seu contexto e seus contratos, mas nao espelhar estado nativo do control plane ou da knowledge base.
+Essa fronteira reforca uma regra importante: o repo dono do dominio versiona seu contexto e seus contratos, mas nao espelha estado nativo do control plane ou da knowledge base.
 
-## Disponibilidade de CLIs observada neste host
+## Disponibilidade operacional
 
-Comandos encontrados por `where.exe` em 2026-04-08:
+Stack do projeto:
 
-- `codex`
-- `gemini`
-- `claude`
+- backend FastAPI/Python em `backend/`
+- frontend Next.js 16 / React 19 em `web/`
+- Docker Compose e Nginx
+- proxy local em `http://localhost:18080`
+- backend direto em `http://127.0.0.1:18081`
+- frontend direto em `http://127.0.0.1:18082`
 
-Observacao:
+Dependencias externas:
 
-- `hermes` nao apareceu no PATH como CLI.
-- mesmo assim, o repo usa Hermes como runtime externo via `http://localhost:8501`.
+- Hermes/Antigravity externo ao repo
+- GLPI/SIS externos ao repo
+- knowledge base/RAG externa ao repo
+- control plane externo ao repo
 
 ## Representacao recomendada por modulo
 
@@ -56,29 +65,31 @@ Observacao:
 
 Versionar em escopo de projeto:
 
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\BOOTSTRAP.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\AGENTS.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\GEMINI.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\CLAUDE.md`
-- `C:\Users\jonathan-moletta\code\hub-operacional-web\HERMES.md`
+- `BOOTSTRAP.md`
+- `AGENTS.md`
+- `GEMINI.md`
+- `CLAUDE.md`
+- `HERMES.md`
+- `.claude.json`
 
 Complementos obrigatorios:
 
 - `README.md`
 - `ARCHITECTURE_RULES.md`
 - `docs/canonical-scope.md`
+- `docs/auth-session-governance-2026-04-25.md`
 
 ### Run
 
 Arquivos e comandos reais:
 
 - `docker-compose.yml`
-- `backend\Dockerfile`
-- `web\Dockerfile`
-- `web\package.json`
-- `web\playwright.config.ts`
-- `scripts\doctor-runtime.ps1`
-- `scripts\validate-runtime.ps1`
+- `backend/Dockerfile`
+- `web/Dockerfile`
+- `web/package.json`
+- `web/playwright.config.ts`
+- `scripts/doctor-runtime.ps1`
+- `scripts/validate-runtime.ps1`
 
 ### Diagnostics
 
@@ -86,8 +97,15 @@ Fontes reais:
 
 - `GET http://localhost:18080/health`
 - `docker compose ps`
-- docs `phase*.md`
-- `scripts\doctor-runtime.ps1`
+- `scripts/doctor-runtime.ps1`
+- `scripts/validate-runtime.ps1`
+- `docs/archive/phase-reports/` como historico de validacao, nao como fonte de raiz atual
+
+Health esperado:
+
+- `auth_mode=user_password_session`
+- `service_session_status=disabled`
+- `service_user_token_required=false` por contexto
 
 ### Config
 
@@ -96,9 +114,11 @@ Superficie real do projeto:
 - `.env.example`
 - `.env`
 - `.env.runtime.local`
-- `backend\pyproject.toml`
-- `backend\app\config.py`
-- `web\src\lib\config\runtime.ts`
+- `backend/pyproject.toml`
+- `backend/app/config.py`
+- `web/src/lib/config/runtime.ts`
+
+`.env` e `.env.runtime.local` sao locais, ignorados e nunca devem ser versionados. Segredos, tokens e credenciais ficam fora dos markdowns e scripts versionados.
 
 ### Security / Sandbox
 
@@ -106,7 +126,8 @@ Superficie local comprovada:
 
 - portas e binds definidos em `docker-compose.yml`
 - `security_opt: no-new-privileges:true` no compose
-- segredos mantidos em env files, nao em markdowns
+- auth padrao `user_password_session`
+- `user_token` fora do runtime normal
 
 ### MCP
 
@@ -130,12 +151,12 @@ Status atual:
 
 Status atual:
 
-- o repo usa Hermes como runtime externo no produto
+- o repo usa Hermes/Antigravity como runtime externo no produto
 - nao existe skill local versionada do proprio repo
 
 Decisao:
 
-- versionar apenas contexto de projeto via markdowns
+- versionar apenas contexto de projeto via markdowns e `.claude.json`
 - nao criar catalogos paralelos de skills sem necessidade real
 
 ### Sessions
@@ -143,10 +164,13 @@ Decisao:
 Status atual:
 
 - nao existe estado de sessao local do control plane versionado aqui
+- sessoes GLPI interativas sao do usuario real e usam `session_token`
+- `user_token` de conta tecnica nao participa de login, diagnostico, health padrao ou telas
 
 Decisao:
 
 - manter sessoes e memorias nos runtimes nativos de usuario
+- criar eventual service account somente com desenho proprio, auditoria explicita e opt-in separado
 
 ## Escopo e precedencia
 
@@ -157,6 +181,7 @@ Decisao:
 - scripts de doctor e validacao
 - documentacao operacional
 - contratos do produto
+- `.claude.json` como descritor de projeto, nao como settings nativo de Claude
 
 ### O que fica fora do repo
 
@@ -164,8 +189,13 @@ Decisao:
 - `~/.gemini/settings.json`
 - `~/.claude/settings.json`
 - `~/.hermes/config.yaml`
+- settings locais de Cursor/Claude/CLI
 - auth, sessions, memories e tokens nativos dos CLIs
 - MCPs e hooks que sejam de usuario/global
+- runtime Hermes/Antigravity
+- GLPI/SIS
+- knowledge base/RAG
+- control plane
 
 ## Decisoes explicitas
 
@@ -175,6 +205,8 @@ Nao criar por padrao neste repo:
 - `.gemini/settings.json`
 - `gemini-extension.json`
 - `.claude/settings.json`
+- `.claude/settings.local.json`
+- `.cursor/`
 - `.mcp.json`
 
 Motivo:
@@ -184,32 +216,59 @@ Motivo:
 
 ## Acoes operacionais recomendadas
 
-Doctor rapido:
+Docs/config de governanca:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\Users\jonathan-moletta\code\hub-operacional-web\scripts\doctor-runtime.ps1
+```bash
+git diff --check
+git status --ignored --short
 ```
 
-Validacao consolidada:
+Runtime read-only:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\Users\jonathan-moletta\code\hub-operacional-web\scripts\validate-runtime.ps1
+```bash
+docker compose ps
+curl --max-time 10 -sS http://localhost:18080/health
 ```
 
-Smoke principal:
+Backend, quando alterar `backend/`:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
-npm exec playwright test e2e/hub-mvp.spec.ts
+```bash
+cd backend
+.venv/bin/python -m compileall app tests
+.venv/bin/pytest -q -s tests
 ```
 
-Validacao consolidada com suite E2E completa:
+Frontend, quando alterar `web/`:
 
-```powershell
-$env:SMOKE_USERNAME="<usuario>"
-$env:SMOKE_PASSWORD="<senha>"
-$env:SMOKE_BASE_URL="http://localhost:18080"
-powershell -ExecutionPolicy Bypass -File C:\Users\jonathan-moletta\code\hub-operacional-web\scripts\validate-runtime.ps1 -SkipDockerBuild -RunFullPlaywright
+```bash
+cd web
+npm ci
+npm run lint
+npm exec vitest run
+npm run build
+```
+
+Smoke principal read-only:
+
+```bash
+cd web
+npm run smoke:hub
+```
+
+Smoke destrutivo opt-in:
+
+```bash
+cd web
+ALLOW_GLPI_MUTATION_SMOKE=true npm run smoke:hub:mutation
+```
+
+Os smokes `@mutation` criam e limpam dados reais no GLPI. Eles exigem `SMOKE_USERNAME`, `SMOKE_PASSWORD`, URLs/App-Tokens GLPI e `*_GLPI_USER_TOKEN` no runtime local e ficam fora da validacao padrao.
+
+Scripts PowerShell de apoio, quando o host tiver PowerShell disponivel:
+
+```bash
+powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w /home/jonathan/projects/work/hub-operacional-web/scripts/doctor-runtime.ps1)"
+powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w /home/jonathan/projects/work/hub-operacional-web/scripts/validate-runtime.ps1)"
 ```
 
 ## Integracao com o control plane
@@ -218,11 +277,14 @@ Se `cli-control-3ui` apontar para este repo por `cwd`, ele deve tratar este proj
 
 - um repo com contexto local forte e explicito
 - um produto com runtime principal em Docker Compose
-- um consumidor de Hermes, nao um owner do runtime Hermes
+- um consumidor de Hermes/Antigravity, nao um owner do runtime
+- um consumidor de GLPI/SIS, nao owner desses sistemas
 - um repo sem MCP local proprio e sem project-level settings de CLI por default
+- um repo cujo health normal espera `service_session_status=disabled`
 
 Isso mantem a fronteira clara entre:
 
 - configuracao do projeto alvo
 - configuracao do control plane
 - configuracao nativa de cada CLI
+- runtime externo de agentes e sistemas corporativos

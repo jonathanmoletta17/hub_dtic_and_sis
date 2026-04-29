@@ -1,22 +1,33 @@
 {
   "project": "hub-operacional-web",
-  "description": "Plataforma operacional DTIC END SIS baseada em .env local, stack web e infraestrutura Docker",
+  "description": "Plataforma operacional DTIC e SIS baseada em .env local, stack web e infraestrutura Docker",
   "canonicalRepoPath": "/home/jonathan/projects/work/hub-operacional-web",
   "workspaceClass": "wsl-ext4",
   "stack": [
     "FastAPI / Python",
-    "Next.js / React",
+    "Next.js 16 / React 19",
     "Docker Compose",
     "Nginx"
   ],
+  "canonicalUrls": {
+    "proxy": "http://localhost:18080",
+    "backendDirect": "http://127.0.0.1:18081",
+    "frontendDirect": "http://127.0.0.1:18082",
+    "hermesPublicUrl": "http://localhost:8501",
+    "hermesApiUrl": "http://localhost:8502"
+  },
   "context": {
     "primaryDocs": [
       "AGENTS.md",
       "BOOTSTRAP.md",
       "CLAUDE.md",
       "ARCHITECTURE_RULES.md",
+      "docs/README.md",
       "docs/canonical-scope.md",
-      "docs/CLI_CONTROL_PLANE.md"
+      "docs/CLI_CONTROL_PLANE.md",
+      "docs/auth-session-governance-2026-04-25.md",
+      "docs/dtic-new-ticket-assisted-flow-contract-v1.md",
+      "docs/deferred-legacy-debt.md"
     ],
     "entryPoints": [
       "docker-compose.yml",
@@ -32,7 +43,8 @@
       "web/output/",
       "output/",
       "logs/",
-      "node_modules/"
+      "node_modules/",
+      "docs/archive/"
     ]
   },
   "hints": {
@@ -42,21 +54,53 @@
     "runtimeProxy": "nginx via docker-compose",
     "externalDependencies": [
       "Hermes externo",
-      "servicos SIS/GLPI externos"
+      "servicos SIS/GLPI externos",
+      "control plane externo"
     ]
+  },
+  "auth": {
+    "defaultMode": "user_password_session",
+    "serviceSessionStatus": "disabled",
+    "userTokenRuntimeDependency": false,
+    "mutationSmokeOptIn": {
+      "marker": "@mutation",
+      "env": "ALLOW_GLPI_MUTATION_SMOKE=true"
+    }
   },
   "governance": {
     "agentDocs": [
       "AGENTS.md",
       "BOOTSTRAP.md",
       "CLAUDE.md",
-      "HERMES.md"
+      "HERMES.md",
+      "GEMINI.md"
     ],
     "treatHostPathsAsLegacy": true,
+    "doNotUseAsSourceRoots": [
+      "C:\\Users\\jonathan-moletta\\code\\hub-operacional-web",
+      "/mnt/c/Users/jonathan-moletta/code/hub-operacional-web"
+    ],
     "doNotVersion": [
+      ".env",
+      ".env.runtime.local",
       ".claude/settings.json",
       ".claude/settings.local.json",
+      ".cursor/",
       ".mcp.json"
     ]
+  },
+  "validation": {
+    "docsOnly": [
+      "git diff --check",
+      "git status --ignored --short"
+    ],
+    "runtimeReadOnly": [
+      "docker compose ps",
+      "curl --max-time 10 -sS http://localhost:18080/health"
+    ],
+    "backend": "cd backend && .venv/bin/python -m compileall app tests && .venv/bin/pytest -q -s tests",
+    "frontend": "cd web && npm ci && npm run lint && npm exec vitest run && npm run build",
+    "smokeReadOnly": "cd web && npm run smoke:hub",
+    "smokeMutation": "cd web && ALLOW_GLPI_MUTATION_SMOKE=true npm run smoke:hub:mutation"
   }
 }

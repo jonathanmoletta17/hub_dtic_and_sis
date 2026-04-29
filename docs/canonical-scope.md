@@ -3,13 +3,26 @@
 ## Aplicacao canonica
 
 Repositorio:
-- `C:\Users\jonathan-moletta\code\hub-operacional-web`
+- `/home/jonathan/projects/work/hub-operacional-web`
 
 URL local:
 - `http://localhost:18080`
 
+Backend direto:
+- `http://127.0.0.1:18081`
+
+Frontend direto:
+- `http://127.0.0.1:18082`
+
 Agente externo integrado:
-- `http://localhost:8501`
+- URL publica Hermes: `http://localhost:8501`
+- API conversacional Hermes: `http://localhost:8502`
+
+Sistemas externos:
+- Hermes/Antigravity
+- GLPI/SIS
+- knowledge base/RAG
+- control plane
 
 ## Escopo funcional validado
 
@@ -19,7 +32,7 @@ Agente externo integrado:
 - `user`
 - `ticket/[id]`
 - `new-ticket` agent-first
-- handoff estruturado para o Hermes
+- chat inline integrado ao Hermes externo
 - criacao real de ticket via Hermes com cleanup
 
 ### SIS
@@ -42,6 +55,7 @@ Somente o nucleo minimo extraido e considerado canonico:
 - `domain_formcreator`
 - `db_read`
 - `ticket_workflow`
+- `events`
 
 No backend, `db_read` agora expõe apenas o contrato realmente usado pelo MVP:
 
@@ -49,6 +63,21 @@ No backend, `db_read` agora expõe apenas o contrato realmente usado pelo MVP:
 - `GET /api/v1/{context}/db/tickets`
 
 A base tambem ja teve o primeiro lote de schemas herdados removido e a superficie antiga de `aggregate`, `query` e `kpis` foi removida.
+
+Auth/session canonico:
+
+- `auth_mode=user_password_session`
+- login com usuario/senha reais do GLPI
+- sessao do usuario por `session_token`
+- health com `service_session_status=disabled`
+- sem dependencia runtime normal de `user_token`
+
+Smokes destrutivos:
+
+- marcados com `@mutation`
+- fora do comando padrao `npm run smoke:hub`
+- opt-in por `ALLOW_GLPI_MUTATION_SMOKE=true`
+- podem usar `*_GLPI_USER_TOKEN` apenas para cleanup/purge dos dados reais criados pelo proprio smoke
 
 ## Frontend canonico
 
