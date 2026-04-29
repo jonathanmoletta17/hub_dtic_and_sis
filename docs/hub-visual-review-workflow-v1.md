@@ -10,7 +10,6 @@ Esta fase trata o hub como piloto canonico do ecossistema e fecha um processo re
 2. `selector`
 3. `DTIC/dashboard`
 4. `DTIC/new-ticket`
-5. `portal`
 
 ## Hierarquia de verdade
 
@@ -45,7 +44,7 @@ Decisao explicita desta fase:
 
 O padrao visual do hub continua consolidado em:
 
-- [hub-visual-standard-v1.md](/C:/Users/jonathan-moletta/code/hub-operacional-web/docs/hub-visual-standard-v1.md)
+- [hub-visual-standard-v1.md](hub-visual-standard-v1.md)
 
 Este documento nao duplica tokens ou regras de composicao. Ele define processo.
 
@@ -70,11 +69,10 @@ O piloto desta fase cobre exatamente estas superficies:
 2. `selector`
 3. `DTIC/dashboard`
 4. `DTIC/new-ticket`
-5. `portal`
 
 Motivo:
 
-- cobrem shell institucional, escolha de contexto, operacao tecnica, fluxo agent-first e entrada por servico
+- cobrem shell institucional, escolha de contexto, operacao tecnica e fluxo agent-first
 - ja possuem runtime real validado no hub
 - evitam abrir escopo desnecessario em `SIS` e detalhe de ticket nesta formalizacao
 
@@ -105,7 +103,6 @@ Cobertura minima do piloto:
 - card de ambiente do selector
 - cabecalho e estatisticas do dashboard
 - estado inicial do `DTIC/new-ticket`
-- `PortalServiceCard` ativo e pendente
 
 ### Etapa 3. Baseline visual local
 
@@ -138,7 +135,7 @@ Gates minimos desta fase:
 5. rebuild do `hub-frontend`
 6. `doctor-runtime.ps1`
 7. `npx playwright test e2e/hub-mvp.spec.ts --workers=1`
-8. `npx playwright test e2e/hub-dtic-agent-handoff.spec.ts --workers=1` quando tocar `DTIC/new-ticket`
+8. `npx playwright test e2e/hub-dtic-agent-chat.spec.ts --workers=1` quando tocar `DTIC/new-ticket`
 
 ### Etapa 5. Evidencia e fechamento
 
@@ -177,7 +174,7 @@ Regra operacional:
 - se houver arquivo Figma fornecido para a superficie, ele entra como referencia complementar
 - se nao houver arquivo Figma fornecido, o workflow segue normalmente e registra `sem fonte Figma para comparacao`
 
-Nesta formalizacao do piloto do hub, nenhuma das cinco superficies depende de arquivo Figma fornecido. O gap fica explicitamente registrado como:
+Nesta formalizacao do piloto do hub, nenhuma das quatro superficies depende de arquivo Figma fornecido. O gap fica explicitamente registrado como:
 
 - `sem fonte Figma para comparacao`
 

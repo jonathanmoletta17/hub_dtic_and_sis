@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Este documento consolida o padrao visual e operacional validado no `hub-operacional-web` depois da rodada de limpeza do modo claro/escuro, contraste, shells, portal, `DTIC/new-ticket`, `SIS/new-ticket`, login e selector.
+Este documento consolida o padrao visual e operacional validado no `hub-operacional-web` depois da rodada de limpeza do modo claro/escuro, contraste, shells, `DTIC/new-ticket`, `SIS/new-ticket`, login e selector.
 
 O hub passa a ser a referencia pratica para as proximas aplicacoes da Casa Civil RS quando a demanda for:
 
@@ -28,8 +28,6 @@ Superficies tratadas e validadas:
 - `SIS/dashboard`
 - `SIS/user`
 - `SIS/ticket/[id]`
-- `portal`
-- `portal/meus-chamados`
 
 ## Regras Nao Negociaveis
 
@@ -217,27 +215,6 @@ Arquivos de referencia:
 - `web/src/components/ticket/TimelineItem.tsx`
 - `web/src/components/ticket/TicketTimeline.tsx`
 
-### 7. Portal
-
-Objetivo:
-
-- entrada por servico
-- decisao rapida
-- CTA principal clara
-
-Regras:
-
-- card ativo precisa ter hierarquia forte
-- nota contextual separada do texto descritivo
-- CTA primaria e secundaria com pesos diferentes
-- acento do servico nao pode ficar lavado no modo claro
-
-Arquivos de referencia:
-
-- `web/src/app/portal/page.tsx`
-- `web/src/app/portal/_components/PortalServiceCard.tsx`
-- `web/src/lib/portal-contexts.ts`
-
 ## Antipadroes Confirmados
 
 Estes foram problemas reais encontrados no hub e nao devem voltar:
@@ -255,30 +232,30 @@ Estes foram problemas reais encontrados no hub e nao devem voltar:
 
 Sempre executar:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web/web
 npm run lint
 npm run build
 ```
 
 Depois:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web
 docker compose up -d --build hub-frontend
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\doctor-runtime.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w /home/jonathan/projects/work/hub-operacional-web/scripts/doctor-runtime.ps1)"
 ```
 
 Quando a mudanca tocar fluxos principais, executar pelo menos um smoke Playwright real.
 
 Exemplos:
 
-```powershell
-Set-Location C:\Users\jonathan-moletta\code\hub-operacional-web\web
-$env:SMOKE_USERNAME='...'
-$env:SMOKE_PASSWORD='...'
+```bash
+cd /home/jonathan/projects/work/hub-operacional-web/web
+export SMOKE_USERNAME='...'
+export SMOKE_PASSWORD='...'
 npx playwright test e2e/hub-mvp.spec.ts --workers=1
-npx playwright test e2e/hub-dtic-agent-handoff.spec.ts --workers=1
+npx playwright test e2e/hub-dtic-agent-chat.spec.ts --workers=1
 ```
 
 ## Sequencia de Aplicacao em Outros Apps
@@ -295,10 +272,7 @@ Ao levar esse padrao para dashboards, buscadores ou carregadores:
 
 ## Relacao com Skills
 
-Skills operacionais ja alinhadas com este padrao:
-
-- `C:\Users\jonathan-moletta\.codex\skills\casa-civil-frontend-quality\SKILL.md`
-- `C:\Users\jonathan-moletta\.codex\skills\casa-civil-runtime-rebuild\SKILL.md`
+Materiais reutilizaveis alinhados com este padrao ficam em `docs/reference/frontend-system/`.
 
 Uso recomendado:
 

@@ -137,17 +137,8 @@ export default function WorkspaceSelectorPage() {
         </button>
       </div>
 
-      <div className="fixed right-8 top-8 z-50 flex items-center gap-3 animate-in slide-in-from-right-4 fade-in duration-700">
+      <div className="fixed right-8 top-8 z-50 animate-in slide-in-from-right-4 fade-in duration-700">
         <ThemeToggle />
-        <button
-          onClick={() => router.push("/portal")}
-          className="theme-shell-button group flex items-center gap-3 rounded-full px-4 py-2 backdrop-blur-md transition-colors duration-300"
-        >
-          <ShieldCheck size={16} className="text-accent-blue transition-colors group-hover:text-text-1" />
-          <span className="theme-copy-soft text-xs font-bold uppercase tracking-widest group-hover:text-text-1">
-            Visao do portal
-          </span>
-        </button>
       </div>
 
       <div className="relative z-10 mb-10 flex max-w-3xl flex-col items-center gap-6 text-center animate-in slide-in-from-top-8 fade-in duration-1000">
