@@ -30,3 +30,5 @@ web/playwright-report/
 
 *storybook.log
 storybook-static
+
+.superpowers/
