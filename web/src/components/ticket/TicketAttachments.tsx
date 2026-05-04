@@ -20,11 +20,13 @@ export function TicketAttachments({
   attachments,
   disabled,
   loading,
+  onPreview,
   onDownload,
 }: {
   attachments: TicketAttachment[];
   disabled?: boolean;
   loading?: boolean;
+  onPreview: (attachment: TicketAttachment) => void;
   onDownload: (attachment: TicketAttachment) => void;
 }) {
   if (!attachments.length) {
@@ -48,14 +50,17 @@ export function TicketAttachments({
         </div>
         <div className="flex flex-wrap gap-2">
           {attachments.map((attachment) => (
-            <button
+            <div
               key={`${attachment.id}-${attachment.relationId ?? "na"}`}
-              type="button"
-              onClick={() => onDownload(attachment)}
-              disabled={disabled || loading}
-              className="theme-card theme-card-interactive inline-flex min-w-0 items-center gap-2 rounded-xl px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
+              className="theme-card inline-flex min-w-0 items-center gap-2 rounded-xl text-left"
             >
-              <div className="flex min-w-0 flex-col">
+              <button
+                type="button"
+                onClick={() => onPreview(attachment)}
+                disabled={disabled || loading}
+                className="inline-flex min-w-0 flex-1 flex-col px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={`Abrir pre-visualizacao de ${attachment.filename}`}
+              >
                 <span className="truncate text-[12px] font-medium text-text-2">
                   {attachment.filename}
                 </span>
@@ -63,13 +68,21 @@ export function TicketAttachments({
                   {formatBytes(attachment.size)}
                   {attachment.dateUpload ? ` - ${formatIsoDateTime(attachment.dateUpload)}` : ""}
                 </span>
-              </div>
-              {loading ? (
-                <Loader2 size={14} className="theme-copy-soft shrink-0 animate-spin" />
-              ) : (
-                <Download size={14} className="theme-copy-soft shrink-0" />
-              )}
-            </button>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDownload(attachment)}
+                disabled={disabled || loading}
+                className="theme-copy-soft shrink-0 rounded-lg p-2.5 transition-colors hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={`Baixar ${attachment.filename}`}
+              >
+                {loading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Download size={14} />
+                )}
+              </button>
+            </div>
           ))}
         </div>
       </div>

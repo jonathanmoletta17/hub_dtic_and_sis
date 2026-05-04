@@ -8,6 +8,8 @@ from typing import Any
 from pathlib import Path
 
 from fastapi import HTTPException
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.datetime_contract import ensure_aware_datetime, now_in_app_timezone
@@ -15,10 +17,13 @@ from app.core.context_registry import registry
 from app.core.glpi_client import GLPIClient
 from app.schemas.tickets import (
     TicketActionResponse,
+    TicketActor,
+    TicketAuditLog,
     TicketAttachment,
     TicketAttachmentUploadResponse,
     TicketAssumeRequest,
     TicketFollowupCreateRequest,
+    TicketGroupActor,
     TicketSolutionCreateRequest,
     TicketTimelineEntry,
     TicketTransferRequest,
@@ -30,6 +35,8 @@ from app.schemas.tickets import (
 
 MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024
 MAX_ATTACHMENTS_PER_REQUEST = 10
+DOCUMENT_REF_RE = re.compile(r"(?:docid|documents_id)=([0-9]+)", re.IGNORECASE)
+ATTACHMENT_PARENT_TYPES = ("Ticket", "ITILFollowup", "ITILSolution", "TicketTask")
 _ALLOWED_ATTACHMENT_EXTENSIONS = {
     ".pdf",
     ".png",
@@ -70,6 +77,40 @@ def _strip_html(raw: Any) -> str:
     value = re.sub(r"<[^>]*>", "", value)
     value = re.sub(r"\s+", " ", value).strip()
     return value
+
+
+def _strip_log_user_id(raw: Any) -> str:
+    if not raw:
+        return ""
+    return re.sub(r"\s*\(\d+\)\s*$", "", str(raw)).strip()
+
+
+def _normalize_log_action(raw_log: dict[str, Any]) -> str:
+    raw_action = str(raw_log.get("linked_action") or raw_log.get("action") or "").strip().lower()
+    old_value = str(raw_log.get("old_value") or "").strip()
+    new_value = str(raw_log.get("new_value") or "").strip()
+
+    if raw_action in {"add", "update", "delete"}:
+        return raw_action
+    if not old_value and new_value:
+        return "add"
+    if old_value and not new_value:
+        return "delete"
+    return "update"
+
+
+def _extract_document_refs(raw: Any) -> list[int]:
+    if not raw:
+        return []
+    value = html.unescape(str(raw))
+    refs: list[int] = []
+    seen: set[int] = set()
+    for match in DOCUMENT_REF_RE.finditer(value):
+        document_id = _as_int(match.group(1))
+        if document_id and document_id not in seen:
+            refs.append(document_id)
+            seen.add(document_id)
+    return refs
 
 
 def _as_int(value: Any, fallback: int = 0) -> int:
@@ -230,8 +271,18 @@ class TicketWorkflowService:
     def _attachment_url(self, context: str, ticket_id: int, document_id: int) -> str:
         return f"/api/v1/{context}/tickets/{ticket_id}/attachments/{document_id}/download"
 
-    async def _get_ticket_attachments(self, client, context: str, ticket_id: int) -> list[TicketAttachment]:
-        raw_document_items = await client.get_sub_items("Ticket", ticket_id, "Document_Item")
+    async def _get_parent_attachments(
+        self,
+        client,
+        context: str,
+        ticket_id: int,
+        parent_type: str,
+        parent_id: int,
+    ) -> list[TicketAttachment]:
+        if parent_type not in ATTACHMENT_PARENT_TYPES:
+            return []
+
+        raw_document_items = await client.get_sub_items(parent_type, parent_id, "Document_Item")
         if not raw_document_items:
             return []
 
@@ -264,6 +315,8 @@ class TicketWorkflowService:
             return TicketAttachment(
                 id=document_id,
                 relation_id=relation_id or None,
+                parent_type=parent_type,  # type: ignore[arg-type]
+                parent_id=parent_id,
                 filename=filename,
                 mime_type=mime_type,
                 size=size,
@@ -276,22 +329,197 @@ class TicketWorkflowService:
         attachments.sort(key=lambda item: item.date_upload or now_in_app_timezone())
         return attachments
 
+    async def _get_attachments_for_parents(
+        self,
+        client,
+        context: str,
+        ticket_id: int,
+        parents: list[tuple[str, int]],
+    ) -> list[TicketAttachment]:
+        resolved = await asyncio.gather(
+            *(
+                self._get_parent_attachments(client, context, ticket_id, parent_type, parent_id)
+                for parent_type, parent_id in parents
+            ),
+            return_exceptions=True,
+        )
+        attachments: list[TicketAttachment] = []
+        seen_relations: set[tuple[str, int, int]] = set()
+        for item in resolved:
+            if isinstance(item, Exception):
+                continue
+            for attachment in item:
+                key = (attachment.parent_type, attachment.parent_id, attachment.id)
+                if key in seen_relations:
+                    continue
+                attachments.append(attachment)
+                seen_relations.add(key)
+        attachments.sort(key=lambda item: item.date_upload or now_in_app_timezone())
+        return attachments
+
+    async def _get_ticket_attachments(self, client, context: str, ticket_id: int) -> list[TicketAttachment]:
+        return await self._get_parent_attachments(client, context, ticket_id, "Ticket", ticket_id)
+
+    async def _get_lifecycle_attachment_parents(
+        self,
+        client,
+        ticket_id: int,
+    ) -> list[tuple[str, int]]:
+        raw_followups, raw_solutions, raw_tasks = await asyncio.gather(
+            client.get_sub_items("Ticket", ticket_id, "ITILFollowup"),
+            client.get_sub_items("Ticket", ticket_id, "ITILSolution"),
+            client.get_sub_items("Ticket", ticket_id, "TicketTask"),
+        )
+        parents = [("Ticket", ticket_id)]
+        parents.extend(("ITILFollowup", _as_int(item.get("id"))) for item in raw_followups)
+        parents.extend(("ITILSolution", _as_int(item.get("id"))) for item in raw_solutions)
+        parents.extend(("TicketTask", _as_int(item.get("id"))) for item in raw_tasks)
+        return [(parent_type, parent_id) for parent_type, parent_id in parents if parent_id]
+
+    def _actor_role(self, role_id: int) -> str:
+        if role_id == 1:
+            return "requester"
+        if role_id == 2:
+            return "technician"
+        if role_id == 3:
+            return "observer"
+        return "unknown"
+
+    def _group_role(self, role_id: int) -> str:
+        if role_id == 1:
+            return "requester"
+        if role_id == 2:
+            return "assigned"
+        if role_id == 3:
+            return "observer"
+        return "unknown"
+
+    async def _build_actors(self, client, user_cache: dict[int, str], ticket_users: list[dict[str, Any]]) -> list[TicketActor]:
+        actors: list[TicketActor] = []
+        for link in ticket_users:
+            user_id = _as_int(link.get("users_id"))
+            role_id = _as_int(link.get("type"))
+            if not user_id:
+                continue
+            actors.append(
+                TicketActor(
+                    role=self._actor_role(role_id),  # type: ignore[arg-type]
+                    role_id=role_id,
+                    user_id=user_id,
+                    name=await self._resolve_user_name(client, user_cache, user_id),
+                )
+            )
+        return actors
+
+    async def _build_groups(self, client, ticket_groups: list[dict[str, Any]]) -> list[TicketGroupActor]:
+        groups: list[TicketGroupActor] = []
+        for link in ticket_groups:
+            group_id = _as_int(link.get("groups_id"))
+            role_id = _as_int(link.get("type"))
+            if not group_id:
+                continue
+            groups.append(
+                TicketGroupActor(
+                    role=self._group_role(role_id),  # type: ignore[arg-type]
+                    role_id=role_id,
+                    group_id=group_id,
+                    name=await self._resolve_group_name(client, group_id),
+                )
+            )
+        return groups
+
+    def _extract_audit_logs(self, raw_ticket: dict[str, Any]) -> list[TicketAuditLog]:
+        raw_logs = raw_ticket.get("_logs") or raw_ticket.get("logs") or []
+        if not isinstance(raw_logs, list):
+            return []
+        logs: list[TicketAuditLog] = []
+        for raw_log in raw_logs:
+            if not isinstance(raw_log, dict):
+                continue
+            logs.append(
+                TicketAuditLog(
+                    id=_as_int(raw_log.get("id")),
+                    date=ensure_aware_datetime(
+                        raw_log.get("date_mod")
+                        or raw_log.get("date")
+                        or raw_log.get("date_creation")
+                    ),
+                    user_name=str(
+                        raw_log.get("user_name")
+                        or raw_log.get("users_id_name")
+                        or raw_log.get("users_id")
+                        or ""
+                    ),
+                    linked_itemtype=(
+                        str(raw_log.get("itemtype_link") or raw_log.get("linked_itemtype"))
+                        if raw_log.get("itemtype_link") or raw_log.get("linked_itemtype")
+                        else None
+                    ),
+                    linked_action=_normalize_log_action(raw_log),
+                    old_value=str(raw_log.get("old_value")) if raw_log.get("old_value") is not None else None,
+                    new_value=str(raw_log.get("new_value")) if raw_log.get("new_value") is not None else None,
+                )
+            )
+        logs.sort(key=lambda item: item.date or now_in_app_timezone())
+        return logs
+
+    async def _extract_audit_logs_from_db(self, db: AsyncSession | None, ticket_id: int) -> list[TicketAuditLog]:
+        if db is None:
+            return []
+
+        result = await db.execute(
+            text(
+                """
+                SELECT id, itemtype_link, linked_action, user_name, date_mod, old_value, new_value, id_search_option
+                FROM glpi_logs
+                WHERE itemtype = 'Ticket' AND items_id = :ticket_id
+                ORDER BY date_mod ASC, id ASC
+                LIMIT 200
+                """
+            ),
+            {"ticket_id": ticket_id},
+        )
+
+        logs: list[TicketAuditLog] = []
+        for row in result.mappings().all():
+            raw_log = dict(row)
+            linked_itemtype = str(raw_log.get("itemtype_link") or "").strip() or "Ticket"
+            logs.append(
+                TicketAuditLog(
+                    id=_as_int(raw_log.get("id")),
+                    date=ensure_aware_datetime(raw_log.get("date_mod")),
+                    user_name=_strip_log_user_id(raw_log.get("user_name")),
+                    linked_itemtype=linked_itemtype,
+                    linked_action=_normalize_log_action(raw_log),
+                    old_value=str(raw_log.get("old_value")) if raw_log.get("old_value") is not None else None,
+                    new_value=str(raw_log.get("new_value")) if raw_log.get("new_value") is not None else None,
+                )
+            )
+
+        logs.sort(key=lambda item: item.date or now_in_app_timezone())
+        return logs
+
     async def get_ticket_detail(
         self,
         context: str,
         ticket_id: int,
         session_token: str,
+        db: AsyncSession | None = None,
     ) -> TicketWorkflowDetailResponse:
         async with self._user_client(context, session_token) as client:
-            raw_ticket = await client.get_item("Ticket", ticket_id, expand_dropdowns="true")
+            raw_ticket = await client.get_item(
+                "Ticket",
+                ticket_id,
+                expand_dropdowns="true",
+                with_logs="true",
+            )
 
-            raw_followups, raw_solutions, raw_tasks, ticket_users, ticket_groups, attachments = await asyncio.gather(
+            raw_followups, raw_solutions, raw_tasks, ticket_users, ticket_groups = await asyncio.gather(
                 client.get_sub_items("Ticket", ticket_id, "ITILFollowup"),
                 client.get_sub_items("Ticket", ticket_id, "ITILSolution"),
                 client.get_sub_items("Ticket", ticket_id, "TicketTask"),
                 client.get_sub_items("Ticket", ticket_id, "Ticket_User"),
                 client.get_sub_items("Ticket", ticket_id, "Group_Ticket"),
-                self._get_ticket_attachments(client, context, ticket_id),
             )
 
             requester_link = next((item for item in ticket_users if _as_int(item.get("type")) == 1), None)
@@ -315,11 +543,13 @@ class TicketWorkflowService:
                     TicketTimelineEntry(
                         id=_as_int(followup.get("id")),
                         type="followup",
+                        source_itemtype="ITILFollowup",
                         content=_strip_html(followup.get("content")),
                         date=_coalesce_datetime(followup.get("date"), followup.get("date_creation")),
                         user_id=_as_int(followup.get("users_id")),
                         user_name="",
                         is_private=_as_bool(followup.get("is_private")),
+                        document_refs=_extract_document_refs(followup.get("content")),
                     )
                 )
 
@@ -328,12 +558,14 @@ class TicketWorkflowService:
                     TicketTimelineEntry(
                         id=_as_int(solution.get("id")),
                         type="solution",
+                        source_itemtype="ITILSolution",
                         content=_strip_html(solution.get("content")),
                         date=_coalesce_datetime(solution.get("date_creation"), solution.get("date")),
                         user_id=_as_int(solution.get("users_id")),
                         user_name="",
                         is_private=False,
                         solution_status=_as_int(solution.get("status"), 2),
+                        document_refs=_extract_document_refs(solution.get("content")),
                     )
                 )
 
@@ -342,12 +574,14 @@ class TicketWorkflowService:
                     TicketTimelineEntry(
                         id=_as_int(task.get("id")),
                         type="task",
+                        source_itemtype="TicketTask",
                         content=_strip_html(task.get("content")),
                         date=_coalesce_datetime(task.get("date"), task.get("date_creation")),
                         user_id=_as_int(task.get("users_id")) or _as_int(task.get("users_id_tech")),
                         user_name="",
                         is_private=_as_bool(task.get("is_private")),
                         action_time=_as_int(task.get("actiontime")),
+                        document_refs=_extract_document_refs(task.get("content")),
                     )
                 )
 
@@ -355,6 +589,15 @@ class TicketWorkflowService:
 
             for entry in timeline:
                 entry.user_name = await self._resolve_user_name(client, user_cache, entry.user_id)
+
+            attachment_parents = [("Ticket", ticket_id)]
+            attachment_parents.extend((entry.source_itemtype, entry.id) for entry in timeline)
+            attachments = await self._get_attachments_for_parents(client, context, ticket_id, attachment_parents)
+            attachments_by_parent: dict[tuple[str, int], list[TicketAttachment]] = {}
+            for attachment in attachments:
+                attachments_by_parent.setdefault((attachment.parent_type, attachment.parent_id), []).append(attachment)
+            for entry in timeline:
+                entry.attachments = attachments_by_parent.get((entry.source_itemtype, entry.id), [])
 
             status_id = _as_int(raw_ticket.get("status"), 1)
             urgency_id = _as_int(raw_ticket.get("urgency"), 3)
@@ -388,6 +631,7 @@ class TicketWorkflowService:
                     if raw_ticket.get("entities_id_completename") or raw_ticket.get("entities_id")
                     else None
                 ),
+                document_refs=_extract_document_refs(raw_ticket.get("content")),
             )
 
             flags = TicketWorkflowFlags(
@@ -399,6 +643,10 @@ class TicketWorkflowService:
                 has_assigned_technician=technician_user_id is not None,
             )
 
+            audit_logs = self._extract_audit_logs(raw_ticket)
+            if not audit_logs:
+                audit_logs = await self._extract_audit_logs_from_db(db, ticket_id)
+
             return TicketWorkflowDetailResponse(
                 ticket=ticket,
                 requester_name="" if requester_name == "Sistema" else requester_name,
@@ -406,8 +654,11 @@ class TicketWorkflowService:
                 technician_name="" if technician_name == "Sistema" else technician_name,
                 technician_user_id=technician_user_id,
                 group_name=group_name,
+                actors=await self._build_actors(client, user_cache, ticket_users),
+                groups=await self._build_groups(client, ticket_groups),
                 timeline=timeline,
                 attachments=attachments,
+                audit_logs=audit_logs,
                 flags=flags,
             )
 
@@ -508,7 +759,8 @@ class TicketWorkflowService:
         session_token: str,
     ) -> dict[str, Any]:
         async with self._user_client(context, session_token) as client:
-            attachments = await self._get_ticket_attachments(client, context, ticket_id)
+            parents = await self._get_lifecycle_attachment_parents(client, ticket_id)
+            attachments = await self._get_attachments_for_parents(client, context, ticket_id, parents)
             attachment = next((item for item in attachments if item.id == document_id), None)
             if attachment is None:
                 raise HTTPException(status_code=404, detail="Anexo nao encontrado para este ticket.")

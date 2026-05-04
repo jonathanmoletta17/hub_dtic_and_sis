@@ -1,9 +1,11 @@
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authorization import require_hub_permissions
 from app.core.auth_guard import verify_session
+from app.core.database import get_db
 from app.core.rate_limit import limiter
 from app.schemas.tickets import (
     TicketActionResponse,
@@ -41,10 +43,11 @@ async def get_ticket_detail(
     request: Request,
     context: str,
     ticket_id: int,
+    db: AsyncSession = Depends(get_db),
     auth_data: dict = Depends(verify_session),
 ):
     try:
-        return await service.get_ticket_detail(context, ticket_id, str(auth_data["session_token"]))
+        return await service.get_ticket_detail(context, ticket_id, str(auth_data["session_token"]), db=db)
     except HTTPException:
         raise
     except Exception as error:

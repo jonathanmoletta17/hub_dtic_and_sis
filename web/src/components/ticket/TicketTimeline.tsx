@@ -1,7 +1,7 @@
 import React from "react";
 
 import { formatIsoDateTime } from "@/lib/datetime/iso";
-import type { TicketTimelineEntry, TimelineEntryType } from "@/lib/api/models/ticket-detail";
+import type { TicketAttachment, TicketTimelineEntry, TimelineEntryType } from "@/lib/api/models/ticket-detail";
 import type { TicketDetail } from "@/lib/api/types";
 import { TimelineItem } from "./TimelineItem";
 
@@ -34,6 +34,8 @@ export function TicketTimeline({
   technicianUserId,
   chatEndRef,
   isTechOrManager,
+  onPreviewAttachment,
+  onDownloadAttachment,
 }: {
   ticket: TicketDetail;
   timeline: TicketTimelineEntry[];
@@ -42,6 +44,8 @@ export function TicketTimeline({
   technicianUserId: number | null;
   chatEndRef: React.RefObject<HTMLDivElement | null>;
   isTechOrManager: boolean;
+  onPreviewAttachment?: (attachment: TicketAttachment) => void;
+  onDownloadAttachment?: (attachment: TicketAttachment) => void;
 }) {
   const visibleTimeline = isTechOrManager
     ? timeline
@@ -50,7 +54,7 @@ export function TicketTimeline({
   const showLegend = visibleTypes.length > 1;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex flex-col overflow-visible lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <div className="shrink-0 border-b px-4 py-4 lg:px-6" style={{ borderColor: "var(--border-subtle)" }}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">
@@ -71,7 +75,7 @@ export function TicketTimeline({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 lg:px-6" style={{ scrollbarWidth: "none" }}>
+      <div className="px-4 py-5 lg:flex-1 lg:overflow-y-auto lg:px-6" style={{ scrollbarWidth: "none" }}>
         <div className="mx-auto max-w-3xl space-y-4">
           <div className="flex justify-start gap-2.5">
             <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/15">
@@ -102,6 +106,8 @@ export function TicketTimeline({
               entry={entry}
               currentUserId={currentUserId}
               technicianUserId={technicianUserId}
+              onPreviewAttachment={onPreviewAttachment}
+              onDownloadAttachment={onDownloadAttachment}
             />
           ))}
 

@@ -17,11 +17,13 @@ export interface TicketWorkflowTicketDto {
   close_date?: IsoDateTimeString | null;
   location?: string | null;
   entity_name?: string | null;
+  document_refs?: number[];
 }
 
 export interface TicketTimelineEntryDto {
   id: number;
   type: "followup" | "solution" | "task";
+  source_itemtype?: "ITILFollowup" | "ITILSolution" | "TicketTask";
   content: string;
   date: IsoDateTimeString;
   user_id: number;
@@ -29,16 +31,44 @@ export interface TicketTimelineEntryDto {
   is_private: boolean;
   action_time?: number | null;
   solution_status?: number | null;
+  document_refs?: number[];
+  attachments?: TicketAttachmentDto[];
 }
 
 export interface TicketAttachmentDto {
   id: number;
   relation_id?: number | null;
+  parent_type?: "Ticket" | "ITILFollowup" | "ITILSolution" | "TicketTask";
+  parent_id?: number;
   filename: string;
   mime_type: string;
   size: number;
   date_upload?: IsoDateTimeString | null;
   url: string;
+}
+
+export interface TicketActorDto {
+  role: "requester" | "technician" | "observer" | "unknown";
+  role_id: number;
+  user_id: number;
+  name: string;
+}
+
+export interface TicketGroupActorDto {
+  role: "requester" | "assigned" | "observer" | "unknown";
+  role_id: number;
+  group_id: number;
+  name: string;
+}
+
+export interface TicketAuditLogDto {
+  id: number;
+  date?: IsoDateTimeString | null;
+  user_name?: string;
+  linked_itemtype?: string | null;
+  linked_action?: string | null;
+  old_value?: string | null;
+  new_value?: string | null;
 }
 
 export interface TicketWorkflowFlagsDto {
@@ -57,8 +87,11 @@ export interface TicketWorkflowDetailResponseDto {
   technician_name: string;
   technician_user_id?: number | null;
   group_name: string;
+  actors?: TicketActorDto[];
+  groups?: TicketGroupActorDto[];
   timeline: TicketTimelineEntryDto[];
   attachments?: TicketAttachmentDto[];
+  audit_logs?: TicketAuditLogDto[];
   flags: TicketWorkflowFlagsDto;
 }
 

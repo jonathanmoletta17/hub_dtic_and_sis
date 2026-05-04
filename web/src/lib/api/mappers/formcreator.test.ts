@@ -159,6 +159,13 @@ describe("formcreator mappers", () => {
             },
           ],
         },
+        {
+          id: 2,
+          name: "Complemento",
+          order: 2,
+          show_rule: 2,
+          questions: [],
+        },
       ],
       conditions: [
         {
@@ -169,6 +176,16 @@ describe("formcreator mappers", () => {
           show_condition: 1,
           show_logic: 1,
           show_value: "incident",
+          order: 1,
+        },
+        {
+          id: 6,
+          controller_question_id: 101,
+          target_itemtype: "PluginFormcreatorSection",
+          target_items_id: 2,
+          show_condition: 7,
+          show_logic: 1,
+          show_value: "inc",
           order: 1,
         },
       ],
@@ -244,6 +261,21 @@ describe("formcreator mappers", () => {
               conditions: [],
             },
           ],
+        },
+        {
+          id: 2,
+          name: "Complemento",
+          order: 2,
+          showRule: "conditional",
+          conditions: [
+            {
+              questionId: 101,
+              operator: "contains",
+              value: "inc",
+              logic: "AND",
+            },
+          ],
+          questions: [],
         },
       ],
     });

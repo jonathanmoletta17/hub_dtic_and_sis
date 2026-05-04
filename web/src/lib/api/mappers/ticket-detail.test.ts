@@ -42,17 +42,61 @@ describe("ticket workflow mapper", () => {
           is_private: false,
           action_time: null,
           solution_status: null,
+          source_itemtype: "ITILFollowup",
+          document_refs: [77],
+          attachments: [
+            {
+              id: 77,
+              relation_id: 99,
+              parent_type: "ITILFollowup",
+              parent_id: 1,
+              filename: "manual.txt",
+              mime_type: "text/plain",
+              size: 123,
+              date_upload: iso,
+              url: "/api/v1/sis/tickets/55/attachments/77/download",
+            },
+          ],
         },
       ],
       attachments: [
         {
           id: 77,
           relation_id: 99,
+          parent_type: "ITILFollowup",
+          parent_id: 1,
           filename: "manual.txt",
           mime_type: "text/plain",
           size: 123,
           date_upload: iso,
           url: "/api/v1/sis/tickets/55/attachments/77/download",
+        },
+      ],
+      actors: [
+        {
+          role: "requester",
+          role_id: 1,
+          user_id: 10,
+          name: "Alice",
+        },
+      ],
+      groups: [
+        {
+          role: "assigned",
+          role_id: 2,
+          group_id: 90,
+          name: "Equipe A",
+        },
+      ],
+      audit_logs: [
+        {
+          id: 9001,
+          date: iso,
+          user_name: "Bob",
+          linked_itemtype: "ITILFollowup",
+          linked_action: "add",
+          old_value: "",
+          new_value: "1",
         },
       ],
       flags: {
@@ -85,14 +129,46 @@ describe("ticket workflow mapper", () => {
           type: "followup",
           userId: 20,
           userName: "Bob",
+          sourceItemtype: "ITILFollowup",
+          documentRefs: [77],
+          attachments: [
+            expect.objectContaining({
+              id: 77,
+              parentType: "ITILFollowup",
+              parentId: 1,
+            }),
+          ],
         }),
       ],
       attachments: [
         expect.objectContaining({
           id: 77,
           relationId: 99,
+          parentType: "ITILFollowup",
+          parentId: 1,
           filename: "manual.txt",
           mimeType: "text/plain",
+        }),
+      ],
+      actors: [
+        expect.objectContaining({
+          role: "requester",
+          userId: 10,
+          name: "Alice",
+        }),
+      ],
+      groups: [
+        expect.objectContaining({
+          role: "assigned",
+          groupId: 90,
+          name: "Equipe A",
+        }),
+      ],
+      auditLogs: [
+        expect.objectContaining({
+          id: 9001,
+          linkedItemtype: "ITILFollowup",
+          linkedAction: "add",
         }),
       ],
       flags: {

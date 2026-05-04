@@ -22,7 +22,7 @@ export type FieldType =
  * Operador de comparação para condições de visibilidade.
  * 1 = igual (==), 2 = diferente (!=)
  */
-export type ConditionOperator = '==' | '!=';
+export type ConditionOperator = '==' | '!=' | 'contains' | 'not_contains';
 
 /**
  * Lógica de combinação entre múltiplas condições.

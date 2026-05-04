@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { TicketTimelineEntry as TimelineEntry } from "@/lib/api/models/ticket-detail";
+import type {
+  TicketActor,
+  TicketAuditLog,
+  TicketGroupActor,
+  TicketTimelineEntry as TimelineEntry,
+} from "@/lib/api/models/ticket-detail";
 import {
   addTicketFollowup,
   addTicketSolution,
@@ -8,6 +13,7 @@ import {
   assumeTicket,
   downloadTicketAttachment,
   fetchTicketWorkflowDetail,
+  previewTicketAttachment,
   rejectTicketSolution,
   reopenTicket,
   resumeTicket,
@@ -20,6 +26,10 @@ import type { TicketDetail } from "@/lib/api/types";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLiveDataRefresh } from "@/hooks/useLiveDataRefresh";
 import { POLL_INTERVALS } from "@/lib/realtime/polling";
+import {
+  canPreviewAttachment,
+  type AttachmentPreviewState,
+} from "./attachmentPreview";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -55,11 +65,27 @@ export function useTicketDetail(ticketId: number, context: string) {
   const [technicianName, setTechnicianName] = useState("");
   const [technicianUserId, setTechnicianUserId] = useState<number | null>(null);
   const [groupName, setGroupName] = useState("");
+  const [actors, setActors] = useState<TicketActor[]>([]);
+  const [groups, setGroups] = useState<TicketGroupActor[]>([]);
+  const [auditLogs, setAuditLogs] = useState<TicketAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<AttachmentPreviewState>({
+    attachment: null,
+    loading: false,
+  });
   const hasLoadedOnceRef = useRef(false);
+  const previewObjectUrlRef = useRef<string | null>(null);
+  const previewRequestIdRef = useRef(0);
+
+  const revokeAttachmentPreviewUrl = useCallback(() => {
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
+      previewObjectUrlRef.current = null;
+    }
+  }, []);
 
   const loadTicketData = useCallback(async (options?: { silent?: boolean }) => {
     const isInitialLoad = !hasLoadedOnceRef.current;
@@ -75,6 +101,9 @@ export function useTicketDetail(ticketId: number, context: string) {
       setTechnicianName(detail.technicianName);
       setTechnicianUserId(detail.technicianUserId);
       setGroupName(detail.groupName);
+      setActors(detail.actors);
+      setGroups(detail.groups);
+      setAuditLogs(detail.auditLogs);
       hasLoadedOnceRef.current = true;
     } catch (err) {
       setError(getErrorMessage(err, "Erro ao carregar dados do ticket."));
@@ -90,6 +119,8 @@ export function useTicketDetail(ticketId: number, context: string) {
       void loadTicketData();
     }
   }, [ticketId, loadTicketData]);
+
+  useEffect(() => revokeAttachmentPreviewUrl, [revokeAttachmentPreviewUrl]);
 
   useLiveDataRefresh({
     context,
@@ -142,6 +173,50 @@ export function useTicketDetail(ticketId: number, context: string) {
     } catch (err) {
       alert(`Erro ao baixar anexo: ${getErrorMessage(err, "Erro interno.")}`);
     }
+  };
+
+  const handlePreviewAttachment = async (attachment: (typeof attachments)[number]) => {
+    previewRequestIdRef.current += 1;
+    const requestId = previewRequestIdRef.current;
+    revokeAttachmentPreviewUrl();
+
+    if (!canPreviewAttachment(attachment)) {
+      setAttachmentPreview({ attachment, loading: false });
+      return;
+    }
+
+    setAttachmentPreview({ attachment, loading: true });
+
+    try {
+      const preview = await previewTicketAttachment(context, ticketId, attachment);
+      if (requestId !== previewRequestIdRef.current) {
+        URL.revokeObjectURL(preview.objectUrl);
+        return;
+      }
+
+      previewObjectUrlRef.current = preview.objectUrl;
+      setAttachmentPreview({
+        attachment,
+        objectUrl: preview.objectUrl,
+        contentType: preview.contentType,
+        loading: false,
+      });
+    } catch (err) {
+      if (requestId !== previewRequestIdRef.current) {
+        return;
+      }
+      setAttachmentPreview({
+        attachment,
+        loading: false,
+        error: getErrorMessage(err, "Erro ao carregar pre-visualizacao."),
+      });
+    }
+  };
+
+  const handleCloseAttachmentPreview = () => {
+    previewRequestIdRef.current += 1;
+    revokeAttachmentPreviewUrl();
+    setAttachmentPreview({ attachment: null, loading: false });
   };
 
   const handleAssumeTicket = async () => {
@@ -273,10 +348,14 @@ export function useTicketDetail(ticketId: number, context: string) {
     technicianName,
     technicianUserId,
     groupName,
+    actors,
+    groups,
+    auditLogs,
     loading,
     refreshing,
     error,
     actionLoading,
+    attachmentPreview,
     currentUserId,
     currentUserName,
     isTechOrManager,
@@ -285,6 +364,8 @@ export function useTicketDetail(ticketId: number, context: string) {
     handleAddFollowup,
     handleUploadAttachments,
     handleDownloadAttachment,
+    handlePreviewAttachment,
+    handleCloseAttachmentPreview,
     handleAssumeTicket,
     handleAddSolution,
     handleSetPending,

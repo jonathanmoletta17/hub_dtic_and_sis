@@ -1,13 +1,8 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ArrowLeft,
-  Calendar,
-  Clock,
-  FileText,
   MapPin,
-  Shield,
   Tag,
   User,
   Users,
@@ -17,20 +12,47 @@ import {
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatIsoDateTime } from "@/lib/datetime/iso";
+import type { TicketActor, TicketAuditLog, TicketGroupActor } from "@/lib/api/models/ticket-detail";
 import type { TicketDetail } from "@/lib/api/types";
 import { TicketActions } from "./TicketActions";
-
-const priorityLabels: Record<number, string> = {
-  1: "Muito baixa",
-  2: "Baixa",
-  3: "Media",
-  4: "Alta",
-  5: "Muito alta",
-};
 
 const typeLabels: Record<number, string> = {
   1: "Incidente",
   2: "Requisicao",
+};
+
+const actorRoleLabels: Record<TicketActor["role"], string> = {
+  requester: "Solicitante",
+  technician: "Tecnico",
+  observer: "Observador",
+  unknown: "Usuario",
+};
+
+const groupRoleLabels: Record<TicketGroupActor["role"], string> = {
+  requester: "Grupo solicitante",
+  assigned: "Grupo atribuido",
+  observer: "Grupo observador",
+  unknown: "Grupo",
+};
+
+const auditItemLabels: Record<string, string> = {
+  ITILFollowup: "Acompanhamento",
+  ITILSolution: "Solucao",
+  TicketTask: "Tarefa",
+  Document: "Documento",
+  Document_Item: "Anexo",
+  Ticket_User: "Ator",
+  Group_Ticket: "Grupo",
+  User: "Usuario",
+  Group: "Grupo",
+  PluginGenericobjectCarregador: "Carregador",
+  Ticket: "Ticket",
+};
+
+const auditActionLabels: Record<string, string> = {
+  add: "adicionado",
+  update: "atualizado",
+  delete: "removido",
 };
 
 function decodeHtmlEntities(str: string): string {
@@ -48,6 +70,12 @@ function decodeHtmlEntities(str: string): string {
 
 function formatDate(dateStr: string): string {
   return formatIsoDateTime(dateStr) || "-";
+}
+
+function formatAuditLabel(log: TicketAuditLog): string {
+  const itemLabel = log.linkedItemtype ? auditItemLabels[log.linkedItemtype] || "Evento" : "Evento";
+  const actionLabel = log.linkedAction ? auditActionLabels[log.linkedAction] || "registrado" : "registrado";
+  return `${itemLabel} ${actionLabel}`;
 }
 
 function MetaSection({
@@ -97,11 +125,132 @@ function MetaItem({
   );
 }
 
+function CompactList({
+  items,
+  getKey,
+  getLabel,
+  getValue,
+}: {
+  items: unknown[];
+  getKey: (item: unknown) => string;
+  getLabel: (item: unknown) => string;
+  getValue: (item: unknown) => string;
+}) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div
+      className="rounded-xl border px-3 py-3"
+      style={{
+        borderColor: "var(--border-subtle)",
+        background: "color-mix(in srgb, var(--bg-surface-alt) 82%, transparent)",
+      }}
+    >
+      <div className="space-y-2">
+        {items.map((item) => (
+          <div key={getKey(item)} className="flex min-w-0 items-start justify-between gap-3">
+            <span className="theme-copy-soft shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em]">
+              {getLabel(item)}
+            </span>
+            <span className="min-w-0 break-words text-right text-[12px] leading-relaxed text-text-1">
+              {decodeHtmlEntities(getValue(item))}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface LifecycleItem {
+  key: string;
+  label: string;
+  date?: string;
+  userName?: string;
+}
+
+function buildLifecycleItems(ticket: TicketDetail, logs: TicketAuditLog[]): LifecycleItem[] {
+  const baseItems: LifecycleItem[] = [
+    {
+      key: "ticket-created",
+      label: "Ticket criado",
+      date: ticket.dateCreated,
+    },
+    {
+      key: "ticket-updated",
+      label: "Ultima atualizacao",
+      date: ticket.dateModified,
+    },
+  ];
+
+  if (ticket.solveDate) {
+    baseItems.push({
+      key: "ticket-solved",
+      label: "Ticket solucionado",
+      date: ticket.solveDate,
+    });
+  }
+
+  if (ticket.closeDate) {
+    baseItems.push({
+      key: "ticket-closed",
+      label: "Ticket fechado",
+      date: ticket.closeDate,
+    });
+  }
+
+  const auditItems = logs.map((log) => ({
+    key: `audit-${log.id}`,
+    label: formatAuditLabel(log),
+    date: log.date,
+    userName: log.userName,
+  }));
+
+  return [...baseItems, ...auditItems]
+    .sort((left, right) => new Date(right.date || 0).getTime() - new Date(left.date || 0).getTime())
+    .slice(0, 8);
+}
+
+function LifecycleList({ ticket, logs }: { ticket: TicketDetail; logs: TicketAuditLog[] }) {
+  const items = buildLifecycleItems(ticket, logs);
+
+  return (
+    <div
+      className="rounded-xl border px-3 py-3"
+      style={{
+        borderColor: "var(--border-subtle)",
+        background: "color-mix(in srgb, var(--bg-surface-alt) 82%, transparent)",
+      }}
+    >
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div
+            key={item.key}
+            className="border-b pb-2 last:border-b-0 last:pb-0"
+            style={{ borderColor: "var(--border-subtle)" }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="text-[12px] font-medium leading-snug text-text-1">{item.label}</span>
+              {item.date ? <span className="theme-meta shrink-0 text-[10px]">{formatDate(item.date)}</span> : null}
+            </div>
+            {item.userName ? <p className="theme-copy-soft mt-1 text-[11px]">{item.userName}</p> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TicketSidebar({
   ticket,
   requesterName,
   technicianName,
   groupName,
+  actors,
+  groups,
+  auditLogs,
   isTechOrManager,
   canActOnTicket,
   actionLoading,
@@ -119,6 +268,9 @@ export function TicketSidebar({
   requesterName: string;
   technicianName: string;
   groupName: string;
+  actors: TicketActor[];
+  groups: TicketGroupActor[];
+  auditLogs: TicketAuditLog[];
   isTechOrManager: boolean;
   canActOnTicket: boolean;
   actionLoading: string | null;
@@ -135,6 +287,9 @@ export function TicketSidebar({
   const router = useRouter();
 
   if (!ticket) return null;
+
+  const visibleActors = actors.filter((actor) => actor.name);
+  const visibleGroups = groups.filter((group) => group.name);
 
   return (
     <aside
@@ -172,27 +327,38 @@ export function TicketSidebar({
         style={{ scrollbarWidth: "none" }}
       >
         <MetaSection title="Atendimento">
-          {requesterName ? <MetaItem icon={<User size={14} />} label="Solicitante" value={requesterName} /> : null}
-          {technicianName ? <MetaItem icon={<Wrench size={14} />} label="Tecnico" value={technicianName} /> : null}
-          {groupName ? (
-            <MetaItem
-              icon={<Users size={14} />}
-              label="Grupo atribuido"
-              value={decodeHtmlEntities(groupName)}
+          {visibleActors.length ? (
+            <CompactList
+              items={visibleActors}
+              getKey={(item) => {
+                const actor = item as TicketActor;
+                return `${actor.role}-${actor.userId}`;
+              }}
+              getLabel={(item) => actorRoleLabels[(item as TicketActor).role]}
+              getValue={(item) => (item as TicketActor).name}
             />
+          ) : (
+            <>
+              {requesterName ? <MetaItem icon={<User size={14} />} label="Solicitante" value={requesterName} /> : null}
+              {technicianName ? <MetaItem icon={<Wrench size={14} />} label="Tecnico" value={technicianName} /> : null}
+            </>
+          )}
+          {visibleGroups.length ? (
+            <CompactList
+              items={visibleGroups}
+              getKey={(item) => {
+                const group = item as TicketGroupActor;
+                return `${group.role}-${group.groupId}`;
+              }}
+              getLabel={(item) => groupRoleLabels[(item as TicketGroupActor).role]}
+              getValue={(item) => (item as TicketGroupActor).name}
+            />
+          ) : groupName ? (
+            <MetaItem icon={<Users size={14} />} label="Grupo atribuido" value={decodeHtmlEntities(groupName)} />
           ) : null}
         </MetaSection>
 
-        <MetaSection title="Classificacao">
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-            <MetaItem
-              icon={<Shield size={14} />}
-              label="Prioridade"
-              value={priorityLabels[ticket.priority] || `Nivel ${ticket.priority}`}
-              valueClass={ticket.priority >= 4 ? "text-[var(--status-active)]" : undefined}
-            />
-            <MetaItem icon={<AlertTriangle size={14} />} label="Urgencia" value={ticket.urgency} />
-          </div>
+        <MetaSection title="Contexto">
           <MetaItem icon={<Tag size={14} />} label="Categoria" value={decodeHtmlEntities(ticket.category)} />
           {ticket.location ? (
             <MetaItem
@@ -203,22 +369,8 @@ export function TicketSidebar({
           ) : null}
         </MetaSection>
 
-        <MetaSection title="Registro">
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-            <MetaItem icon={<Calendar size={14} />} label="Criado em" value={formatDate(ticket.dateCreated)} />
-            <MetaItem
-              icon={<Clock size={14} />}
-              label="Ultima atualizacao"
-              value={formatDate(ticket.dateModified)}
-            />
-          </div>
-          {ticket.solveDate ? (
-            <MetaItem
-              icon={<FileText size={14} />}
-              label="Solucionado em"
-              value={formatDate(ticket.solveDate)}
-            />
-          ) : null}
+        <MetaSection title="Ciclo de vida">
+          <LifecycleList ticket={ticket} logs={auditLogs} />
         </MetaSection>
       </div>
 

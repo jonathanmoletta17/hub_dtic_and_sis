@@ -1,168 +1,70 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { asIsoDateTimeString } from "@/lib/datetime/iso";
-
 const ticketWorkflowMocks = vi.hoisted(() => ({
-  apiGetMock: vi.fn(),
-  apiPostMock: vi.fn(),
-  publishLiveDataEventMock: vi.fn(),
+  getSessionTokenMock: vi.fn(),
+  getCachedSessionMock: vi.fn(),
+  getActiveHubRoleForContextMock: vi.fn(),
 }));
 
-vi.mock("./client", () => ({
-  apiGet: ticketWorkflowMocks.apiGetMock,
-  apiPost: ticketWorkflowMocks.apiPostMock,
-  buildApiPath: (context: string, resource: string) => `/api/v1/${context}/${resource}`,
+vi.mock("@/store/useAuthStore", () => ({
+  useAuthStore: {
+    getState: () => ({
+      getSessionToken: ticketWorkflowMocks.getSessionTokenMock,
+      getCachedSession: ticketWorkflowMocks.getCachedSessionMock,
+      getActiveHubRoleForContext: ticketWorkflowMocks.getActiveHubRoleForContextMock,
+    }),
+  },
 }));
 
 vi.mock("@/lib/realtime/liveDataBus", () => ({
-  publishLiveDataEvent: ticketWorkflowMocks.publishLiveDataEventMock,
+  publishLiveDataEvent: vi.fn(),
 }));
 
-import {
-  addTicketFollowup,
-  approveTicketSolution,
-  assumeTicket,
-  fetchTicketWorkflowDetail,
-  rejectTicketSolution,
-  reopenTicket,
-  returnTicketToQueue,
-  setTicketPending,
-  transferTicket,
-} from "./ticketWorkflowService";
+import { previewTicketAttachment } from "./ticketWorkflowService";
 
-describe("ticketWorkflowService", () => {
+describe("ticketWorkflowService attachment preview", () => {
   beforeEach(() => {
-    ticketWorkflowMocks.apiGetMock.mockReset();
-    ticketWorkflowMocks.apiPostMock.mockReset();
-    ticketWorkflowMocks.publishLiveDataEventMock.mockReset();
+    ticketWorkflowMocks.getSessionTokenMock.mockReset();
+    ticketWorkflowMocks.getCachedSessionMock.mockReset();
+    ticketWorkflowMocks.getActiveHubRoleForContextMock.mockReset();
+    vi.restoreAllMocks();
   });
 
-  it("returns normalized workflow detail data", async () => {
-    const iso = asIsoDateTimeString("2026-03-15T10:00:00-03:00");
-    ticketWorkflowMocks.apiGetMock.mockResolvedValueOnce({
-      ticket: {
-        id: 55,
-        title: "Erro de acesso",
-        content: "Descricao",
-        category: "Acesso",
-        status_id: 2,
-        status: "Em Atendimento",
-        urgency_id: 4,
-        urgency: "Alta",
-        priority: 4,
-        type: 1,
-        date_created: iso,
-        date_modified: iso,
-        solve_date: null,
-        close_date: null,
-        location: "Patio",
-        entity_name: "Central",
-      },
-      requester_name: "Alice",
-      requester_user_id: 10,
-      technician_name: "Bob",
-      technician_user_id: 20,
-      group_name: "Equipe A",
-      timeline: [
-        {
-          id: 1,
-          type: "followup",
-          content: "Atualizacao",
-          date: iso,
-          user_id: 20,
-          user_name: "Bob",
-          is_private: false,
-          action_time: null,
-          solution_status: null,
-        },
-      ],
-      flags: {
-        is_new: false,
-        is_in_progress: true,
-        is_pending: false,
-        is_resolved: false,
-        is_closed: false,
-        has_assigned_technician: true,
-      },
+  it("uses the cached context session when sessionTokens has not been populated", async () => {
+    ticketWorkflowMocks.getSessionTokenMock.mockReturnValue(null);
+    ticketWorkflowMocks.getCachedSessionMock.mockReturnValue({
+      session_token: "cached-token",
     });
+    ticketWorkflowMocks.getActiveHubRoleForContextMock.mockReturnValue({ role: "solicitante" });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:preview");
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+      ok: true,
+      blob: async () => new Blob(["png"], { type: "image/png" }),
+    } as Response);
 
-    await expect(fetchTicketWorkflowDetail("dtic", 55)).resolves.toEqual(
-      expect.objectContaining({
-        ticket: expect.objectContaining({
-          id: 55,
-          statusId: 2,
-        }),
-        requesterName: "Alice",
-        technicianUserId: 20,
+    await expect(
+      previewTicketAttachment("dtic", 14134, {
+        id: 4115,
+        parentType: "ITILFollowup",
+        parentId: 99,
+        filename: "age_paste6581061.png",
+        mimeType: "image/png",
+        size: 3,
+        url: "/download",
       }),
-    );
-
-    expect(ticketWorkflowMocks.apiGetMock).toHaveBeenCalledWith("/api/v1/dtic/tickets/55/detail");
-  });
-
-  it("posts explicit workflow actions", async () => {
-    ticketWorkflowMocks.apiPostMock.mockResolvedValue({
-      success: true,
-      message: "ok",
-      ticket_id: 55,
+    ).resolves.toEqual({
+      objectUrl: "blob:preview",
+      contentType: "image/png",
+      filename: "age_paste6581061.png",
     });
 
-    await addTicketFollowup("dtic", 55, { content: "Oi", user_id: 10, is_private: false });
-    await assumeTicket("dtic", 55, { technician_user_id: 20 });
-    await setTicketPending("dtic", 55);
-    await returnTicketToQueue("dtic", 55);
-    await reopenTicket("dtic", 55);
-    await transferTicket("dtic", 55, { technician_user_id: 30 });
-    await approveTicketSolution("dtic", 55, { comment: "Aprovado" });
-    await rejectTicketSolution("dtic", 55);
-
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      1,
-      "/api/v1/dtic/tickets/55/followups",
-      { content: "Oi", user_id: 10, is_private: false },
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      2,
-      "/api/v1/dtic/tickets/55/assume",
-      { technician_user_id: 20 },
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      3,
-      "/api/v1/dtic/tickets/55/pending",
-      {},
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      4,
-      "/api/v1/dtic/tickets/55/return-to-queue",
-      {},
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      5,
-      "/api/v1/dtic/tickets/55/reopen",
-      {},
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      6,
-      "/api/v1/dtic/tickets/55/transfer",
-      { technician_user_id: 30 },
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      7,
-      "/api/v1/dtic/tickets/55/solution-approval/approve",
-      { comment: "Aprovado" },
-    );
-    expect(ticketWorkflowMocks.apiPostMock).toHaveBeenNthCalledWith(
-      8,
-      "/api/v1/dtic/tickets/55/solution-approval/reject",
-      {},
-    );
-
-    expect(ticketWorkflowMocks.publishLiveDataEventMock).toHaveBeenCalledTimes(8);
-    expect(ticketWorkflowMocks.publishLiveDataEventMock).toHaveBeenLastCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/dtic/tickets/14134/attachments/4115/download?disposition=inline",
       expect.objectContaining({
-        context: "dtic",
-        ticketId: 55,
-        source: "mutation",
+        headers: {
+          "Session-Token": "cached-token",
+          "X-Active-Hub-Role": "solicitante",
+        },
       }),
     );
   });

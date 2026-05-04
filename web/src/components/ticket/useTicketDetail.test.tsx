@@ -9,13 +9,16 @@ const ticketHookMocks = vi.hoisted(() => ({
   addTicketSolutionMock: vi.fn(),
   approveTicketSolutionMock: vi.fn(),
   assumeTicketMock: vi.fn(),
+  downloadTicketAttachmentMock: vi.fn(),
   fetchTicketWorkflowDetailMock: vi.fn(),
+  previewTicketAttachmentMock: vi.fn(),
   rejectTicketSolutionMock: vi.fn(),
   reopenTicketMock: vi.fn(),
   resumeTicketMock: vi.fn(),
   returnTicketToQueueMock: vi.fn(),
   setTicketPendingMock: vi.fn(),
   transferTicketMock: vi.fn(),
+  uploadTicketAttachmentsMock: vi.fn(),
 }));
 
 vi.mock("@/lib/api/ticketWorkflowService", () => ({
@@ -23,13 +26,16 @@ vi.mock("@/lib/api/ticketWorkflowService", () => ({
   addTicketSolution: ticketHookMocks.addTicketSolutionMock,
   approveTicketSolution: ticketHookMocks.approveTicketSolutionMock,
   assumeTicket: ticketHookMocks.assumeTicketMock,
+  downloadTicketAttachment: ticketHookMocks.downloadTicketAttachmentMock,
   fetchTicketWorkflowDetail: ticketHookMocks.fetchTicketWorkflowDetailMock,
+  previewTicketAttachment: ticketHookMocks.previewTicketAttachmentMock,
   rejectTicketSolution: ticketHookMocks.rejectTicketSolutionMock,
   reopenTicket: ticketHookMocks.reopenTicketMock,
   resumeTicket: ticketHookMocks.resumeTicketMock,
   returnTicketToQueue: ticketHookMocks.returnTicketToQueueMock,
   setTicketPending: ticketHookMocks.setTicketPendingMock,
   transferTicket: ticketHookMocks.transferTicketMock,
+  uploadTicketAttachments: ticketHookMocks.uploadTicketAttachmentsMock,
 }));
 
 import { useTicketDetail } from "./useTicketDetail";
@@ -60,7 +66,11 @@ describe("useTicketDetail", () => {
         technicianName: "Bob",
         technicianUserId: 20,
         groupName: "Equipe A",
+        actors: [],
+        groups: [],
         timeline: [],
+        attachments: [],
+        auditLogs: [],
         flags: {
           isNew: false,
           isInProgress: true,

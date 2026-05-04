@@ -1,8 +1,8 @@
 import React from "react";
-import { CheckCircle2, Clock, ListTodo, Lock } from "lucide-react";
+import { CheckCircle2, Clock, Download, FileText, ListTodo, Lock } from "lucide-react";
 
 import { formatIsoDateTime } from "@/lib/datetime/iso";
-import type { TicketTimelineEntry } from "@/lib/api/models/ticket-detail";
+import type { TicketAttachment, TicketTimelineEntry } from "@/lib/api/models/ticket-detail";
 
 function getInitials(name?: string | null): string {
   if (!name) return "?";
@@ -23,10 +23,14 @@ export function TimelineItem({
   entry,
   currentUserId,
   technicianUserId,
+  onPreviewAttachment,
+  onDownloadAttachment,
 }: {
   entry: TicketTimelineEntry;
   currentUserId: number;
   technicianUserId: number | null;
+  onPreviewAttachment?: (attachment: TicketAttachment) => void;
+  onDownloadAttachment?: (attachment: TicketAttachment) => void;
 }) {
   const isMe = entry.userId === currentUserId;
   const isTechObj = entry.userId === technicianUserId;
@@ -57,7 +61,14 @@ export function TimelineItem({
               border: "1px solid color-mix(in srgb, var(--status-solved) 28%, transparent)",
             }}
           >
-            <p className="whitespace-pre-wrap text-left text-[14px] leading-relaxed text-text-1">{entry.content}</p>
+            <p className="whitespace-pre-wrap text-left text-[14px] leading-relaxed text-text-1">
+              {entry.content || (entry.attachments.length ? "Anexo enviado." : "")}
+            </p>
+            <EntryAttachments
+              attachments={entry.attachments}
+              onPreviewAttachment={onPreviewAttachment}
+              onDownloadAttachment={onDownloadAttachment}
+            />
           </div>
         </div>
 
@@ -103,7 +114,14 @@ export function TimelineItem({
             </div>
           </div>
 
-          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-text-2">{entry.content}</p>
+          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-text-2">
+            {entry.content || (entry.attachments.length ? "Anexo vinculado a tarefa." : "")}
+          </p>
+          <EntryAttachments
+            attachments={entry.attachments}
+            onPreviewAttachment={onPreviewAttachment}
+            onDownloadAttachment={onDownloadAttachment}
+          />
           <div className="theme-copy-soft mt-2 text-[11px]">{entry.userName}</div>
         </div>
       </div>
@@ -149,8 +167,13 @@ export function TimelineItem({
           }
         >
           <p className="theme-copy-muted whitespace-pre-wrap text-left text-[14px] leading-relaxed">
-            {entry.content}
+            {entry.content || (entry.attachments.length ? "Anexo enviado." : "")}
           </p>
+          <EntryAttachments
+            attachments={entry.attachments}
+            onPreviewAttachment={onPreviewAttachment}
+            onDownloadAttachment={onDownloadAttachment}
+          />
         </div>
       </div>
 
@@ -159,6 +182,68 @@ export function TimelineItem({
           <span className="theme-meta text-[10px] font-bold">{getInitials(entry.userName)}</span>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function formatBytes(size: number): string {
+  if (!size) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = size;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value >= 10 || unitIndex === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function EntryAttachments({
+  attachments,
+  onPreviewAttachment,
+  onDownloadAttachment,
+}: {
+  attachments: TicketAttachment[];
+  onPreviewAttachment?: (attachment: TicketAttachment) => void;
+  onDownloadAttachment?: (attachment: TicketAttachment) => void;
+}) {
+  if (!attachments.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-3 flex flex-col gap-2">
+      {attachments.map((attachment) => (
+        <div
+          key={`${attachment.parentType}-${attachment.parentId}-${attachment.id}-${attachment.relationId ?? "na"}`}
+          className="inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:border-accent-blue/35"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "color-mix(in srgb, var(--bg-surface) 72%, transparent)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => (onPreviewAttachment ?? onDownloadAttachment)?.(attachment)}
+            className="inline-flex min-w-0 flex-1 items-center gap-2 text-left"
+            aria-label={`Abrir pre-visualizacao de ${attachment.filename}`}
+          >
+            <FileText size={14} className="theme-copy-soft shrink-0" />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-[12px] font-medium text-text-2">{attachment.filename}</span>
+              <span className="theme-meta text-[10px]">{formatBytes(attachment.size)}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onDownloadAttachment?.(attachment)}
+            className="theme-copy-soft shrink-0 rounded-md p-1 transition-colors hover:text-text-1"
+            aria-label={`Baixar ${attachment.filename}`}
+          >
+            <Download size={14} />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

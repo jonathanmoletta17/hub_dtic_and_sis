@@ -2,11 +2,14 @@ import json
 import html
 import logging
 import hashlib
+import asyncio
+import re
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, bindparam
 
@@ -21,6 +24,40 @@ from app.schemas.formcreator import (
     FormSchema, FormSection, FormCondition, FormQuestion, FormOption,
     ServiceCategory, ServiceForm, SubmitFormRequest, SubmitFormResponse
 )
+
+MAX_FORMCREATOR_FILES_PER_SUBMIT = 10
+MAX_FORMCREATOR_FILE_SIZE_BYTES = 10 * 1024 * 1024
+_ALLOWED_FORMCREATOR_ATTACHMENT_EXTENSIONS = {
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".csv",
+    ".txt",
+    ".ppt",
+    ".pptx",
+}
+_ALLOWED_FORMCREATOR_ATTACHMENT_MIME_TYPES = {
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "text/plain",
+    "text/csv",
+}
 
 router = APIRouter(
     prefix="/api/v1/{context}/domain/formcreator",
@@ -75,6 +112,330 @@ async def _user_client(context: str, session_token: str):
         yield client
     finally:
         await client._http.aclose()
+
+
+def _sanitize_formcreator_filename(filename: str) -> str:
+    base = Path(filename).name.strip()
+    if not base:
+        base = "anexo"
+    base = re.sub(r"[^A-Za-z0-9._ -]", "_", base)
+    return base[:255]
+
+
+def _assert_formcreator_file_constraints(filename: str, content_type: str, size: int) -> None:
+    suffix = Path(filename).suffix.lower()
+    mime = (content_type or "application/octet-stream").lower()
+
+    if size <= 0:
+        raise HTTPException(status_code=400, detail=f"Arquivo '{filename}' vazio.")
+
+    if size > MAX_FORMCREATOR_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Arquivo '{filename}' excede o limite de {MAX_FORMCREATOR_FILE_SIZE_BYTES // (1024 * 1024)} MB.",
+        )
+
+    if (
+        suffix not in _ALLOWED_FORMCREATOR_ATTACHMENT_EXTENSIONS
+        and mime not in _ALLOWED_FORMCREATOR_ATTACHMENT_MIME_TYPES
+    ):
+        raise HTTPException(
+            status_code=415,
+            detail=f"Tipo de arquivo nao permitido para '{filename}'.",
+        )
+
+
+def _extract_created_item_id(payload: object) -> int | None:
+    if isinstance(payload, dict):
+        direct_id = payload.get("id")
+        if isinstance(direct_id, int):
+            return direct_id
+        if isinstance(direct_id, str) and direct_id.isdigit():
+            return int(direct_id)
+
+        for key in ("0", 0):
+            nested = payload.get(key)
+            if isinstance(nested, dict):
+                nested_id = nested.get("id")
+                if isinstance(nested_id, int):
+                    return nested_id
+                if isinstance(nested_id, str) and nested_id.isdigit():
+                    return int(nested_id)
+
+    return None
+
+
+def _extract_glpi_upload_errors(payload: object) -> list[str]:
+    if not isinstance(payload, dict):
+        return []
+
+    upload_result = payload.get("upload_result")
+    if not isinstance(upload_result, dict):
+        return []
+
+    entries = upload_result.get("filename")
+    if not isinstance(entries, list):
+        return []
+
+    errors: list[str] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        error = entry.get("error")
+        if isinstance(error, str) and error.strip():
+            errors.append(error.strip())
+    return errors
+
+
+def _build_form_answer_input(form_id: int, answers: Dict[str, Any]) -> Dict[str, Any]:
+    answers_payload: Dict[str, str] = {}
+    for q_id_str, val in answers.items():
+        if val is None or (isinstance(val, dict) and not val):
+            continue
+
+        key = (
+            str(q_id_str)
+            if str(q_id_str).startswith("formcreator_field_")
+            else f"formcreator_field_{q_id_str}"
+        )
+
+        if isinstance(val, (dict, list)):
+            answers_payload[key] = json.dumps(val)
+        else:
+            answers_payload[key] = str(val)
+
+    return {
+        "plugin_formcreator_forms_id": form_id,
+        "requesttypes_id": 1,
+        **answers_payload,
+    }
+
+
+def _parse_file_question_ids(raw: str, files_count: int) -> list[int]:
+    try:
+        parsed = json.loads(raw or "[]")
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="file_question_ids_json invalido.") from exc
+
+    if not isinstance(parsed, list):
+        raise HTTPException(status_code=400, detail="file_question_ids_json deve ser uma lista.")
+
+    question_ids: list[int] = []
+    for value in parsed:
+        try:
+            question_ids.append(int(value))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="ID de pergunta de arquivo invalido.") from exc
+
+    if len(question_ids) != files_count:
+        raise HTTPException(
+            status_code=400,
+            detail="Quantidade de arquivos nao corresponde aos IDs de perguntas enviados.",
+        )
+
+    return question_ids
+
+
+def _get_required_file_question_labels(
+    question_ids: list[int],
+    question_metadata: dict[int, dict[str, Any]],
+) -> list[str]:
+    return [
+        str(question_metadata[question_id].get("name") or question_id)
+        for question_id in question_ids
+        if int(question_metadata[question_id].get("required") or 0) == 1
+    ]
+
+
+async def _get_file_question_metadata(
+    db: AsyncSession,
+    question_ids: list[int],
+) -> dict[int, dict[str, Any]]:
+    if not question_ids:
+        return {}
+
+    stmt = text(
+        "SELECT id, name, required "
+        "FROM glpi_plugin_formcreator_questions "
+        "WHERE id IN :question_ids AND fieldtype='file'"
+    ).bindparams(bindparam("question_ids", expanding=True))
+    rows = (await db.execute(stmt, {"question_ids": question_ids})).mappings().all()
+    return {int(row["id"]): dict(row) for row in rows}
+
+
+async def _fetch_generated_ticket_ids(db: AsyncSession, form_answer_id: int) -> list[int]:
+    if form_answer_id <= 0:
+        return []
+
+    for attempt in range(5):
+        rows = (
+            await db.execute(
+                text(
+                    "SELECT tickets_id "
+                    "FROM glpi_items_tickets "
+                    "WHERE itemtype='PluginFormcreatorFormAnswer' AND items_id=:form_answer_id "
+                    "ORDER BY tickets_id"
+                ),
+                {"form_answer_id": form_answer_id},
+            )
+        ).mappings().all()
+        ticket_ids = [int(row["tickets_id"]) for row in rows if row.get("tickets_id")]
+        if ticket_ids or attempt == 4:
+            return ticket_ids
+        await asyncio.sleep(0.2)
+
+    return []
+
+
+async def _upload_formcreator_files(
+    *,
+    client: GLPIClient,
+    form_answer_id: int,
+    ticket_ids: list[int],
+    files: list[UploadFile],
+    question_ids: list[int],
+    question_metadata: dict[int, dict[str, Any]],
+) -> None:
+    if not files:
+        return
+    if len(files) > MAX_FORMCREATOR_FILES_PER_SUBMIT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximo de {MAX_FORMCREATOR_FILES_PER_SUBMIT} arquivos por envio.",
+        )
+
+    for file, question_id in zip(files, question_ids):
+        metadata = question_metadata.get(question_id, {})
+        safe_name = _sanitize_formcreator_filename(file.filename or "anexo")
+        content = await file.read()
+        _assert_formcreator_file_constraints(safe_name, file.content_type or "", len(content))
+
+        question_name = str(metadata.get("name") or f"Pergunta {question_id}")
+        display_name = f"{question_name} - {safe_name}"[:255]
+        uploaded = await client.upload_document(
+            display_name=display_name,
+            filename=safe_name,
+            content=content,
+            mime_type=file.content_type or "application/octet-stream",
+        )
+        upload_errors = _extract_glpi_upload_errors(uploaded)
+        document_id = _extract_created_item_id(uploaded)
+
+        if upload_errors:
+            if document_id:
+                try:
+                    await client.delete_item("Document", document_id, force_purge=True)
+                except Exception:
+                    pass
+            raise HTTPException(
+                status_code=415,
+                detail=f"Erro ao enviar '{safe_name}': {'; '.join(upload_errors)}",
+            )
+
+        if not document_id:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Upload concluido sem ID de documento para '{safe_name}'.",
+            )
+
+        link_targets = [("PluginFormcreatorFormAnswer", form_answer_id)]
+        link_targets.extend(("Ticket", ticket_id) for ticket_id in ticket_ids)
+
+        try:
+            for itemtype, item_id in link_targets:
+                await client.link_document_to_item(
+                    itemtype=itemtype,
+                    item_id=item_id,
+                    document_id=document_id,
+                )
+        except Exception:
+            try:
+                await client.delete_item("Document", document_id, force_purge=True)
+            except Exception:
+                pass
+            raise
+
+
+async def _submit_form_answer_to_glpi(
+    *,
+    context: str,
+    form_id: int,
+    answers: Dict[str, Any],
+    db: AsyncSession,
+    session_token: str,
+    files: list[UploadFile] | None = None,
+    file_question_ids: list[int] | None = None,
+    file_question_metadata: dict[int, dict[str, Any]] | None = None,
+) -> SubmitFormResponse:
+    try:
+        client_cm = _user_client(context, session_token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    form_answer_input = _build_form_answer_input(form_id, answers)
+
+    async with client_cm as client:
+        glpi_url = client._url("PluginFormcreatorFormAnswer")
+        logger.info(
+            "[SUBMIT] form_id=%s context=%s glpi_url=%s payload_keys=%s files=%s",
+            form_id, context, glpi_url, list(form_answer_input.keys()), len(files or []),
+        )
+        logger.debug("[SUBMIT] full_payload=%s", json.dumps(form_answer_input, default=str))
+
+        try:
+            res = await client.create_item("PluginFormcreatorFormAnswer", form_answer_input)
+            form_answer_id = _extract_created_item_id(res) or 0
+            ticket_ids = await _fetch_generated_ticket_ids(db, form_answer_id)
+
+            await _upload_formcreator_files(
+                client=client,
+                form_answer_id=form_answer_id,
+                ticket_ids=ticket_ids,
+                files=files or [],
+                question_ids=file_question_ids or [],
+                question_metadata=file_question_metadata or {},
+            )
+
+            logger.info(
+                "[SUBMIT] Sucesso form_answer_id=%s ticket_ids=%s response=%s",
+                form_answer_id, ticket_ids, res,
+            )
+
+            message = "Solicitacao (Formulario) enviada e processada via sessao do usuario."
+            if files:
+                message = (
+                    "Solicitacao enviada com anexos vinculados ao chamado."
+                    if ticket_ids
+                    else "Solicitacao enviada com anexos vinculados a resposta do formulario."
+                )
+
+            return SubmitFormResponse(
+                form_answer_id=form_answer_id,
+                message=message,
+                ticket_ids=ticket_ids,
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            error_detail = str(e)
+            status_code = 502
+
+            if hasattr(e, "status_code"):
+                glpi_status = getattr(e, "status_code")
+                if 400 <= glpi_status < 500:
+                    status_code = glpi_status
+
+            if hasattr(e, "detail"):
+                glpi_detail = getattr(e, "detail")
+                error_detail = f"GLPI respondeu ({status_code}): {json.dumps(glpi_detail, default=str)}"
+
+            logger.error(
+                "[SUBMIT] FALHA form_id=%s status=%s error=%s payload_enviado=%s",
+                form_id, status_code, error_detail,
+                json.dumps(form_answer_input, default=str),
+            )
+
+            raise HTTPException(status_code=status_code, detail=error_detail)
 
 
 async def fetch_categories_from_glpi(context: str, session_token: str) -> List[dict]:
@@ -210,16 +571,40 @@ async def get_form_schema(
     questions = r_qs.mappings().all()
     question_ids = [int(q["id"]) for q in questions] or [0]
 
+    r_targets = await db.execute(
+        text(
+            "SELECT id FROM glpi_plugin_formcreator_targettickets "
+            "WHERE plugin_formcreator_forms_id=:id"
+        ),
+        {"id": form_id},
+    )
+    target_ticket_ids = [int(t["id"]) for t in r_targets.mappings().all()] or [0]
+
     # Conditions (Regras de mostrar/ocultar)
     cond_sql = (
         f"SELECT id,itemtype,items_id,plugin_formcreator_questions_id,show_condition,show_logic,show_value,{bt}order{bt} AS cond_order "
         "FROM glpi_plugin_formcreator_conditions "
-        "WHERE itemtype IN ('PluginFormcreatorQuestion','PluginFormcreatorTargetTicket','PluginFormcreatorTargetChange','PluginFormcreatorTargetProblem') "
-        "AND (items_id IN :qids OR plugin_formcreator_questions_id IN :qids) "
+        "WHERE ("
+        "(itemtype='PluginFormcreatorQuestion' AND items_id IN :qids) "
+        "OR (itemtype='PluginFormcreatorSection' AND items_id IN :section_ids) "
+        "OR (itemtype IN ('PluginFormcreatorTargetTicket','PluginFormcreatorTargetChange','PluginFormcreatorTargetProblem') AND items_id IN :target_ids) "
+        "OR plugin_formcreator_questions_id IN :qids"
+        ") "
         f"ORDER BY plugin_formcreator_questions_id, {bt}order{bt}, id"
     )
-    stmt_cond = text(cond_sql).bindparams(bindparam("qids", expanding=True))
-    r_conds = await db.execute(stmt_cond, {"qids": question_ids})
+    stmt_cond = text(cond_sql).bindparams(
+        bindparam("qids", expanding=True),
+        bindparam("section_ids", expanding=True),
+        bindparam("target_ids", expanding=True),
+    )
+    r_conds = await db.execute(
+        stmt_cond,
+        {
+            "qids": question_ids,
+            "section_ids": section_ids,
+            "target_ids": target_ticket_ids,
+        },
+    )
     conditions = r_conds.mappings().all()
 
     # Regexes e Ranges de validação
@@ -319,76 +704,73 @@ async def submit_form(
     Orquestra as respostas do usuário e repassa para a API do GLPI 
     como um ItemType gerado (Normalmente Ticket).
     """
+    return await _submit_form_answer_to_glpi(
+        context=context,
+        form_id=form_id,
+        answers=payload.answers,
+        db=db,
+        session_token=str(identity["session_token"]),
+    )
+
+
+@router.post("/forms/{form_id}/submit-multipart", response_model=SubmitFormResponse)
+@limiter.limit("30/minute")
+async def submit_form_multipart(
+    request: Request,
+    context: str,
+    form_id: int,
+    answers_json: str = Form("{}"),
+    file_question_ids_json: str = Form("[]"),
+    files: list[UploadFile] | None = File(default=None),
+    db: AsyncSession = Depends(get_db),
+    identity: dict = Depends(require_hub_permissions("solicitante", "tecnico", "gestor")),
+):
+    uploaded_files = files or []
     try:
-        client_cm = _user_client(context, str(identity["session_token"]))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Formatar answers: {question_id: valor} → {formcreator_field_{id}: "valor"}
-    # GLPI Formcreator exige TODOS os valores como STRING e rejeita null/int
-    answers_payload = {}
-    for q_id_str, val in payload.answers.items():
-        # Remover campos null/vazio (ex: file upload mockado no front vira {})
-        if val is None or (isinstance(val, dict) and not val):
-            continue
-            
-        key = f"formcreator_field_{q_id_str}" if not q_id_str.startswith("formcreator_field_") else q_id_str
-        
-        # GLPI exige strings como payload dos campos.
-        # Evita a falha sintática no parse nativo de str(dict) do Python (que gera aspas simples).
-        if isinstance(val, (dict, list)):
-            answers_payload[key] = json.dumps(val)
-        else:
-            answers_payload[key] = str(val)
-        
-    form_answer_input = {
-        "plugin_formcreator_forms_id": form_id,
-        "requesttypes_id": 1, 
-        **answers_payload
-    }
-
-    # === LOGGING DE DIAGNÓSTICO ===
-    async with client_cm as client:
-        glpi_url = client._url("PluginFormcreatorFormAnswer")
-        logger.info(
-            "[SUBMIT] form_id=%s context=%s glpi_url=%s payload_keys=%s",
-            form_id, context, glpi_url, list(form_answer_input.keys())
-        )
-        logger.debug("[SUBMIT] full_payload=%s", json.dumps(form_answer_input, default=str))
-        
         try:
-            res = await client.create_item("PluginFormcreatorFormAnswer", form_answer_input)
-            form_answer_id = res.get("id")
-            
-            logger.info("[SUBMIT] Sucesso! form_answer_id=%s response=%s", form_answer_id, res)
-            
-            return SubmitFormResponse(
-                form_answer_id=int(form_answer_id) if form_answer_id else 0,
-                message="Solicitacao (Formulario) enviada e processada via sessao do usuario.",
-                ticket_ids=[]
-            )
-        except Exception as e:
-            # Extrair detalhes reais do erro GLPI
-            error_detail = str(e)
-            status_code = 502
-            
-            # Se o GLPI retornou erro HTTP (400, 422, etc.), preservar o status real
-            if hasattr(e, 'status_code'):
-                glpi_status = getattr(e, 'status_code')
-                if 400 <= glpi_status < 500:
-                    status_code = glpi_status  # Preservar 400/422 do GLPI
-            
-            if hasattr(e, 'detail'):
-                glpi_detail = getattr(e, 'detail')
-                error_detail = f"GLPI respondeu ({status_code}): {json.dumps(glpi_detail, default=str)}"
-            
-            logger.error(
-                "[SUBMIT] FALHA form_id=%s status=%s error=%s payload_enviado=%s",
-                form_id, status_code, error_detail,
-                json.dumps(form_answer_input, default=str)
-            )
-            
+            answers = json.loads(answers_json or "{}")
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail="answers_json invalido.") from exc
+        if not isinstance(answers, dict):
+            raise HTTPException(status_code=400, detail="answers_json deve ser um objeto.")
+
+        file_question_ids = _parse_file_question_ids(file_question_ids_json, len(uploaded_files))
+        question_metadata = await _get_file_question_metadata(db, file_question_ids)
+
+        unknown_question_ids = [
+            question_id for question_id in file_question_ids if question_id not in question_metadata
+        ]
+        if unknown_question_ids:
             raise HTTPException(
-                status_code=status_code,
-                detail=error_detail
+                status_code=400,
+                detail=f"Pergunta(s) de arquivo inexistente(s): {unknown_question_ids}.",
             )
+
+        required_file_labels = _get_required_file_question_labels(
+            file_question_ids,
+            question_metadata,
+        )
+        if required_file_labels:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Arquivo obrigatorio nativo do FormCreator nao pode ser submetido por este endpoint seguro. "
+                    "Caso consolidado conhecido: DTIC / NOMEIA / EXONERA quando TIPO=INGRESSO - ANEXO DE ARQUIVO DO RHE. "
+                    "Campo(s): "
+                    + ", ".join(required_file_labels)
+                ),
+            )
+
+        return await _submit_form_answer_to_glpi(
+            context=context,
+            form_id=form_id,
+            answers=answers,
+            db=db,
+            session_token=str(identity["session_token"]),
+            files=uploaded_files,
+            file_question_ids=file_question_ids,
+            file_question_metadata=question_metadata,
+        )
+    finally:
+        for file in uploaded_files:
+            await file.close()

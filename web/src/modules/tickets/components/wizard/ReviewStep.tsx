@@ -4,7 +4,85 @@ import { submitFormAnswers } from '@/lib/api/formService';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDraftStore } from '@/store/useDraftStore';
 import { useWizardStore } from '@/store/useWizardStore';
-import type { FormQuestion, WizardStep } from '@/types/form-schema';
+import type { FormAnswers, FormQuestion, FormSchema, WizardStep } from '@/types/form-schema';
+import { buildVisibilityMap } from '@/utils/schema-generator';
+
+function isFileValue(value: unknown): value is File {
+  return typeof File !== 'undefined' && value instanceof File;
+}
+
+interface FileAnswer {
+  questionId: number;
+  label: string;
+  required: boolean;
+  file: File;
+}
+
+export function formatAnswersForSubmit(answers: FormAnswers): Record<string, unknown> {
+  const formattedAnswers: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(answers)) {
+    if (isFileValue(value)) {
+      continue;
+    }
+    formattedAnswers[key.replace('q_', '')] = value;
+  }
+
+  return formattedAnswers;
+}
+
+export function collectFileAnswerLabels(
+  schema: FormSchema,
+  answers: FormAnswers,
+  visibilityMap = buildVisibilityMap(schema.sections, answers),
+): string[] {
+  return collectFileAnswers(schema, answers, visibilityMap).map((answer) => answer.label);
+}
+
+export function collectFileAnswers(
+  schema: FormSchema,
+  answers: FormAnswers,
+  visibilityMap = buildVisibilityMap(schema.sections, answers),
+): FileAnswer[] {
+  return schema.sections.flatMap((section) =>
+    section.questions.flatMap((question) => {
+      if (!visibilityMap.get(`question_${question.id}`)) {
+        return [];
+      }
+      const value = answers[`q_${question.id}`];
+      if (!isFileValue(value)) {
+        return [];
+      }
+      return [
+        {
+          questionId: question.id,
+          label: question.name,
+          required: question.required,
+          file: value,
+        },
+      ];
+    }),
+  );
+}
+
+export function filterVisibleAnswers(
+  schema: FormSchema,
+  answers: FormAnswers,
+  visibilityMap = buildVisibilityMap(schema.sections, answers),
+): FormAnswers {
+  const visibleAnswers: FormAnswers = {};
+
+  for (const section of schema.sections) {
+    for (const question of section.questions) {
+      const key = `q_${question.id}`;
+      if (visibilityMap.get(`question_${question.id}`) && key in answers) {
+        visibleAnswers[key] = answers[key];
+      }
+    }
+  }
+
+  return visibleAnswers;
+}
 
 export function ReviewStep() {
   const {
@@ -25,13 +103,18 @@ export function ReviewStep() {
     return null;
   }
 
+  const visibilityMap = buildVisibilityMap(schema.sections, answers);
+  const visibleAnswers = filterVisibleAnswers(schema, answers, visibilityMap);
   const answeredFields = schema.sections.flatMap((section) =>
     section.questions
-      .filter((question) => answers[`q_${question.id}`] != null && answers[`q_${question.id}`] !== '')
+      .filter((question) => {
+        const key = `q_${question.id}`;
+        return visibleAnswers[key] != null && visibleAnswers[key] !== '';
+      })
       .map((question) => ({
         section: section.name,
         question: question.name,
-        value: resolveDisplayValue(question, answers[`q_${question.id}`]),
+        value: resolveDisplayValue(question, visibleAnswers[`q_${question.id}`]),
         questionId: question.id,
       })),
   );
@@ -46,17 +129,29 @@ export function ReviewStep() {
     setSubmitError(null);
 
     try {
-      const formattedAnswers: Record<string, unknown> = {};
-
-      for (const [key, value] of Object.entries(answers)) {
-        formattedAnswers[key.replace('q_', '')] = value;
-      }
-
       if (!selectedFormId) {
         throw new Error('Formulario nao selecionado.');
       }
 
-      await submitFormAnswers(activeContext, selectedFormId, formattedAnswers);
+      const fileAnswers = collectFileAnswers(schema, visibleAnswers, visibilityMap);
+      const requiredFileLabels = fileAnswers
+        .filter((answer) => answer.required)
+        .map((answer) => answer.label);
+      if (requiredFileLabels.length > 0) {
+        setSubmitError(
+          `Este formulario usa arquivo obrigatorio nativo do FormCreator. Caso consolidado conhecido: DTIC / NOMEIA / EXONERA com TIPO "INGRESSO - ANEXO DE ARQUIVO DO RHE". Campo(s): ${requiredFileLabels.join(', ')}.`,
+        );
+        return;
+      }
+
+      const formattedAnswers = formatAnswersForSubmit(visibleAnswers);
+
+      await submitFormAnswers(
+        activeContext,
+        selectedFormId,
+        formattedAnswers,
+        fileAnswers.map((answer) => ({ questionId: answer.questionId, file: answer.file })),
+      );
       clearDraft(selectedFormId);
       reset();
     } catch (error) {
@@ -326,7 +421,7 @@ function resolveDisplayValue(question: FormQuestion, value: unknown): string {
     return '-';
   }
 
-  if (value instanceof File) {
+  if (isFileValue(value)) {
     return `Arquivo: ${value.name}`;
   }
 

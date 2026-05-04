@@ -1,14 +1,20 @@
 import { asIsoDateTimeString, toIsoDateTimeOrUndefined } from "@/lib/datetime/iso";
 
 import type {
+  TicketActorDto,
+  TicketAuditLogDto,
   TicketAttachmentDto,
+  TicketGroupActorDto,
   TicketTimelineEntryDto,
   TicketWorkflowDetailResponseDto,
   TicketWorkflowFlagsDto,
   TicketWorkflowTicketDto,
 } from "../contracts/ticket-detail";
 import type {
+  TicketActor,
+  TicketAuditLog,
   TicketAttachment,
+  TicketGroupActor,
   TicketWorkflowDetail,
   TicketWorkflowFlags,
   TicketTimelineEntry,
@@ -41,6 +47,9 @@ function mapTicketTimelineEntryDto(dto: TicketTimelineEntryDto): TicketTimelineE
   return {
     id: dto.id,
     type: dto.type,
+    sourceItemtype: dto.source_itemtype ?? (
+      dto.type === "solution" ? "ITILSolution" : dto.type === "task" ? "TicketTask" : "ITILFollowup"
+    ),
     content: dto.content,
     date: asIsoDateTimeString(dto.date),
     userId: dto.user_id,
@@ -48,6 +57,8 @@ function mapTicketTimelineEntryDto(dto: TicketTimelineEntryDto): TicketTimelineE
     isPrivate: dto.is_private,
     actionTime: dto.action_time ?? undefined,
     solutionStatus: dto.solution_status ?? undefined,
+    documentRefs: dto.document_refs ?? [],
+    attachments: (dto.attachments || []).map(mapTicketAttachmentDto),
   };
 }
 
@@ -55,11 +66,43 @@ function mapTicketAttachmentDto(dto: TicketAttachmentDto): TicketAttachment {
   return {
     id: dto.id,
     relationId: dto.relation_id ?? undefined,
+    parentType: dto.parent_type ?? "Ticket",
+    parentId: dto.parent_id ?? 0,
     filename: dto.filename,
     mimeType: dto.mime_type,
     size: dto.size,
     dateUpload: toIsoDateTimeOrUndefined(dto.date_upload ?? undefined),
     url: dto.url,
+  };
+}
+
+function mapTicketActorDto(dto: TicketActorDto): TicketActor {
+  return {
+    role: dto.role,
+    roleId: dto.role_id,
+    userId: dto.user_id,
+    name: dto.name,
+  };
+}
+
+function mapTicketGroupActorDto(dto: TicketGroupActorDto): TicketGroupActor {
+  return {
+    role: dto.role,
+    roleId: dto.role_id,
+    groupId: dto.group_id,
+    name: dto.name,
+  };
+}
+
+function mapTicketAuditLogDto(dto: TicketAuditLogDto): TicketAuditLog {
+  return {
+    id: dto.id,
+    date: toIsoDateTimeOrUndefined(dto.date ?? undefined),
+    userName: dto.user_name ?? "",
+    linkedItemtype: dto.linked_itemtype ?? undefined,
+    linkedAction: dto.linked_action ?? undefined,
+    oldValue: dto.old_value ?? undefined,
+    newValue: dto.new_value ?? undefined,
   };
 }
 
@@ -82,8 +125,11 @@ export function mapTicketWorkflowDetailResponseDto(dto: TicketWorkflowDetailResp
     technicianName: dto.technician_name,
     technicianUserId: dto.technician_user_id ?? null,
     groupName: dto.group_name,
+    actors: (dto.actors || []).map(mapTicketActorDto),
+    groups: (dto.groups || []).map(mapTicketGroupActorDto),
     timeline: dto.timeline.map(mapTicketTimelineEntryDto),
     attachments: (dto.attachments || []).map(mapTicketAttachmentDto),
+    auditLogs: (dto.audit_logs || []).map(mapTicketAuditLogDto),
     flags: mapTicketWorkflowFlagsDto(dto.flags),
   };
 }

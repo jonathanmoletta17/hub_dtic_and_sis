@@ -10,6 +10,7 @@ Use estes documentos para operar, manter ou evoluir o Hub atual:
 - [auth-session-governance-2026-04-25.md](auth-session-governance-2026-04-25.md): contrato de auth, sessao GLPI, `user_token`, health e smokes destrutivos.
 - [CLI_CONTROL_PLANE.md](CLI_CONTROL_PLANE.md): fronteira com control plane, CLIs, MCPs, hooks e settings.
 - [dtic-new-ticket-assisted-flow-contract-v1.md](dtic-new-ticket-assisted-flow-contract-v1.md): contrato do fluxo assistido `DTIC/new-ticket`.
+- [formcreator-file-upload-contract-2026-05-04.md](formcreator-file-upload-contract-2026-05-04.md): contrato consolidado de campos `file` do FormCreator e anexos GLPI.
 - [hub-visual-standard-v1.md](hub-visual-standard-v1.md): padrao visual operacional do hub.
 - [hub-visual-review-workflow-v1.md](hub-visual-review-workflow-v1.md): workflow de revisao visual.
 - [deferred-legacy-debt.md](deferred-legacy-debt.md): divida legada ainda observada ou deliberadamente protegida.

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Paperclip, Send } from "lucide-react";
 
 import { TicketAttachments } from "@/components/ticket/TicketAttachments";
+import { TicketAttachmentPreviewModal } from "@/components/ticket/TicketAttachmentPreviewModal";
 import { SolutionModal } from "@/components/ticket/SolutionModal";
 import { TicketSidebar } from "@/components/ticket/TicketSidebar";
 import { TicketTimeline } from "@/components/ticket/TicketTimeline";
@@ -25,9 +26,13 @@ export default function TicketDetailPage() {
     technicianName,
     technicianUserId,
     groupName,
+    actors,
+    groups,
+    auditLogs,
     loading,
     error,
     actionLoading,
+    attachmentPreview,
     currentUserId,
     currentUserName,
     isTechOrManager,
@@ -35,6 +40,8 @@ export default function TicketDetailPage() {
     handleAddFollowup,
     handleUploadAttachments,
     handleDownloadAttachment,
+    handlePreviewAttachment,
+    handleCloseAttachmentPreview,
     handleAssumeTicket,
     handleAddSolution,
     handleSetPending,
@@ -54,7 +61,7 @@ export default function TicketDetailPage() {
 
   if (loading) {
     return (
-      <div className="relative z-10 flex h-full items-center justify-center">
+      <div className="relative z-10 flex min-h-[calc(100dvh-4rem)] items-center justify-center lg:h-full lg:min-h-0">
         <div className="flex flex-col items-center gap-3">
           <Loader2 size={28} className="animate-spin text-accent-blue" />
           <span className="theme-copy-soft text-sm">Carregando chamado...</span>
@@ -65,7 +72,7 @@ export default function TicketDetailPage() {
 
   if (error || !ticket) {
     return (
-      <div className="relative z-10 flex h-full items-center justify-center px-4">
+      <div className="relative z-10 flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 lg:h-full lg:min-h-0">
         <div className="max-w-md text-center">
           <AlertTriangle size={32} className="mx-auto mb-3" style={{ color: "var(--status-active)" }} />
           <p className="mb-2 text-lg text-text-2">{error || "Chamado nao encontrado"}</p>
@@ -83,6 +90,7 @@ export default function TicketDetailPage() {
 
   const isClosed = ticket.statusId === 6;
   const canSendMessage = !isClosed;
+  const ticketRootAttachments = attachments.filter((attachment) => attachment.parentType === "Ticket");
 
   const onSendFollowup = () => {
     handleAddFollowup(newMessage);
@@ -94,12 +102,15 @@ export default function TicketDetailPage() {
   };
 
   return (
-    <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden lg:flex-row">
+    <div className="relative z-10 flex min-h-full flex-col overflow-visible lg:h-full lg:min-h-0 lg:flex-row lg:overflow-hidden">
       <TicketSidebar
         ticket={ticket}
         requesterName={requesterName}
         technicianName={technicianName}
         groupName={groupName}
+        actors={actors}
+        groups={groups}
+        auditLogs={auditLogs}
         isTechOrManager={isTechOrManager}
         canActOnTicket={canActOnTicket}
         actionLoading={actionLoading}
@@ -114,7 +125,7 @@ export default function TicketDetailPage() {
         onShowTransferModal={() => setShowTransferModal(true)}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex flex-col overflow-visible lg:min-h-0 lg:flex-1 lg:overflow-hidden">
         <TicketTimeline
           ticket={ticket}
           timeline={timeline}
@@ -123,12 +134,15 @@ export default function TicketDetailPage() {
           technicianUserId={technicianUserId}
           chatEndRef={chatEndRef}
           isTechOrManager={isTechOrManager}
+          onPreviewAttachment={handlePreviewAttachment}
+          onDownloadAttachment={handleDownloadAttachment}
         />
 
         <TicketAttachments
-          attachments={attachments}
+          attachments={ticketRootAttachments}
           disabled={actionLoading === "attachment"}
           loading={actionLoading === "attachment"}
+          onPreview={handlePreviewAttachment}
           onDownload={handleDownloadAttachment}
         />
 
@@ -228,6 +242,12 @@ export default function TicketDetailPage() {
           handleTransferTicket(techId);
           setShowTransferModal(false);
         }}
+      />
+
+      <TicketAttachmentPreviewModal
+        preview={attachmentPreview}
+        onClose={handleCloseAttachmentPreview}
+        onDownload={handleDownloadAttachment}
       />
     </div>
   );

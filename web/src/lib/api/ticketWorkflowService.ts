@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { publishLiveDataEvent } from "@/lib/realtime/liveDataBus";
 
-import { apiGet, apiPost, buildApiPath } from "./client";
+import { apiGet, apiPost, buildApiPath, resolveRootContext } from "./client";
 import type {
   TicketAttachmentUploadResponseDto,
   TicketActionResponseDto,
@@ -17,6 +17,12 @@ import type {
 import { mapTicketWorkflowDetailResponseDto } from "./mappers/ticket-detail";
 import type { TicketAttachment, TicketWorkflowDetail } from "./models/ticket-detail";
 import { API_BASE, normalizeApiPath } from "./httpClient";
+
+export interface TicketAttachmentPreview {
+  objectUrl: string;
+  contentType: string;
+  filename: string;
+}
 
 function workflowPath(context: string, ticketId: number, action: string): string {
   return buildApiPath(context, `tickets/${ticketId}/${action}`);
@@ -39,6 +45,8 @@ function mapTicketAttachmentDto(dto: TicketAttachmentDto): TicketAttachment {
   return {
     id: dto.id,
     relationId: dto.relation_id ?? undefined,
+    parentType: dto.parent_type ?? "Ticket",
+    parentId: dto.parent_id ?? 0,
     filename: dto.filename,
     mimeType: dto.mime_type,
     size: dto.size,
@@ -48,7 +56,17 @@ function mapTicketAttachmentDto(dto: TicketAttachmentDto): TicketAttachment {
 }
 
 function getContextAuthHeaders(context: string): Record<string, string> {
-  const sessionToken = useAuthStore.getState().getSessionToken(context);
+  const authState = useAuthStore.getState();
+  const rootContext = resolveRootContext(context);
+  const cachedSession =
+    authState.getCachedSession(context) ||
+    (rootContext !== context ? authState.getCachedSession(rootContext) : null);
+  const sessionToken =
+    authState.getSessionToken(context) ||
+    (rootContext !== context ? authState.getSessionToken(rootContext) : null) ||
+    cachedSession?.session_token ||
+    null;
+
   if (!sessionToken) {
     throw new Error(`Sessao nao encontrada para o contexto ${context}.`);
   }
@@ -57,7 +75,7 @@ function getContextAuthHeaders(context: string): Record<string, string> {
     "Session-Token": sessionToken,
   };
 
-  const activeRole = useAuthStore.getState().getActiveHubRoleForContext(context);
+  const activeRole = authState.getActiveHubRoleForContext(context);
   if (activeRole?.role) {
     headers["X-Active-Hub-Role"] = activeRole.role;
   }
@@ -163,6 +181,19 @@ export async function downloadTicketAttachment(
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(objectUrl);
+}
+
+export async function previewTicketAttachment(
+  context: string,
+  ticketId: number,
+  attachment: TicketAttachment,
+): Promise<TicketAttachmentPreview> {
+  const blob = await fetchTicketAttachmentBlob(context, ticketId, attachment.id, "inline");
+  return {
+    objectUrl: URL.createObjectURL(blob),
+    contentType: blob.type || attachment.mimeType || "application/octet-stream",
+    filename: attachment.filename || `anexo-${attachment.id}`,
+  };
 }
 
 export function addTicketSolution(

@@ -11,7 +11,12 @@ import type { CatalogGroup, CatalogItem } from "../models/formcreator";
 import type { LookupOption } from "../models/lookups";
 import type { DropdownOption, FormCondition, FormQuestion, FormSchema, FormSection } from "@/types/form-schema";
 
-const SHOW_CONDITION_MAP: Record<number, "==" | "!="> = { 1: "==", 2: "!=" };
+const SHOW_CONDITION_MAP: Record<number, "==" | "!=" | "contains" | "not_contains"> = {
+  1: "==",
+  2: "!=",
+  7: "contains",
+  8: "not_contains",
+};
 const SHOW_LOGIC_MAP: Record<number, "AND" | "OR"> = { 1: "AND", 2: "OR" };
 
 const SERVICE_ICON_MAP: Record<string, string> = {
@@ -215,9 +220,13 @@ export function collectLookupRequests(schema: ApiFormSchemaDto): LookupRequestSp
   return Array.from(requests.values());
 }
 
-function mapConditions(conditions: ApiFormConditionDto[], targetId: number): FormCondition[] {
+function mapConditions(
+  conditions: ApiFormConditionDto[],
+  targetItemtype: string,
+  targetId: number,
+): FormCondition[] {
   return conditions
-    .filter((condition) => condition.target_itemtype === "PluginFormcreatorQuestion" && condition.target_items_id === targetId)
+    .filter((condition) => condition.target_itemtype === targetItemtype && condition.target_items_id === targetId)
     .map((condition) => ({
       questionId: condition.controller_question_id,
       operator: SHOW_CONDITION_MAP[condition.show_condition] ?? "==",
@@ -239,7 +248,7 @@ function mapQuestion(
   conditions: ApiFormConditionDto[],
   lookupCache: LookupCache,
 ): FormQuestion {
-  const questionConditions = mapConditions(conditions, question.id);
+  const questionConditions = mapConditions(conditions, "PluginFormcreatorQuestion", question.id);
   const parsedDefault = parseJson(question.default_value);
 
   let options: string[] | undefined;
@@ -280,12 +289,13 @@ function mapSection(
   conditions: ApiFormConditionDto[],
   lookupCache: LookupCache,
 ): FormSection {
+  const sectionConditions = mapConditions(conditions, "PluginFormcreatorSection", section.id);
   return {
     id: section.id,
     name: section.name,
     order: section.order,
-    showRule: (section.show_rule ?? 0) > 1 ? "conditional" : "always",
-    conditions: [],
+    showRule: sectionConditions.length > 0 || (section.show_rule ?? 0) > 1 ? "conditional" : "always",
+    conditions: sectionConditions,
     questions: section.questions.map((question) => mapQuestion(question, conditions, lookupCache)),
   };
 }

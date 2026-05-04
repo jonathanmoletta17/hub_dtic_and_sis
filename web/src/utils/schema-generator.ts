@@ -22,10 +22,23 @@ export function evaluateConditions(
 
   return conditions.reduce<boolean>((result, condition, index) => {
     const answer = String(answers[`q_${condition.questionId}`] ?? '');
-    const match =
-      condition.operator === '=='
-        ? answer === condition.value
-        : answer !== condition.value;
+    let match: boolean;
+    switch (condition.operator) {
+      case '==':
+        match = answer === condition.value;
+        break;
+      case '!=':
+        match = answer !== condition.value;
+        break;
+      case 'contains':
+        match = answer.includes(condition.value);
+        break;
+      case 'not_contains':
+        match = !answer.includes(condition.value);
+        break;
+      default:
+        match = false;
+    }
 
     if (index === 0) return match;
     return condition.logic === 'AND' ? result && match : result || match;
@@ -142,10 +155,25 @@ function buildFieldSchema(question: FormQuestion): z.ZodTypeAny {
         : z.coerce.number().min(1).max(5).optional();
 
     case 'file':
-      // File é tratado separadamente no submit (FormData)
-      return z.any();
+      return question.required
+        ? z.custom(isFileLike, requiredMsg)
+        : z.any();
 
     default:
       return z.any();
   }
+}
+
+function isFileLike(value: unknown): boolean {
+  if (typeof File !== 'undefined' && value instanceof File) {
+    return true;
+  }
+
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'name' in value &&
+    'size' in value &&
+    'type' in value
+  );
 }

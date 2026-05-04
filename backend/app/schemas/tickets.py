@@ -71,11 +71,13 @@ class TicketWorkflowTicket(BaseModel):
     close_date: Optional[AwareDateTime] = None
     location: Optional[str] = None
     entity_name: Optional[str] = None
+    document_refs: list[int] = []
 
 
 class TicketTimelineEntry(BaseModel):
     id: int
     type: Literal["followup", "solution", "task"]
+    source_itemtype: Literal["ITILFollowup", "ITILSolution", "TicketTask"]
     content: str
     date: AwareDateTime
     user_id: int
@@ -83,16 +85,44 @@ class TicketTimelineEntry(BaseModel):
     is_private: bool
     action_time: Optional[int] = None
     solution_status: Optional[int] = None
+    document_refs: list[int] = []
+    attachments: list["TicketAttachment"] = []
 
 
 class TicketAttachment(BaseModel):
     id: int
     relation_id: Optional[int] = None
+    parent_type: Literal["Ticket", "ITILFollowup", "ITILSolution", "TicketTask"] = "Ticket"
+    parent_id: int
     filename: str
     mime_type: str = "application/octet-stream"
     size: int = 0
     date_upload: Optional[AwareDateTime] = None
     url: str
+
+
+class TicketActor(BaseModel):
+    role: Literal["requester", "technician", "observer", "unknown"]
+    role_id: int
+    user_id: int
+    name: str
+
+
+class TicketGroupActor(BaseModel):
+    role: Literal["requester", "assigned", "observer", "unknown"]
+    role_id: int
+    group_id: int
+    name: str
+
+
+class TicketAuditLog(BaseModel):
+    id: int
+    date: Optional[AwareDateTime] = None
+    user_name: str = ""
+    linked_itemtype: Optional[str] = None
+    linked_action: Optional[str] = None
+    old_value: Optional[str] = None
+    new_value: Optional[str] = None
 
 
 class TicketWorkflowFlags(BaseModel):
@@ -111,8 +141,11 @@ class TicketWorkflowDetailResponse(BaseModel):
     technician_name: str = ""
     technician_user_id: Optional[int] = None
     group_name: str = ""
+    actors: list[TicketActor] = []
+    groups: list[TicketGroupActor] = []
     timeline: list[TicketTimelineEntry]
     attachments: list[TicketAttachment] = []
+    audit_logs: list[TicketAuditLog] = []
     flags: TicketWorkflowFlags
 
 

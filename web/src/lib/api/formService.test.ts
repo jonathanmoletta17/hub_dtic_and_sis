@@ -5,6 +5,8 @@ const formServiceMocks = vi.hoisted(() => ({
   apiPostMock: vi.fn(),
   fetchLookupItemsMock: vi.fn(),
   publishLiveDataEventMock: vi.fn(),
+  getSessionTokenMock: vi.fn(),
+  getActiveHubRoleForContextMock: vi.fn(),
 }));
 
 vi.mock("./client", () => ({
@@ -31,6 +33,27 @@ vi.mock("@/lib/realtime/liveDataBus", () => ({
   publishLiveDataEvent: formServiceMocks.publishLiveDataEventMock,
 }));
 
+vi.mock("./httpClient", () => ({
+  API_BASE: "",
+  ApiError: class ApiError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+  normalizeApiPath: (path: string) => path,
+}));
+
+vi.mock("@/store/useAuthStore", () => ({
+  useAuthStore: {
+    getState: () => ({
+      getSessionToken: formServiceMocks.getSessionTokenMock,
+      getActiveHubRoleForContext: formServiceMocks.getActiveHubRoleForContextMock,
+    }),
+  },
+}));
+
 import { fetchResolvedFormSchema, fetchServiceCatalog, submitFormAnswers } from "./formService";
 
 describe("formService", () => {
@@ -39,6 +62,9 @@ describe("formService", () => {
     formServiceMocks.apiPostMock.mockReset();
     formServiceMocks.fetchLookupItemsMock.mockReset();
     formServiceMocks.publishLiveDataEventMock.mockReset();
+    formServiceMocks.getSessionTokenMock.mockReset();
+    formServiceMocks.getActiveHubRoleForContextMock.mockReset();
+    vi.restoreAllMocks();
   });
 
   it("returns a normalized service catalog", async () => {
@@ -146,6 +172,47 @@ describe("formService", () => {
       ticket_ids: [55],
     });
 
+    expect(formServiceMocks.publishLiveDataEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: "sis",
+        source: "mutation",
+      }),
+    );
+  });
+
+  it("submits file answers through the multipart endpoint", async () => {
+    formServiceMocks.getSessionTokenMock.mockReturnValue("session-token");
+    formServiceMocks.getActiveHubRoleForContextMock.mockReturnValue({ role: "solicitante" });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        form_answer_id: 89,
+        message: "ok",
+        ticket_ids: [56],
+      }),
+    } as Response);
+    const file = new File(["conteudo"], "foto.png", { type: "image/png" });
+
+    await expect(
+      submitFormAnswers("sis", 7, { 1: "ok" }, [{ questionId: 99, file }]),
+    ).resolves.toEqual({
+      form_answer_id: 89,
+      message: "ok",
+      ticket_ids: [56],
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/sis/domain/formcreator/forms/7/submit-multipart",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          "Session-Token": "session-token",
+          "X-Active-Hub-Role": "solicitante",
+        },
+      }),
+    );
+    const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(requestInit.body).toBeInstanceOf(FormData);
     expect(formServiceMocks.publishLiveDataEventMock).toHaveBeenCalledWith(
       expect.objectContaining({
         context: "sis",

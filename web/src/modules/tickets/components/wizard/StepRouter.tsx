@@ -16,6 +16,16 @@ import type { WizardStep, FormAnswers } from '@/types/form-schema';
 
 // ── Step 2 & 3: Wrapper com validação ──
 
+export function getFormStepSectionIndexes(step: 2 | 3, totalSections: number): number[] {
+  if (totalSections <= 0) {
+    return [];
+  }
+  if (step === 2) {
+    return [0];
+  }
+  return Array.from({ length: Math.max(totalSections - 1, 0) }, (_, index) => index + 1);
+}
+
 function FormStepWrapper({ stepSections }: { stepSections: number[] }) {
   const { schema, answers, setAnswer, goNext, goBack, isLoadingSchema } =
     useWizardStore();
@@ -104,11 +114,13 @@ function FormStepWrapper({ stepSections }: { stepSections: number[] }) {
 }
 
 function Step2() {
-  return <FormStepWrapper stepSections={[0]} />;
+  const { schema } = useWizardStore();
+  return <FormStepWrapper stepSections={getFormStepSectionIndexes(2, schema?.sections.length ?? 0)} />;
 }
 
 function Step3() {
-  return <FormStepWrapper stepSections={[1]} />;
+  const { schema } = useWizardStore();
+  return <FormStepWrapper stepSections={getFormStepSectionIndexes(3, schema?.sections.length ?? 0)} />;
 }
 
 // ── Animation ──
