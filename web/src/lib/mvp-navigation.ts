@@ -5,6 +5,7 @@ import { getTicketEntryMode } from "./ticket-entry";
 const MVP_FEATURES_BY_CONTEXT: Record<string, string[]> = {
   dtic: ["new-ticket", "user-tickets", "dashboard"],
   sis: ["new-ticket", "user-tickets", "dashboard"],
+  "sis-conservacao": ["new-ticket", "user-tickets", "dashboard"],
   "sis-manutencao": ["new-ticket", "user-tickets", "dashboard"],
   "sis-memoria": ["new-ticket", "user-tickets", "dashboard"],
 };

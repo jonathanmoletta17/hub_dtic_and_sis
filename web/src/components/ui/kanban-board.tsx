@@ -33,18 +33,18 @@ interface KanbanBoardProps {
 
 function getColumnPanelClass(key: string) {
   if (key === "solved") {
-    return "min-w-[220px] xl:min-w-0 xl:basis-0 xl:flex-[0.78]";
+    return "min-w-0 xl:min-w-0 xl:basis-0 xl:flex-[0.78]";
   }
 
   if (key === "in-progress") {
-    return "min-w-[300px] xl:min-w-0 xl:basis-0 xl:flex-[1.18]";
+    return "min-w-0 xl:min-w-0 xl:basis-0 xl:flex-[1.18]";
   }
 
   if (key === "new") {
-    return "min-w-[280px] xl:min-w-0 xl:basis-0 xl:flex-[1.02]";
+    return "min-w-0 xl:min-w-0 xl:basis-0 xl:flex-[1.02]";
   }
 
-  return "min-w-[280px] xl:min-w-0 xl:basis-0 xl:flex-[1]";
+  return "min-w-0 xl:min-w-0 xl:basis-0 xl:flex-[1]";
 }
 
 export function KanbanBoard({
@@ -113,7 +113,7 @@ export function KanbanBoard({
     ];
 
     return (
-      <div className="flex h-full min-h-0 gap-4 overflow-x-auto pb-2 xl:overflow-x-visible" style={{ scrollbarWidth: "thin" }}>
+      <div className="flex flex-col gap-4 overflow-visible pb-2 xl:h-full xl:min-h-0 xl:flex-row xl:overflow-x-visible" style={{ scrollbarWidth: "thin" }}>
         {[1, 2, 3, 4].map((index) => (
           <div
             key={index}
@@ -133,7 +133,7 @@ export function KanbanBoard({
 
   if (tickets.length === 0) {
     return (
-      <div className="theme-copy-muted flex h-full flex-col items-center justify-center gap-3">
+      <div className="theme-copy-muted flex min-h-[12rem] flex-col items-center justify-center gap-3 xl:h-full">
         <AlertTriangle size={32} className="theme-copy-soft" />
         <p className="text-sm">{emptyMessage}</p>
       </div>
@@ -141,7 +141,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="flex h-full min-h-0 gap-4 overflow-x-auto pb-2 pr-1 xl:overflow-x-visible" style={{ scrollbarWidth: "thin" }}>
+    <div className="flex flex-col gap-4 overflow-visible pb-2 pr-1 xl:h-full xl:min-h-0 xl:flex-row xl:overflow-x-visible" style={{ scrollbarWidth: "thin" }}>
       {columns.map((column) => (
         <KanbanColumn
           key={column.key}

@@ -23,7 +23,7 @@ export function KanbanColumn({
 
   return (
     <div
-      className={`theme-panel flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] p-4 ${panelClassName ?? "min-w-[280px] xl:min-w-[300px]"}`}
+      className={`theme-panel flex min-h-0 flex-col rounded-[22px] p-4 xl:h-full xl:overflow-hidden ${panelClassName ?? "min-w-0 xl:min-w-[300px]"}`}
     >
       <div className="mb-3 flex items-center justify-between gap-3 border-b pb-3" style={{ borderColor: "var(--border-subtle)" }}>
         <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export function KanbanColumn({
       </div>
 
       <div
-        className="flex-grow min-h-0 space-y-2 overflow-y-auto pr-1"
+        className="space-y-2 pr-1 xl:min-h-0 xl:flex-grow xl:overflow-y-auto"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {hasChildren ? (

@@ -9,7 +9,8 @@ import { FormWizard } from "@/modules/tickets/components/wizard/FormWizard";
 
 const contextWizardLabels: Record<string, string> = {
   dtic: "DTIC",
-  sis: "SIS",
+  sis: "Conservacao",
+  "sis-conservacao": "Conservacao",
   "sis-manutencao": "Manutencao",
   "sis-memoria": "Conservacao",
 };
@@ -22,8 +23,8 @@ export default function NewTicketPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-full min-h-0 flex-col overflow-y-auto px-4 py-4 lg:px-8 lg:py-5">
-        <main className="mx-auto flex min-h-0 w-full max-w-[88rem] flex-1">
+      <div className="flex min-h-full flex-col px-4 py-4 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-8 lg:py-5">
+        <main className="mx-auto flex w-full max-w-[88rem] flex-1 lg:min-h-0">
           {entryMode === "agents" ? <DticAgentChatEntry /> : <FormWizard contextLabel={wizardContextLabel} />}
         </main>
       </div>

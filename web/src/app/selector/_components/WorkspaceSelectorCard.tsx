@@ -54,7 +54,7 @@ export function WorkspaceSelectorCard({
         />
 
         <div
-          className={`absolute -right-24 -top-24 h-64 w-64 rounded-full ${glowClass} opacity-20 blur-[100px] transition-[opacity,transform] duration-700 group-hover:scale-150 group-hover:opacity-100`}
+          className={`absolute bottom-0 left-0 top-0 w-1 ${glowClass} opacity-30 transition-opacity duration-500 group-hover:opacity-60`}
         />
 
         <div className="relative z-10 mb-8 flex items-start justify-between">

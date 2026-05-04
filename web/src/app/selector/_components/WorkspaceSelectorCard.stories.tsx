@@ -14,8 +14,8 @@ const meta = {
   args: {
     workspaceId: "dtic",
     label: "DTIC",
-    subtitle: "Tecnologia e acessos",
-    description: "Atue em chamados de tecnologia, sistemas, redes, email e equipamentos.",
+    subtitle: "Tecnologia, acessos e sistemas",
+    description: "Atendimento de tecnologia, sistemas, redes, e-mail, acessos e equipamentos.",
     accentSurfaceClass: "bg-accent-blue/10 border-accent-blue",
     accentDotClass: "bg-accent-blue/80",
     accentTextClass: "text-accent-blue",

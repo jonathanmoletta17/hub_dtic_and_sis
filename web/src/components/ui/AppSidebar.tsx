@@ -23,6 +23,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { UserProfileMenu } from "@/components/ui/UserProfileMenu";
 import { FeatureManifest, getContextManifest, resolveMenuItems } from "@/lib/context-registry";
+import { getContextIdentity, resolveVisualContext } from "@/lib/context-identity";
 import { useAuthStore, type AuthMeResponse } from "@/store/useAuthStore";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -68,7 +69,9 @@ export function AppSidebar({
   const pathname = pathnameOverride ?? currentPathname;
   const params = useParams();
   const context = contextOverride ?? ((params.context as string) || "dtic");
-  const manifest = getContextManifest(context) || getContextManifest("dtic")!;
+  const visualContext = resolveVisualContext(context);
+  const manifest = getContextManifest(visualContext) || getContextManifest(context) || getContextManifest("dtic")!;
+  const identity = getContextIdentity(visualContext);
   const { currentUserRole: currentUserRoleFromStore } = useAuthStore();
   const currentUserRole = currentUserRoleOverride ?? currentUserRoleFromStore;
 
@@ -76,7 +79,7 @@ export function AppSidebar({
   const activeProfile = currentUserRole?.roles?.active_profile;
   const activeHubRole =
     currentUserRole?.active_hub_role ||
-    hubRoles.find((role) => role.context_override === context) ||
+    hubRoles.find((role) => resolveVisualContext(role.context_override || currentUserRole?.context) === visualContext) ||
     hubRoles.find((role) => role.profile_id === activeProfile?.id) ||
     hubRoles[0];
 
@@ -131,8 +134,7 @@ export function AppSidebar({
                 Casa Civil do Estado do RS
               </p>
               <p className="mt-0.5 truncate text-[10px] leading-tight text-[var(--sidebar-text-muted)]">
-                {context === "dtic" && "Departamento de Tecnologia da Informacao"}
-                {context.startsWith("sis") && "Sistema de Infraestrutura e Servicos"}
+                {identity.sidebarSubtitle}
               </p>
             </div>
           </div>

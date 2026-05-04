@@ -12,11 +12,13 @@ import { getContextManifest } from "@/lib/context-registry";
 import { fetchStats, fetchTickets } from "@/lib/api/ticketService";
 import type { TicketStats, TicketSummary } from "@/lib/api/types";
 import { POLL_INTERVALS } from "@/lib/realtime/polling";
+import { getContextIdentity, resolveVisualContext } from "@/lib/context-identity";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const contextGroupMap: Record<string, number | null> = {
   dtic: null,
-  sis: null,
+  sis: 21,
+  "sis-conservacao": 21,
   "sis-manutencao": 22,
   "sis-memoria": 21,
 };
@@ -38,7 +40,9 @@ export default function DashboardPage() {
   const params = useParams();
   const router = useRouter();
   const context = params.context as string;
-  const manifest = getContextManifest(context) || getContextManifest("dtic")!;
+  const visualContext = resolveVisualContext(context);
+  const manifest = getContextManifest(visualContext) || getContextManifest(context) || getContextManifest("dtic")!;
+  const identity = getContextIdentity(context);
   const { currentUserRole } = useAuthStore();
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
@@ -53,7 +57,7 @@ export default function DashboardPage() {
   const activeProfile = currentUserRole?.roles?.active_profile;
   const activeHubRole =
     currentUserRole?.active_hub_role ||
-    hubRoles.find((role) => role.context_override === context) ||
+    hubRoles.find((role) => resolveVisualContext(role.context_override || currentUserRole?.context) === visualContext) ||
     hubRoles.find((role) => role.profile_id === activeProfile?.id) ||
     hubRoles[0];
 
@@ -145,7 +149,7 @@ export default function DashboardPage() {
   const headerCountLabel = normalizedQuery
     ? `${filteredTickets.length} de ${tickets.length} chamados`
     : `${monitoredCount} chamados`;
-  const contextBadge = context.startsWith("sis") ? "SIS" : context.toUpperCase();
+  const contextBadge = identity.shortLabel;
   const boardHeading = normalizedQuery ? "Resultados da busca" : "Chamados por status";
   const statCards = buildDashboardStatCards(stats);
   const countOverrides = normalizedQuery
@@ -159,7 +163,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute allowedHubRoles={["tecnico", "gestor"]}>
-      <div className="flex h-full flex-col px-5 py-5 lg:px-8">
+      <div className="flex min-h-full flex-col px-4 py-4 sm:px-5 sm:py-5 lg:h-full lg:min-h-0 lg:px-8">
         <DashboardOverviewHeader
           contextBadge={contextBadge}
           roleLabel={activeHubRole?.label}

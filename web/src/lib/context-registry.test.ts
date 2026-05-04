@@ -9,11 +9,12 @@ import { describe, test, expect } from 'vitest';
 
 describe('context-registry', () => {
   // ─── Smoke test: manifesto carregou dos JSONs ───
-  test('CONTEXT_MANIFESTS deve conter ao menos 4 contextos', () => {
-    expect(CONTEXT_MANIFESTS.length).toBeGreaterThanOrEqual(4);
+  test('CONTEXT_MANIFESTS deve conter contextos visuais atuais e aliases legados', () => {
+    expect(CONTEXT_MANIFESTS.length).toBeGreaterThanOrEqual(5);
     const ids = CONTEXT_MANIFESTS.map(m => m.id);
     expect(ids).toContain('dtic');
     expect(ids).toContain('sis');
+    expect(ids).toContain('sis-conservacao');
     expect(ids).toContain('sis-manutencao');
     expect(ids).toContain('sis-memoria');
   });
@@ -127,11 +128,15 @@ describe('context-registry', () => {
   });
 
   test('analytics SIS subcontextos requer sis-dashboard', () => {
+    const allowedConservacao = resolveMenuItems('sis-conservacao', ['tecnico-conservacao'], ['sis-dashboard']);
+    const blockedConservacao = resolveMenuItems('sis-conservacao', ['tecnico-conservacao'], ['carregadores']);
     const allowedManutencao = resolveMenuItems('sis-manutencao', ['tecnico-manutencao'], ['sis-dashboard']);
     const blockedManutencao = resolveMenuItems('sis-manutencao', ['tecnico-manutencao'], ['carregadores']);
     const allowedMemoria = resolveMenuItems('sis-memoria', ['tecnico-conservacao'], ['sis-dashboard']);
     const blockedMemoria = resolveMenuItems('sis-memoria', ['tecnico-conservacao'], ['carregadores']);
 
+    expect(allowedConservacao.map((item) => item.id)).toContain('analytics');
+    expect(blockedConservacao.map((item) => item.id)).not.toContain('analytics');
     expect(allowedManutencao.map((item) => item.id)).toContain('analytics');
     expect(blockedManutencao.map((item) => item.id)).not.toContain('analytics');
     expect(allowedMemoria.map((item) => item.id)).toContain('analytics');

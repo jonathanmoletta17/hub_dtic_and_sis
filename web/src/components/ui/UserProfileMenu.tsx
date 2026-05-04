@@ -4,13 +4,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuthStore, HubRole } from "@/store/useAuthStore";
 import { getContextManifest } from "@/lib/context-registry";
+import { resolveVisualContext } from "@/lib/context-identity";
 import { Check, ChevronUp, ArrowLeftRight, LogOut, Repeat2 } from "lucide-react";
 
 const AVATAR_COLORS: Record<string, string> = {
   dtic: "bg-accent-blue",
-  sis: "bg-accent-amber",
-  "sis-manutencao": "bg-accent-amber",
-  "sis-memoria": "bg-purple-500",
+  sis: "bg-accent-wine",
+  "sis-conservacao": "bg-accent-wine",
+  "sis-manutencao": "bg-accent-olive",
+  "sis-memoria": "bg-accent-wine",
 };
 
 function getInitials(name: string | null | undefined): string {
@@ -24,7 +26,8 @@ export function UserProfileMenu({ expanded = false }: { expanded?: boolean }) {
   const router = useRouter();
   const params = useParams();
   const context = (params.context as string) || "dtic";
-  const manifest = getContextManifest(context) || getContextManifest("dtic")!;
+  const visualContext = resolveVisualContext(context);
+  const manifest = getContextManifest(visualContext) || getContextManifest(context) || getContextManifest("dtic")!;
 
   const { currentUserRole, username, logout, setActiveContext, activeContext } = useAuthStore();
 
@@ -46,14 +49,14 @@ export function UserProfileMenu({ expanded = false }: { expanded?: boolean }) {
   const activeProfile = currentUserRole?.roles?.active_profile;
   const activeHubRole =
     currentUserRole?.active_hub_role ||
-    hubRoles.find((role) => role.context_override === context) ||
+    hubRoles.find((role) => resolveVisualContext(role.context_override || currentUserRole?.context) === visualContext) ||
     hubRoles.find((role) => role.profile_id === activeProfile?.id) ||
     hubRoles[0];
 
   const displayName = currentUserRole?.name || username || "Usuario";
   const roleName = activeHubRole?.label || activeProfile?.name || "Perfil";
   const initials = getInitials(displayName);
-  const avatarColor = AVATAR_COLORS[context] || "bg-accent-blue";
+  const avatarColor = AVATAR_COLORS[visualContext] || "bg-accent-blue";
   const accentText = manifest.accentClass.split(" ")[2] || "text-accent-blue";
   const hasMultipleRoles = hubRoles.length > 1;
 
@@ -80,7 +83,7 @@ export function UserProfileMenu({ expanded = false }: { expanded?: boolean }) {
     const baseContext = (activeContext || context).includes("-")
       ? (activeContext || context).split("-")[0]
       : activeContext || context;
-    const targetContext = hubRole.context_override || baseContext;
+    const targetContext = resolveVisualContext(hubRole.context_override || baseContext);
     setActiveContext(targetContext, newIdentity);
     setIsOpen(false);
     router.push(`/${targetContext}/${hubRole.route}`);

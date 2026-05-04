@@ -28,7 +28,7 @@ export function DashboardQueuePanel({
   onTicketOpen,
 }: DashboardQueuePanelProps) {
   return (
-    <div className="min-h-0 flex-grow">
+    <div className="flex-grow xl:min-h-0">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="mt-1 text-lg font-semibold tracking-tight text-text-1">{title}</h2>

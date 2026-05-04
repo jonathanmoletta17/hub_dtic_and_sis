@@ -120,6 +120,49 @@
       "requireApp": "carregadores"
     }
   ],
+  "sis-conservacao": [
+    {
+      "id": "new-ticket",
+      "icon": "PlusSquare",
+      "route": "/new-ticket",
+      "requiredRoles": []
+    },
+    {
+      "id": "user-tickets",
+      "icon": "Ticket",
+      "route": "/user",
+      "requiredRoles": []
+    },
+    {
+      "id": "dashboard",
+      "icon": "LayoutDashboard",
+      "route": "/dashboard",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ]
+    },
+    {
+      "id": "analytics",
+      "icon": "BarChart3",
+      "route": "/analytics",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "sis-dashboard"
+    },
+    {
+      "id": "search",
+      "icon": "Search",
+      "route": "/search",
+      "requiredRoles": [
+        "tecnico",
+        "gestor"
+      ],
+      "requireApp": "busca"
+    }
+  ],
   "sis-manutencao": [
     {
       "id": "new-ticket",

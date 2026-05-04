@@ -8,25 +8,32 @@
       "dashboardSubtitle": "Visão geral de solicitações e atendimentos."
     },
     "sis": {
-      "label": "Gestão Operacional",
-      "subtitle": "SIS • Infraestrutura e Serviços",
-      "description": "Coordenação de serviços, infraestrutura física e acompanhamento de chamados operacionais.",
-      "dashboardTitle": "Painel Operacional",
-      "dashboardSubtitle": "Monitoramento e controle de atividades logísticas e prediais."
+      "label": "SIS Conservação",
+      "subtitle": "SIS • Conservação e Serviços",
+      "description": "Conservação, serviços internos, apoio operacional e acompanhamento de demandas recorrentes.",
+      "dashboardTitle": "Painel de Conservação",
+      "dashboardSubtitle": "Acompanhamento de serviços, conservação e apoio operacional."
+    },
+    "sis-conservacao": {
+      "label": "SIS Conservação",
+      "subtitle": "SIS • Conservação e Serviços",
+      "description": "Conservação, serviços internos, apoio operacional e acompanhamento de demandas recorrentes.",
+      "dashboardTitle": "Painel de Conservação",
+      "dashboardSubtitle": "Acompanhamento de serviços, conservação e apoio operacional."
     },
     "sis-manutencao": {
-      "label": "Gestão de Manutenção",
+      "label": "SIS Manutenção",
       "subtitle": "SIS • Manutenção Predial",
-      "description": "Coordenação das atividades de manutenção predial e conservação.",
+      "description": "Coordenação das atividades de manutenção predial, campo, agenda e materiais.",
       "dashboardTitle": "Painel de Manutenção",
       "dashboardSubtitle": "Acompanhamento das atividades de manutenção."
     },
     "sis-memoria": {
-      "label": "Gestão de Conservação",
-      "subtitle": "SIS • Conservação e Memória",
-      "description": "Planejamento e acompanhamento das ações de conservação patrimonial.",
+      "label": "SIS Conservação",
+      "subtitle": "SIS • Conservação e Serviços",
+      "description": "Alias legado para o contexto visual de conservação.",
       "dashboardTitle": "Painel de Conservação",
-      "dashboardSubtitle": "Acompanhamento das ações de conservação."
+      "dashboardSubtitle": "Acompanhamento de serviços, conservação e apoio operacional."
     }
   },
   "features": {

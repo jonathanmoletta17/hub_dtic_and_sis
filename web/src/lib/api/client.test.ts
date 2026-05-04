@@ -4,6 +4,7 @@ import { buildApiPath, resolveRootContext, withQuery } from "./client";
 
 describe("apiClient helpers", () => {
   it("builds API paths against root contexts", () => {
+    expect(buildApiPath("sis-conservacao", "domain/formcreator/forms")).toBe("/api/v1/sis/domain/formcreator/forms");
     expect(buildApiPath("sis-manutencao", "chargers/kanban")).toBe("/api/v1/sis/chargers/kanban");
     expect(buildApiPath("dtic-especial", "db/stats")).toBe("/api/v1/dtic/db/stats");
     expect(buildApiPath("dtic", "/db/stats")).toBe("/api/v1/dtic/db/stats");
@@ -21,7 +22,9 @@ describe("apiClient helpers", () => {
   });
 
   it("normalizes subcontexts to their root context", () => {
+    expect(resolveRootContext("sis-conservacao")).toBe("sis");
     expect(resolveRootContext("sis-manutencao")).toBe("sis");
+    expect(resolveRootContext("sis-memoria")).toBe("sis");
     expect(resolveRootContext("dtic-especial")).toBe("dtic");
     expect(resolveRootContext("dtic")).toBe("dtic");
   });

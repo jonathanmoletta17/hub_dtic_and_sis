@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { ArrowRight, Cpu, Lock, ShieldCheck, Shovel, User } from "lucide-react";
+import { ArrowRight, Cpu, Landmark, Lock, ShieldCheck, User, Wrench } from "lucide-react";
 
 import { GlassCard } from "@/components/ui/glass-card";
 import { PremiumButton } from "@/components/ui/premium-button";
@@ -31,13 +31,11 @@ export function LoginSurface({
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden overflow-y-auto p-4 py-12 sm:p-12">
       <div className="aurora-mesh" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-rs-green via-rs-red to-rs-yellow" />
 
       <div className="fixed right-6 top-6 z-30">
         <ThemeToggle />
       </div>
-
-      <div className="pointer-events-none fixed -left-24 -top-24 h-96 w-96 rounded-full bg-accent-blue/10 blur-[120px]" />
-      <div className="pointer-events-none fixed -bottom-24 -right-24 h-96 w-96 rounded-full bg-accent-amber/10 blur-[120px]" />
 
       <div className="relative z-10 mb-8 flex flex-col items-center gap-4 text-center animate-in slide-in-from-top-8 fade-in duration-1000">
         <div className="group relative">
@@ -59,8 +57,10 @@ export function LoginSurface({
             <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-accent-blue/50" />
             <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent-blue">DTIC</span>
             <div className="h-[1px] w-4 bg-white/20" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent-amber">SIS</span>
-            <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-accent-amber/50" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent-wine">CONSERVACAO</span>
+            <div className="h-[1px] w-4 bg-white/20" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent-olive">MANUTENCAO</span>
+            <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-accent-olive/50" />
           </div>
 
           <h1 className="text-5xl font-black tracking-tighter text-text-1 sm:text-6xl">
@@ -68,7 +68,7 @@ export function LoginSurface({
           </h1>
 
           <p className="theme-copy-muted text-lg font-medium tracking-tight">
-            Atendimento DTIC e SIS <span className="text-text-1">Casa Civil RS</span>
+            Atendimento DTIC, Conservacao e Manutencao <span className="text-text-1">Casa Civil RS</span>
           </p>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function LoginSurface({
               Acesso com credencial de rede
             </h2>
             <p className="theme-copy-soft text-sm font-medium">
-              Use seu usuario de rede para acessar os ambientes DTIC e SIS.
+              Use seu usuario de rede para acessar os ambientes da Casa Civil RS.
             </p>
           </div>
 
@@ -137,8 +137,13 @@ export function LoginSurface({
             </div>
             <div className="h-1 w-1 rounded-full" style={{ background: "var(--border-strong)" }} />
             <div className="theme-copy-soft flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-              <Shovel size={12} className="text-accent-amber" />
-              SIS
+              <Landmark size={12} className="text-accent-wine" />
+              Conservacao
+            </div>
+            <div className="h-1 w-1 rounded-full" style={{ background: "var(--border-strong)" }} />
+            <div className="theme-copy-soft flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+              <Wrench size={12} className="text-accent-olive" />
+              Manutencao
             </div>
           </div>
         </form>
@@ -154,16 +159,13 @@ export function LoginSurface({
             style={{ width: "1.5rem", height: "1.5rem" }}
           />
           <div className="h-4 w-[1px]" style={{ background: "var(--border-strong)" }} />
-          <span className="theme-meta font-mono text-[10px] font-bold tracking-[0.3em]">HUB OPERACIONAL DTIC - SIS</span>
+          <span className="theme-meta font-mono text-[10px] font-bold tracking-[0.3em]">HUB OPERACIONAL CASA CIVIL RS</span>
         </div>
 
         <p className="theme-meta font-mono text-[9px] uppercase tracking-[0.2em]">
           Nucleo operacional de chamados - 2026 Casa Civil RS
         </p>
       </footer>
-
-      <div className="pointer-events-none fixed left-0 top-1/2 h-[1px] w-[500px] -rotate-12 bg-gradient-to-r from-accent-blue/20 to-transparent opacity-20" />
-      <div className="pointer-events-none fixed right-0 top-1/2 h-[1px] w-[500px] rotate-12 bg-gradient-to-l from-accent-amber/20 to-transparent opacity-20" />
     </div>
   );
 }

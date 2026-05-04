@@ -61,7 +61,7 @@ export function TicketCard({
         <p className="theme-copy-muted mb-3 line-clamp-2 text-[13px] leading-relaxed">{description}</p>
       ) : null}
 
-      <div className={`flex items-center justify-between gap-2 ${compact ? "mt-auto" : ""}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-2 ${compact ? "mt-auto" : ""}`}>
         {category ? (
           <CategoryBadge className="text-[11px] uppercase tracking-wider">{category}</CategoryBadge>
         ) : (

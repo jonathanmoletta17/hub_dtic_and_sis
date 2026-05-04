@@ -1,4 +1,5 @@
 import { request } from "./httpClient";
+import { resolveApiRootContext } from "@/lib/context-identity";
 
 type QueryPrimitive = string | number | boolean | null | undefined;
 type QueryValue = QueryPrimitive | QueryPrimitive[];
@@ -6,9 +7,7 @@ type QueryValue = QueryPrimitive | QueryPrimitive[];
 export type QueryParams = Record<string, QueryValue>;
 
 export function resolveRootContext(context: string): string {
-  if (context.startsWith("sis")) return "sis";
-  if (context.startsWith("dtic")) return "dtic";
-  return context;
+  return resolveApiRootContext(context);
 }
 
 export function buildApiPath(context: string, resource: string): string {

@@ -45,19 +45,26 @@ contexts:
       9: { role: solicitante, label: "Portfólio de Chamados", route: user }
       3: { role: gestor, label: "Gestão Estratégica", route: dashboard, context_override: sis }
     group_map:
-      22: { role: tecnico-manutencao, label: "Manutenção e Conservação", context_override: sis-manutencao }
-      21: { role: tecnico-conservacao, label: "Conservação e Memória", context_override: sis-memoria }
+      22: { role: tecnico-manutencao, label: "Manutenção", context_override: sis-manutencao }
+      21: { role: tecnico-conservacao, label: "Conservação", context_override: sis-conservacao }
+
+  sis-conservacao:
+    parent: sis
+    label: "Conservação"
+    color: "#76516E"
+    theme: theme-sis-conservacao
+    group_ids: [21]
 
   sis-manutencao:
     parent: sis
-    label: "Manutenção e Conservação"
-    color: "#F59E0B"
-    theme: theme-manutencao
+    label: "Manutenção"
+    color: "#5F7B36"
+    theme: theme-sis-manutencao
     group_ids: [22]
 
   sis-memoria:
     parent: sis
-    label: "Preservação Patrimonial"
-    color: "#8B5CF6"
-    theme: theme-memoria
+    label: "Conservação (legado)"
+    color: "#76516E"
+    theme: theme-sis-conservacao
     group_ids: [21]

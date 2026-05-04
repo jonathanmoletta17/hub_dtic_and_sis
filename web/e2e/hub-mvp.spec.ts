@@ -14,7 +14,7 @@ test.describe("Hub MVP smoke", () => {
     ensureSmokeCredentials();
   });
 
-  test("autentica e navega no nucleo DTIC e SIS", async ({ page }) => {
+  test("autentica e navega no nucleo DTIC e SIS Conservacao", async ({ page }) => {
     await loginThroughGateway(page);
 
     await selectWorkspace(page, "dtic");
@@ -40,20 +40,20 @@ test.describe("Hub MVP smoke", () => {
     }
 
     await page.goto("/selector", { waitUntil: "domcontentloaded" });
-    await selectWorkspace(page, "sis");
+    await selectWorkspace(page, "sis-conservacao");
 
     await expectApiResponse(page, "/api/v1/sis/db/stats", async () => {
-      await page.goto("/sis/dashboard", { waitUntil: "domcontentloaded" });
+      await page.goto("/sis-conservacao/dashboard", { waitUntil: "domcontentloaded" });
     });
-    await expect(page).toHaveURL(/\/sis\/dashboard$/);
+    await expect(page).toHaveURL(/\/sis-conservacao\/dashboard$/);
 
     await expectApiResponse(page, "/api/v1/sis/db/tickets", async () => {
-      await page.goto("/sis/user", { waitUntil: "domcontentloaded" });
+      await page.goto("/sis-conservacao/user", { waitUntil: "domcontentloaded" });
     });
-    await expect(page).toHaveURL(/\/sis\/user$/);
+    await expect(page).toHaveURL(/\/sis-conservacao\/user$/);
 
-    await gotoSisNewTicket(page);
-    await expect(page).toHaveURL(/\/sis\/new-ticket$/);
+    await gotoSisNewTicket(page, "sis-conservacao");
+    await expect(page).toHaveURL(/\/sis-conservacao\/new-ticket$/);
 
     await expectApiResponse(
       page,

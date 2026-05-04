@@ -8,7 +8,9 @@ const usernamePlaceholderPattern = /nome[-.]sobrenome/i;
 const loginButtonPattern = /Entrar no (Hub|Gateway)/i;
 const workspaceButtonNameById = {
   dtic: /Abrir ambiente DTIC/i,
-  sis: /Abrir ambiente SIS/i,
+  sis: /Abrir ambiente SIS-CONSERVACAO/i,
+  "sis-conservacao": /Abrir ambiente SIS-CONSERVACAO/i,
+  "sis-manutencao": /Abrir ambiente SIS-MANUTENCAO/i,
 } as const;
 
 type ExpectedResponse =
@@ -115,17 +117,28 @@ export async function loginThroughGateway(page: Page): Promise<void> {
   throw lastError;
 }
 
-export async function selectWorkspace(page: Page, workspace: "dtic" | "sis"): Promise<void> {
+export async function selectWorkspace(
+  page: Page,
+  workspace: keyof typeof workspaceButtonNameById,
+): Promise<void> {
   const label = workspaceButtonNameById[workspace];
-  const targetPrefix = workspace === "dtic" ? /\/dtic\/.+/ : /\/sis\/.+/;
+  const targetPrefixByWorkspace: Record<keyof typeof workspaceButtonNameById, RegExp> = {
+    dtic: /\/dtic\/.+/,
+    sis: /\/sis-conservacao\/.+/,
+    "sis-conservacao": /\/sis-conservacao\/.+/,
+    "sis-manutencao": /\/sis-manutencao\/.+/,
+  };
 
   await Promise.all([
-    page.waitForURL(targetPrefix, { waitUntil: "domcontentloaded" }),
+    page.waitForURL(targetPrefixByWorkspace[workspace], { waitUntil: "domcontentloaded" }),
     page.getByRole("button", { name: label }).click(),
   ]);
 }
 
-export async function gotoSisNewTicket(page: Page): Promise<void> {
+export async function gotoSisNewTicket(
+  page: Page,
+  context: "sis" | "sis-conservacao" = "sis",
+): Promise<void> {
   await Promise.all([
     page.waitForResponse((response) =>
       matchesExpectedResponse(response, "/api/v1/sis/domain/formcreator/categories"),
@@ -133,7 +146,7 @@ export async function gotoSisNewTicket(page: Page): Promise<void> {
     page.waitForResponse((response) =>
       matchesExpectedResponse(response, /\/api\/v1\/sis\/domain\/formcreator\/forms(?:\?.*)?$/),
     ),
-    page.goto("/sis/new-ticket", { waitUntil: "domcontentloaded" }),
+    page.goto(`/${context}/new-ticket`, { waitUntil: "domcontentloaded" }),
   ]);
 
   await expect

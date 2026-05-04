@@ -14,9 +14,10 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const contextData: Record<string, { title: string; subtitle: string }> = {
   dtic: { title: "Chamados", subtitle: "DTIC - Tecnologia da Informacao" },
-  sis: { title: "Chamados", subtitle: "SIS - Infraestrutura e Servicos" },
-  "sis-manutencao": { title: "Chamados", subtitle: "SIS - Manutencao e Conservacao" },
-  "sis-memoria": { title: "Chamados", subtitle: "SIS - Conservacao e Memoria" },
+  sis: { title: "Chamados", subtitle: "SIS - Conservacao e Servicos" },
+  "sis-conservacao": { title: "Chamados", subtitle: "SIS - Conservacao e Servicos" },
+  "sis-manutencao": { title: "Chamados", subtitle: "SIS - Manutencao Predial" },
+  "sis-memoria": { title: "Chamados", subtitle: "SIS - Conservacao e Servicos" },
 };
 
 type FilterType = "all" | "open" | "closed";
@@ -161,7 +162,7 @@ export default function UserTicketsPage() {
   ];
 
   return (
-    <div className="flex h-full flex-col px-4 py-4 lg:px-8 lg:py-5">
+    <div className="flex min-h-full flex-col px-4 py-4 lg:h-full lg:min-h-0 lg:px-8 lg:py-5">
       <header className="mb-5 shrink-0">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -170,7 +171,7 @@ export default function UserTicketsPage() {
             {!loading && <p className="theme-copy-soft mt-1 text-[12px]">{countLabel}</p>}
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={() => router.push(`/${context}/new-ticket`)}
@@ -248,7 +249,7 @@ export default function UserTicketsPage() {
           <select
             value={dateFilter}
             onChange={(event) => setDateFilter(event.target.value as DateFilterType)}
-            className="theme-input min-w-[220px] rounded-lg px-3 py-2.5 text-[13px] outline-none"
+            className="theme-input w-full min-w-0 rounded-lg px-3 py-2.5 text-[13px] outline-none sm:min-w-[220px] lg:w-auto"
           >
             <option value="all">Sem filtro de data</option>
             <option value="30d">Ultimos 30 dias</option>
@@ -293,7 +294,7 @@ export default function UserTicketsPage() {
         </div>
       )}
 
-      <div className="min-h-0 flex-grow overflow-y-auto pr-1" style={{ scrollbarWidth: "none" }}>
+      <div className="flex-grow pr-1 lg:min-h-0 lg:overflow-y-auto" style={{ scrollbarWidth: "none" }}>
         {loading && tickets.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-text-2">
             <Loader2 size={28} className="theme-copy-soft animate-spin" />
